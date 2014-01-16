@@ -154,5 +154,7 @@ class CSCMotherboardME11 : public CSCMotherboard
 
   // debug gem matching
   bool debug_gem_matching;
+
+  bool print_available_pads;
 };
 #endif
