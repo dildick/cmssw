@@ -104,7 +104,17 @@ class CSCMotherboardME11 : public CSCMotherboard
 		     CSCCLCTDigi bestCLCT, CSCCLCTDigi secondCLCT,
 		     CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, int me);
 
+  void correlateLCTs(CSCALCTDigi bestALCT, CSCALCTDigi secondALCT,
+		     GEMCSCPadDigi pad1, GEMCSCPadDigi pad2,
+		     CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2);
+
+
   void matchGEMPads(const GEMCSCPadDigiCollection* gemPads);
+
+  void buildCoincidencePads(const GEMCSCPadDigiCollection* out_pads, 
+			    GEMCSCPadDigiCollection& out_co_pads,
+			    int deltaPad = 0, int deltaRoll = 0);
+  
 
   std::vector<CSCALCTDigi> alctV;
   std::vector<CSCCLCTDigi> clctV1b;
@@ -157,5 +167,7 @@ class CSCMotherboardME11 : public CSCMotherboard
   bool debug_gem_matching;
 
   bool print_available_pads;
+
+  int maxPadDeltaBX_;
 };
 #endif
