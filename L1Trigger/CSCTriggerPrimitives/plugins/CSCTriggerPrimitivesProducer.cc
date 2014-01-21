@@ -43,6 +43,7 @@ CSCTriggerPrimitivesProducer::CSCTriggerPrimitivesProducer(const edm::ParameterS
   wireDigiProducer_ = conf.getParameter<edm::InputTag>("CSCWireDigiProducer");
   compDigiProducer_ = conf.getParameter<edm::InputTag>("CSCComparatorDigiProducer");
   gemPadProducer_ = conf.getUntrackedParameter<edm::InputTag>("gemPadProducer", edm::InputTag());
+  gemCoPadProducer_ = conf.getUntrackedParameter<edm::InputTag>("gemCoPadProducer", edm::InputTag());
   checkBadChambers_ = conf.getUntrackedParameter<bool>("checkBadChambers", true);
 
   lctBuilder_ = new CSCTriggerPrimitivesBuilder(conf); // pass on the conf
@@ -114,6 +115,13 @@ void CSCTriggerPrimitivesProducer::produce(edm::Event& ev,
     gemPads = h_pads.product();
   }
 
+  const GEMCSCPadDigiCollection *gemCoPads = nullptr;
+  if (!gemCoPadProducer_.label().empty()) {
+    edm::Handle<GEMCSCPadDigiCollection> h_pads;
+    ev.getByLabel(gemCoPadProducer_, h_pads);
+    gemCoPads = h_pads.product();
+  }
+
   // Create empty collections of ALCTs, CLCTs, and correlated LCTs upstream
   // and downstream of MPC.
   std::auto_ptr<CSCALCTDigiCollection> oc_alct(new CSCALCTDigiCollection);
@@ -140,7 +148,7 @@ void CSCTriggerPrimitivesProducer::produce(edm::Event& ev,
   if (wireDigis.isValid() && compDigis.isValid()) {   
     const CSCBadChambers* temp = checkBadChambers_ ? pBadChambers.product() : new CSCBadChambers;
     lctBuilder_->build(temp,
-		       wireDigis.product(), compDigis.product(), gemPads,
+		       wireDigis.product(), compDigis.product(), gemPads, gemCoPads,
 		       *oc_alct, *oc_clct, *oc_pretrig, *oc_lct, *oc_sorted_lct);
     if (!checkBadChambers_)
       delete temp;
