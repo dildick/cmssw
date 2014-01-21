@@ -414,7 +414,7 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
         {
 	  // need extra GEM pad for low quality stubs
 	  const bool checkLowQualityStubs(true);
-	  if (checkLowQualityStubs and clct->bestCLCT[bx_clct].getQuality()<4){
+	  if (checkLowQualityStubs and clct->bestCLCT[bx_clct].getQuality() < 4){
 	    if (hasPads) {
 	      // pick the pad that corresponds 
 	      std::pair<unsigned int, const GEMCSCPadDigi*> my_pad;
@@ -434,9 +434,9 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	      continue;
 	    }
 	  }
-	  /*
-	  // check BX if copads
-	  if (hasCoPads){
+
+	  const bool checkInCorrectTiming(true);
+	  if (checkInCorrectTiming and hasCoPads){
 	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
 	    for (auto p : copads[bx_clct]){
 	      if (GEMDetId(p.first).chamber() == csc_id.chamber())
@@ -448,7 +448,27 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	      std::cout << "CLCT BX is different from CoPad BX" << std::endl;
 	    }
 	  }
-	  */
+
+	  const bool checkCorrectLCTGEMs(true);
+	  if (checkCorrectLCTGEMs and hasCoPads) {
+	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
+	    for (auto p : copads[bx_clct]){
+	      if (GEMDetId(p.first).chamber() == csc_id.chamber())
+		my_copad = p;
+	    }
+	    std::cout << "Copad BX " << my_copad.second->bx() << std::endl;
+	    const int bestWG(alct->bestALCT[bx_alct].getKeyWG());
+	    const int secondWG(alct->secondALCT[bx_alct].getKeyWG());
+	    const int bestStrip(clct->bestCLCT[bx_alct].getKeyStrip());
+	    const int secondStrip(clct->secondCLCT[bx_alct].getKeyStrip());
+	    std::cout << "1st WG " << bestWG << " "
+		      << "2nd WG " << secondWG << " "
+		      << "1st strip" << bestStrip << " "
+		      << "2nd strip" << secondStrip << std::endl;
+	    std::cout << "pad " << my_copad.second->pad() << " "
+		      << "Id " << GEMDetId(my_copad.first) << std::endl;
+	    // calculate difference between 
+	  }
 	    
 	  ++nSuccesFulMatches;
 	  //	    if (infoV > 1) LogTrace("CSCMotherboard")
