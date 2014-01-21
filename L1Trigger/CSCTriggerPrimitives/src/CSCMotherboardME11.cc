@@ -229,11 +229,14 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   CSCChamber* cscChamber = geo_manager->chamber(theEndcap, theStation, theSector, theSubsector, theTrigChamber);
 
   const int region((theEndcap == 1) ? 1: -1);
+  auto csc_id = cscChamber->id();
+  const int chamber = csc_id.chamber();
 
   // retrieve the GEM trigger pads in a certain BX window for this CSC 
   std::map<int , std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > > pads;
   //  pads.clear();
-  const GEMSuperChamber* superChamber(gem_g->superChamber(GEMDetId(region, 1, theStation, 1, theTrigChamber, 0)));
+  const GEMSuperChamber* superChamber(gem_g->superChamber(GEMDetId(region, 1, theStation, 1, chamber, 0)));
+//   std::cout << superChamber->id() << std::endl;
   for (auto ch : superChamber->chambers())
   {
     for (auto roll : ch->etaPartitions() )
@@ -242,6 +245,8 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
       auto pads_in_det = gemPads->get(gem_id);
       for (auto pad = pads_in_det.first; pad != pads_in_det.second; ++pad)
       {
+// 	std::cout << "Adding pad " << std::endl;
+// 	std::cout << *pad << std::endl;
 	auto id_pad = std::make_pair(gem_id(), &(*pad));
 	
 	const int bx_shifted(lct_central_bx + pad->bx());
