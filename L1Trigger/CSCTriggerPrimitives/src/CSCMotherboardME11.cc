@@ -435,7 +435,7 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	    }
 	  }
 
-	  const bool checkInCorrectTiming(true);
+	  const bool checkInCorrectTiming(false);
 	  if (checkInCorrectTiming and hasCoPads){
 	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
 	    for (auto p : copads[bx_clct]){
@@ -449,7 +449,7 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	    }
 	  }
 
-	  const bool checkCorrectLCTGEMs(true);
+	  const bool checkCorrectLCTGEMs(false);
 	  if (checkCorrectLCTGEMs and hasCoPads) {
 	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
 	    for (auto p : copads[bx_clct]){
@@ -459,10 +459,15 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	    std::cout << "Copad BX " << my_copad.second->bx() << std::endl;
 	    const int bestWG(alct->bestALCT[bx_alct].getKeyWG());
 	    const int secondWG(alct->secondALCT[bx_alct].getKeyWG());
-	    const int bestStrip(clct->bestCLCT[bx_alct].getKeyStrip());
-	    const int secondStrip(clct->secondCLCT[bx_alct].getKeyStrip());
+	    const int bestKeyStrip(clct->bestCLCT[bx_alct].getKeyStrip());
+	    const int secondKeyStrip(clct->secondCLCT[bx_alct].getKeyStrip());
+	    const int bestStrip(bestKeyStrip/2 + 1);
+	    const int secondStrip(secondKeyStrip/2 + 1);
+	    
 	    std::cout << "1st WG " << bestWG << " "
-		      << "2nd WG " << secondWG << " "
+		      << "2nd WG " << secondWG << " " << std::endl
+		      << "1st Key strip" << bestKeyStrip << " "
+		      << "2nd Key strip" << secondKeyStrip << std::endl
 		      << "1st strip" << bestStrip << " "
 		      << "2nd strip" << secondStrip << std::endl;
 	    std::cout << "pad " << my_copad.second->pad() << " "
