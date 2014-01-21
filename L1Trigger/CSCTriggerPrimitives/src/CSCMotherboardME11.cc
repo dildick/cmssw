@@ -1,4 +1,3 @@
-
 //-----------------------------------------------------------------------------
 //
 //   Class: CSCMotherboardME11
@@ -238,7 +237,7 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 
   // build coincidence pads
   std::auto_ptr<GEMCSCPadDigiCollection> pCoPads(new GEMCSCPadDigiCollection());
-  buildCoincidencePads(gemPads, *pCoPads);
+  buildCoincidencePads(gemPads, *pCoPads, 1, 0);
 
   // retrieve the GEM trigger pads in a certain BX window for this CSC 
   std::map<int , std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > > pads;
@@ -379,8 +378,8 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
  	std::cout << "!!!!!WARNING!!!!! NO TRIGGER PADS" << std::endl;
 
       // check if there are any copads 
-      const bool hasCopads(copads.size()!=0);
-      if (hasCopads){
+      const bool hasCoPads(copads.size()!=0);
+      if (hasCoPads){
 	if (print_available_pads) std::cout << "------------------------------------------------------------------------" << std::endl;
 	bool first = true;
 	for (int bx = 0; bx < MAX_LCT_BINS; ++bx) {
@@ -414,8 +413,8 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	if (clct->bestCLCT[bx_clct].isValid())
         {
 	  // need extra GEM pad for low quality stubs
-	  if (clct->bestCLCT[bx_clct].getQuality()<4){
-	    std::cout << "INFO: low quality CLCT" << std::endl;
+	  const bool checkLowQualityStubs(true);
+	  if (checkLowQualityStubs and clct->bestCLCT[bx_clct].getQuality()<4){
 	    if (hasPads) {
 	      // pick the pad that corresponds 
 	      std::pair<unsigned int, const GEMCSCPadDigi*> my_pad;
@@ -424,17 +423,32 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 		  my_pad = p;
 	      }
 	      if (!my_pad.second){
+		std::cout << "Warning: low quality CLCT without matching GEM trigger pad" << std::endl;
 		continue;
-		std::cout << "Warning: without matching GEM trigger pad" << std::endl;
 	      }
 	      else
-		std::cout << "INFO: matching GEM trigger pad" << std::endl;
+		std::cout << "INFO: low quality CLCT with matching GEM trigger pad" << std::endl;
 	    }
 	    else{
-	      continue;
 	      std::cout << "Warning: low quality CLCT without any GEM trigger pad" << std::endl;
+	      continue;
 	    }
 	  }
+	  /*
+	  // check BX if copads
+	  if (hasCoPads){
+	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
+	    for (auto p : copads[bx_clct]){
+	      if (GEMDetId(p.first).chamber() == csc_id.chamber())
+		my_copad = p;
+	    }
+	    std::cout << "Copad BX " << my_copad.second->bx() << std::endl;
+	    std::cout << "CLCT BX " << bx_clct << std::endl;
+	    if (my_copad.second and my_copad.second->bx() != bx_clct){
+	      std::cout << "CLCT BX is different from CoPad BX" << std::endl;
+	    }
+	  }
+	  */
 	    
 	  ++nSuccesFulMatches;
 	  //	    if (infoV > 1) LogTrace("CSCMotherboard")
@@ -1119,8 +1133,10 @@ void CSCMotherboardME11::buildCoincidencePads(const GEMCSCPadDigiCollection* out
     const auto& pads_range = (*det_range).second;
     for (auto p = pads_range.first; p != pads_range.second; ++p) {
       for (auto co_p = co_pads_range.first; co_p != co_pads_range.second; ++co_p) {
-	// check the match!
-	if (p->pad() != co_p->pad() || std::abs(p->bx() - co_p->bx()) > maxPadDeltaBX_ ) continue;
+	// check the match in pad
+	if (std::abs(p->pad() - co_p->pad()) > deltaPad) continue;
+	// check the match in BX
+	if (std::abs(p->bx() - co_p->bx()) > maxPadDeltaBX_ ) continue;
 	
 	// always use layer1 pad's BX as a copad's BX
 	GEMCSCPadDigi co_pad_digi(p->pad(), p->bx());
