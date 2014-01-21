@@ -17,14 +17,15 @@ process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(100) )
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:out_digi.root'
+        'file:out_digi_new3.root'
+#    'file:tempFiles/out_sim_250_1_b3K.root'
     )
 )
 
-process.dumper = cms.EDAnalyzer("GEMDigiReader")
+process.dumper = cms.EDAnalyzer("GEMCSCPadDigiReader")
 
 process.p = cms.Path(process.dumper)
