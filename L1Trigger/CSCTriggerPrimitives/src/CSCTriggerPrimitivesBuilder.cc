@@ -165,6 +165,7 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
 					const CSCWireDigiCollection* wiredc,
 					const CSCComparatorDigiCollection* compdc,
 					const GEMCSCPadDigiCollection* gemPads,
+					const GEMCSCPadDigiCollection* gemCoPads,
 					CSCALCTDigiCollection& oc_alct,
 					CSCCLCTDigiCollection& oc_clct,
                                         CSCCLCTPreTriggerCollection & oc_pretrig,
@@ -215,7 +216,7 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
  
               //LogTrace("CSCTriggerPrimitivesBuilder")<<"CSCTriggerPrimitivesBuilder::build in E:"<<endc<<" S:"<<stat<<" R:"<<ring;
  
-              tmb11->run(wiredc, compdc, gemPads);
+              tmb11->run(wiredc, compdc, gemPads, gemCoPads);
               std::vector<CSCCorrelatedLCTDigi> lctV = tmb11->readoutLCTs1b();
               std::vector<CSCCorrelatedLCTDigi> lctV1a = tmb11->readoutLCTs1a();
  

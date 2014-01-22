@@ -38,7 +38,8 @@ class CSCMotherboardME11 : public CSCMotherboard
       takes results and correlates into CorrelatedLCT. */
   void run(const CSCWireDigiCollection* wiredc,
 	   const CSCComparatorDigiCollection* compdc,
-	   const GEMCSCPadDigiCollection* gemPads);
+	   const GEMCSCPadDigiCollection* gemPads,
+	   const GEMCSCPadDigiCollection* gemCoPads);
 
   /** Returns vectors of found correlated LCTs in ME1a and ME1b, if any. */
   std::vector<CSCCorrelatedLCTDigi> getLCTs1a();
@@ -77,7 +78,7 @@ class CSCMotherboardME11 : public CSCMotherboard
   static const int lut_wg_vs_hs_me1b[48][2];
   static const int lut_wg_vs_hs_me1a[48][2];
   static const int lut_wg_vs_hs_me1ag[48][2];
-  static const double lut_pt_vs_dphi_gemcsc[6][3];
+  static const double lut_pt_vs_dphi_gemcsc[7][3];
 
   /** SLHC: special configuration parameters for ME11 treatment. */
   bool smartME1aME1b, disableME1a, gangedME1a;
@@ -103,7 +104,17 @@ class CSCMotherboardME11 : public CSCMotherboard
 		     CSCCLCTDigi bestCLCT, CSCCLCTDigi secondCLCT,
 		     CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, int me);
 
+  void correlateLCTs(CSCALCTDigi bestALCT, CSCALCTDigi secondALCT,
+		     GEMCSCPadDigi pad1, GEMCSCPadDigi pad2,
+		     CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2);
+
+
   void matchGEMPads(const GEMCSCPadDigiCollection* gemPads);
+
+  void buildCoincidencePads(const GEMCSCPadDigiCollection* out_pads, 
+			    GEMCSCPadDigiCollection& out_co_pads,
+			    int deltaPad = 0, int deltaRoll = 0);
+  
 
   std::vector<CSCALCTDigi> alctV;
   std::vector<CSCCLCTDigi> clctV1b;
@@ -154,5 +165,9 @@ class CSCMotherboardME11 : public CSCMotherboard
 
   // debug gem matching
   bool debug_gem_matching;
+
+  bool print_available_pads;
+
+  int maxPadDeltaBX_;
 };
 #endif

@@ -16,6 +16,7 @@
 #include <Geometry/GEMGeometry/interface/GEMGeometry.h>
 #include <L1Trigger/CSCCommonTrigger/interface/CSCTriggerGeometry.h>
 #include <DataFormats/Math/interface/deltaPhi.h>
+#include <typeinfo>
 
 // LUT for which ME1/1 wire group can cross which ME1/a halfstrip
 // 1st index: WG number
@@ -63,8 +64,9 @@ const int CSCMotherboardME11::lut_wg_vs_hs_me1b[48][2] = {
 // 1st index: pt value = {5,10,15,20,30,40}
 // 2nd index: bending angle for odd numbered chambers
 // 3rd index: bending angle for even numbered chambers
-const double CSCMotherboardME11::lut_pt_vs_dphi_gemcsc[6][3] = {
-  {5.,  0.02203511, 0.00930056}, 
+const double CSCMotherboardME11::lut_pt_vs_dphi_gemcsc[7][3] = {
+  {5.,  0.02203511, 0.00930056},
+  {6 ,  0.0182579 , 0.00790009},
   {10., 0.01066000, 0.00483286},
   {15., 0.00722795, 0.00363230},
   {20., 0.00562598, 0.00304878},
@@ -141,6 +143,12 @@ CSCMotherboardME11::CSCMotherboardME11(unsigned endcap, unsigned station,
 
   // debug gem matching
   debug_gem_matching = tmbParams.getUntrackedParameter<bool>("debugGemMatching", false);
+
+  // print available pads
+  print_available_pads = tmbParams.getUntrackedParameter<bool>("printAvailablePads", false);
+
+  // max delta BX for copad 
+  maxPadDeltaBX_ = tmbParams.getUntrackedParameter<int>("maxPadDeltaBX",1);
 }
 
 
@@ -195,7 +203,8 @@ void CSCMotherboardME11::setConfigParameters(const CSCDBL1TPParameters* conf)
 
 void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
                              const CSCComparatorDigiCollection* compdc,
-                             const GEMCSCPadDigiCollection* gemPads)
+                             const GEMCSCPadDigiCollection* gemPads,
+			     const GEMCSCPadDigiCollection* gemCoPads)
 {
   clear();
   
@@ -219,6 +228,57 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   for (int b=0;b<20;b++)
     used_alct_mask[b] = used_alct_mask_1a[b] = used_clct_mask[b] = used_clct_mask_1a[b] = 0;
 
+  // retrieve CSCChamber geometry                                                                                                                                        
+  CSCTriggerGeomManager* geo_manager = CSCTriggerGeometry::get();
+  CSCChamber* cscChamber = geo_manager->chamber(theEndcap, theStation, theSector, theSubsector, theTrigChamber);
+
+  const int region((theEndcap == 1) ? 1: -1);
+  auto csc_id = cscChamber->id();
+
+  // build coincidence pads
+  std::auto_ptr<GEMCSCPadDigiCollection> pCoPads(new GEMCSCPadDigiCollection());
+  buildCoincidencePads(gemPads, *pCoPads, 1, 0);
+
+  // retrieve the GEM trigger pads in a certain BX window for this CSC 
+  std::map<int , std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > > pads;
+  const GEMSuperChamber* superChamber(gem_g->superChamber(GEMDetId(region, 1, theStation, 1, csc_id.chamber(), 0)));
+  for (auto ch : superChamber->chambers()) {
+    for (auto roll : ch->etaPartitions()) {
+      GEMDetId gem_id(roll->id());
+      auto pads_in_det = gemPads->get(gem_id);
+      auto copads_in_det = pCoPads->get(gem_id);
+      for (auto pad = pads_in_det.first; pad != pads_in_det.second; ++pad) {
+	// do not add co-pads here
+	bool isCoPad = false;
+	for (auto copad = copads_in_det.first; copad != copads_in_det.second; ++copad) {
+	  if (pad == copad){
+	    isCoPad = true;
+	  }
+	}
+	if (isCoPad) continue;
+	
+	auto id_pad = std::make_pair(gem_id(), &(*pad));
+	const int bx_shifted(lct_central_bx + pad->bx());
+	for (int bx = bx_shifted - gem_match_delta_bx;bx <= bx_shifted + gem_match_delta_bx; ++bx) {
+	  pads[bx].push_back(id_pad);
+	}
+      }
+    }
+  }
+
+  std::map<int , std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > > copads;
+  for (auto ch : superChamber->chambers()) {
+    for (auto roll : ch->etaPartitions()) {
+      GEMDetId gem_id(roll->id());
+      auto copads_in_det = pCoPads->get(gem_id);
+      for (auto pad = copads_in_det.first; pad != copads_in_det.second; ++pad) {
+	auto id_pad = std::make_pair(gem_id(), &(*pad));
+	const int bx_shifted(lct_central_bx + pad->bx());
+	copads[bx_shifted].push_back(id_pad);
+      }
+    }
+  }
+  
   // CLCT-centric CLCT-to-ALCT matching
   if (clct_to_alct) for (int bx_clct = 0; bx_clct < CSCCathodeLCTProcessor::MAX_CLCT_BINS; bx_clct++)
   {
@@ -281,44 +341,224 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     // Do not attempt to make ALCT-only LCT for ME1b
   } // end of CLCT-centric matching
 
+  //  bool foundCLCT(false);
+  
   // ALCT-centric ALCT-to-CLCT matching
   else for (int bx_alct = 0; bx_alct < CSCAnodeLCTProcessor::MAX_ALCT_BINS; bx_alct++)
   {
     if (alct->bestALCT[bx_alct].isValid())
     {
+      std::cout << "========================================================================" << std::endl;
+      std::cout << "Attempt to reconstruct LCT stubs in ME1/b chamber: " << cscChamber->id() << std::endl;
+      std::cout << "------------------------------------------------------------------------" << std::endl;
+      std::cout << "+++ Best ALCT Details: ";
+      alct->bestALCT[bx_alct].print();
+      std::cout << "+++ Second ALCT Details: ";
+      alct->secondALCT[bx_alct].print();
+
+      // check if there are any pads 
+      const bool hasPads(pads.size()!=0);
+      if (hasPads){
+	if (print_available_pads) std::cout << "------------------------------------------------------------------------" << std::endl;
+	bool first = true;
+	for (int bx = 0; bx < MAX_LCT_BINS; ++bx) {
+	  std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > in_pads = pads[bx];
+	  if (in_pads.size()!=0){
+	    // print the detid of the csc chamber in consideration
+	    if (first) if (print_available_pads) std::cout << "Checking the available pads in bx " << bx << std::endl;
+	    first = false;
+	    if (print_available_pads) std::cout << "number of pads in BX " << bx << " : " << in_pads.size() << std::endl;
+	    for (auto pad : in_pads){
+	      if (print_available_pads) std::cout << "   detId " << pad.first << " " << GEMDetId(pad.first) << ", pad = " << pad.second->pad() << ", BX = " << pad.second->bx() + 6<< std::endl;	
+	    }
+	  }
+	}
+      }
+      else 
+ 	std::cout << "!!!!!WARNING!!!!! NO TRIGGER PADS" << std::endl;
+
+      // check if there are any copads 
+      const bool hasCoPads(copads.size()!=0);
+      if (hasCoPads){
+	if (print_available_pads) std::cout << "------------------------------------------------------------------------" << std::endl;
+	bool first = true;
+	for (int bx = 0; bx < MAX_LCT_BINS; ++bx) {
+	  std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > in_pads = copads[bx];
+	  if (in_pads.size()!=0){
+	    // print the detid of the csc chamber in consideration
+	    if (first) if (print_available_pads) std::cout << "Checking the available copads in bx " << bx << std::endl;
+	    first = false;
+	    if (print_available_pads) std::cout << "number of pads in BX " << bx << " : " << in_pads.size() << std::endl;
+	    for (auto pad : in_pads){
+	      if (print_available_pads) std::cout << "   detId " << pad.first << " " << GEMDetId(pad.first) << ", pad = " << pad.second->pad() << ", BX = " << pad.second->bx() + 6<< std::endl;	
+	    }
+	  }
+	}
+      }
+      else 
+ 	std::cout << "!!!!!WARNING!!!!! NO GEM TRIGGER COPADS" << std::endl;
+
+      
       int bx_clct_start = bx_alct - match_trig_window_size/2;
       int bx_clct_stop  = bx_alct + match_trig_window_size/2;
-      
+
       // matching in ME1b
+      int nSuccesFulMatches = 0;
       for (int bx_clct = bx_clct_start; bx_clct <= bx_clct_stop; bx_clct++)
       {
+	std::cout << "**Checking BX " << bx_clct << std::endl;
         if (bx_clct < 0 || bx_clct >= CSCCathodeLCTProcessor::MAX_CLCT_BINS) continue;
         if (drop_used_clcts && used_clct_mask[bx_clct]) continue;
-        if (clct->bestCLCT[bx_clct].isValid())
+	
+	if (clct->bestCLCT[bx_clct].isValid())
         {
-          if (infoV > 1) LogTrace("CSCMotherboard")
-            << "Successful ALCT-CLCT match in ME1b: bx_alct = " << bx_alct
-            << "; match window: [" << bx_clct_start << "; " << bx_clct_stop
-            << "]; bx_clct = " << bx_clct;
-          int mbx = bx_clct-bx_clct_start;
-          correlateLCTs(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct],
-                        clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
-                        allLCTs1b[bx_alct][mbx][0], allLCTs1b[bx_alct][mbx][1], ME1B);
-          if (allLCTs1b[bx_alct][mbx][0].isValid())
-          {
-            used_clct_mask[bx_clct] += 1;
-            if (match_earliest_clct_me11_only) break;
-          }
-        }
-      }
+	  // need extra GEM pad for low quality stubs
+	  const bool checkLowQualityStubs(true);
+	  if (checkLowQualityStubs and clct->bestCLCT[bx_clct].getQuality() < 4){
+	    if (hasPads) {
+	      // pick the pad that corresponds 
+	      std::pair<unsigned int, const GEMCSCPadDigi*> my_pad;
+	      for (auto p : pads[bx_clct]){
+		if (GEMDetId(p.first).chamber() == csc_id.chamber())
+		  my_pad = p;
+	      }
+	      if (!my_pad.second){
+		std::cout << "Warning: low quality CLCT without matching GEM trigger pad" << std::endl;
+		continue;
+	      }
+	      else
+		std::cout << "INFO: low quality CLCT with matching GEM trigger pad" << std::endl;
+	    }
+	    else{
+	      std::cout << "Warning: low quality CLCT without any GEM trigger pad" << std::endl;
+	      continue;
+	    }
+	  }
 
+	  const bool checkInCorrectTiming(false);
+	  if (checkInCorrectTiming and hasCoPads){
+	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
+	    for (auto p : copads[bx_clct]){
+	      if (GEMDetId(p.first).chamber() == csc_id.chamber())
+		my_copad = p;
+	    }
+	    std::cout << "Copad BX " << my_copad.second->bx() << std::endl;
+	    std::cout << "CLCT BX " << bx_clct << std::endl;
+	    if (my_copad.second and my_copad.second->bx() != bx_clct){
+	      std::cout << "CLCT BX is different from CoPad BX" << std::endl;
+	    }
+	  }
+
+	  const bool checkCorrectLCTGEMs(false);
+	  if (checkCorrectLCTGEMs and hasCoPads) {
+	    std::pair<unsigned int, const GEMCSCPadDigi*> my_copad;
+	    for (auto p : copads[bx_clct]){
+	      if (GEMDetId(p.first).chamber() == csc_id.chamber())
+		my_copad = p;
+	    }
+	    std::cout << "Copad BX " << my_copad.second->bx() << std::endl;
+	    const int bestWG(alct->bestALCT[bx_alct].getKeyWG());
+	    const int secondWG(alct->secondALCT[bx_alct].getKeyWG());
+	    const int bestKeyStrip(clct->bestCLCT[bx_alct].getKeyStrip());
+	    const int secondKeyStrip(clct->secondCLCT[bx_alct].getKeyStrip());
+	    const int bestStrip(bestKeyStrip/2 + 1);
+	    const int secondStrip(secondKeyStrip/2 + 1);
+	    
+	    std::cout << "1st WG " << bestWG << " "
+		      << "2nd WG " << secondWG << " " << std::endl
+		      << "1st Key strip" << bestKeyStrip << " "
+		      << "2nd Key strip" << secondKeyStrip << std::endl
+		      << "1st strip" << bestStrip << " "
+		      << "2nd strip" << secondStrip << std::endl;
+	    std::cout << "pad " << my_copad.second->pad() << " "
+		      << "Id " << GEMDetId(my_copad.first) << std::endl;
+	    // calculate difference between 
+	  }
+	    
+	  ++nSuccesFulMatches;
+	  //	    if (infoV > 1) LogTrace("CSCMotherboard")
+	  int mbx = bx_clct-bx_clct_start;
+	  correlateLCTs(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct],
+			clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
+			allLCTs1b[bx_alct][mbx][0], allLCTs1b[bx_alct][mbx][1], ME1B);
+	  std::cout 
+	    << "------------------------------------------------------------------------" << std::endl
+	    << "Successful ALCT-CLCT match in ME1b: bx_alct = " << bx_alct
+	    << "; match window: [" << bx_clct_start << "; " << bx_clct_stop
+	      << "]; bx_clct = " << bx_clct << std::endl;
+	  const bool printDetails(true);
+	  if (printDetails) {
+	    std::cout << "+++ Best CLCT Details: ";
+	    clct->bestCLCT[bx_clct].print();
+	    std::cout << "+++ Second CLCT Details: ";
+	    clct->secondCLCT[bx_clct].print();
+	  }
+	  
+	  if (allLCTs1b[bx_alct][mbx][0].isValid())
+	    {
+	      used_clct_mask[bx_clct] += 1;
+	      if (match_earliest_clct_me11_only) break;
+	    }
+	}
+	// 	  auto id_pad = std::make_pair(gem_id(), &(*pad));
+	// 	  const int bx_shifted(lct_central_bx + pad->bx());
+	// 	  copads[bx_shifted].push_back(id_pad);
+	//         }
+      }
+      if (nSuccesFulMatches>1)
+	std::cout << "Too many successful ALCT-CLCT matches in ME1b: " << nSuccesFulMatches
+		  << ", CSCDetId " << cscChamber->id()
+		  << ", bx_alct = " << bx_alct
+		  << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
+      else if (nSuccesFulMatches==1)
+	std::cout << "1 successful ALCT-CLCT match in ME1b: " 
+		  << " CSCDetId " << cscChamber->id()
+		  << ", bx_alct = " << bx_alct
+		  << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
+      else if (nSuccesFulMatches==0)
+	if (print_available_pads) 
+	  std::cout << "Unsuccessful ALCT-CLCT match in ME1b: " 
+		    << "CSCDetId " << cscChamber->id()
+		    << ", bx_alct = " << bx_alct
+		    << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
+
+      /*
+      // check if there are any pads 
+      const bool hasPads(pads.size()!=0);
+      if (hasPads){
+	if (print_available_pads) std::cout << "------------------------------------------------------------------------" << std::endl;
+	bool first = true;
+	for (int bx = 0; bx < MAX_LCT_BINS; ++bx) {
+	  std::vector<std::pair<unsigned int, const GEMCSCPadDigi*> > in_pads = pads[bx];
+	  if (in_pads.size()!=0){
+	    // print the detid of the csc chamber in consideration
+	    if (first) if (print_available_pads) std::cout << "Checking the available pads in bx " << bx << std::endl;
+	    first = false;
+	    if (print_available_pads) std::cout << "number of pads in BX " << bx << " : " << in_pads.size() << std::endl;
+	    for (auto pad : in_pads){
+	      if (print_available_pads) std::cout << "   detId " << pad.first << " " << GEMDetId(pad.first) << ", pad = " << pad.second->pad() << ", BX = " << pad.second->bx() + 6<< std::endl;	
+	    }
+	  }
+	}
+      }
+      else 
+ 	std::cout << "!!!!!ALARM!!!!! NO TRIGGER PADS" << std::endl;
+      */
+      
       // matching in ME1a
+      nSuccesFulMatches = 0;
       for (int bx_clct = bx_clct_start; bx_clct <= bx_clct_stop; bx_clct++)
       {
         if (bx_clct < 0 || bx_clct >= CSCCathodeLCTProcessor::MAX_CLCT_BINS) continue;
         if (drop_used_clcts && used_clct_mask_1a[bx_clct]) continue;
         if (clct1a->bestCLCT[bx_clct].isValid())
         {
+	  ++nSuccesFulMatches;
+// 	  std::cout 
+	  if (infoV > 1) LogTrace("CSCMotherboard")
+	    << "Successful ALCT-CLCT match in ME1a: bx_alct = " << bx_alct
+	    << "; match window: [" << bx_clct_start << "; " << bx_clct_stop
+	    << "]; bx_clct = " << bx_clct << std::endl;
           if (infoV > 1) LogTrace("CSCMotherboard")
             << "Successful ALCT-CLCT match in ME1a: bx_alct = " << bx_alct
             << "; match window: [" << bx_clct_start << "; " << bx_clct_stop
@@ -334,8 +574,30 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
           }
         }
       }
+      /*
+      if (nSuccesFulMatches==3 or nSuccesFulMatches==2)
+	std::cout << "Too many successful ALCT-CLCT matches in ME1a: " << nSuccesFulMatches
+		  << ", CSCDetId " << cscChamber->id()
+		  << ", bx_alct = " << bx_alct
+		  << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
+      else if (nSuccesFulMatches==1)
+	std::cout << "1 successful ALCT-CLCT match in ME1a: " 
+		  << " CSCDetId " << cscChamber->id()
+		  << ", bx_alct = " << bx_alct
+		  << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
+      else 
+	if (print_available_pads) 
+	  std::cout << "Unsuccessful ALCT-CLCT match in ME1a: " 
+		    << "CSCDetId " << cscChamber->id()
+		    << ", bx_alct = " << bx_alct
+		    << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
+      */
     }
   } // end of ALCT-centric matching
+
+
+
+
 
   // possibly use some discrimination from GEMs
   if (gemPads != nullptr &&  do_gem_matching) matchGEMPads(gemPads);
@@ -825,14 +1087,28 @@ void CSCMotherboardME11::matchGEMPads(const GEMCSCPadDigiCollection* gemPads)
           {
             gem_matched = true;
             min_dphi = dphi;
+
             //gem_bx = id_pad.second->bx();
           }
         }
         if (gem_matched)
         {
           if (debug_gem_matching) std::cout<<" GOT MATCHED GEM!"<<std::endl;
-          //lct.setGEMBX(gem_bx);
           lct.setGEMDPhi(min_dphi);
+	  // assing the bit value
+	  int oddEven = int(not is_odd) + 1;
+	  int numberOfBendAngles(sizeof lut_pt_vs_dphi_gemcsc / sizeof *lut_pt_vs_dphi_gemcsc);
+	  int iFound = 0;
+	  if (abs(min_dphi) < lut_pt_vs_dphi_gemcsc[numberOfBendAngles-1][oddEven]) iFound = numberOfBendAngles;
+	  else {
+	    for (int i=0; i< numberOfBendAngles-1; ++i) {
+	      if (debug_gem_matching) std::cout<<"is_odd "<<is_odd <<" min_dphi "<<abs(min_dphi)<<" bend angle lib "<<i<<" "<<lut_pt_vs_dphi_gemcsc[i][oddEven]<< std::endl;
+	      if (abs(min_dphi) < lut_pt_vs_dphi_gemcsc[i][oddEven] and abs(min_dphi) > lut_pt_vs_dphi_gemcsc[i+1][oddEven]) 
+		iFound = i+1;
+	    }
+	  }
+	  lct.setGEMDPhiBits(iFound);
+	  if (debug_gem_matching) std::cout<<"found bend angle "<<abs(min_dphi)<<" "<<lct.getGEMDPhiBits()<<" "<<lut_pt_vs_dphi_gemcsc[iFound][oddEven]<<" "<<iFound << std::endl;
         }
         else
         {
@@ -857,4 +1133,40 @@ void CSCMotherboardME11::matchGEMPads(const GEMCSCPadDigiCollection* gemPads)
         if (allLCTs1b[bx][mbx][i].isValid()) nlct_after++;
       }
   if (debug_gem_matching) std::cout<<"before "<<nlct<<"  after "<<nlct_after<<std::endl;
+}
+
+
+void CSCMotherboardME11::buildCoincidencePads(const GEMCSCPadDigiCollection* out_pads,
+					      GEMCSCPadDigiCollection& out_co_pads,
+					      int deltaPad, int deltaRoll)
+{
+  // build coincidences
+  for (auto det_range = out_pads->begin(); det_range != out_pads->end(); ++det_range) {
+    const GEMDetId& id = (*det_range).first;
+    
+    // all coincidences detIDs will have layer=1
+    if (id.layer() != 1) continue;
+    
+    // find the corresponding id with layer=2
+    GEMDetId co_id(id.region(), id.ring(), id.station(), 2, id.chamber(), id.roll());
+    
+    auto co_pads_range = out_pads->get(co_id);
+    // empty range = no possible coincidence pads
+    if (co_pads_range.first == co_pads_range.second) continue;
+      
+    // now let's correlate the pads in two layers of this partition
+    const auto& pads_range = (*det_range).second;
+    for (auto p = pads_range.first; p != pads_range.second; ++p) {
+      for (auto co_p = co_pads_range.first; co_p != co_pads_range.second; ++co_p) {
+	// check the match in pad
+	if (std::abs(p->pad() - co_p->pad()) > deltaPad) continue;
+	// check the match in BX
+	if (std::abs(p->bx() - co_p->bx()) > maxPadDeltaBX_ ) continue;
+	
+	// always use layer1 pad's BX as a copad's BX
+	GEMCSCPadDigi co_pad_digi(p->pad(), p->bx());
+	out_co_pads.insertDigi(id, co_pad_digi);
+      }
+    }
+  }
 }

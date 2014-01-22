@@ -20,7 +20,7 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:upgrade2019', '')
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(100)
+    input = cms.untracked.int32(-1)
 )
 
 process.options = cms.untracked.PSet(
@@ -79,7 +79,7 @@ if runCSCforSLHC:
     process = unganged_me1a_geometry(process)
     process = digitizer_timing_pre3_median(process)
 
-addCSCstubs = True
+addCSCstubs = False
 if addCSCstubs:
     # unganged local stubs emulator:
     process.load('L1Trigger.CSCTriggerPrimitives.cscTriggerPrimitiveDigisPostLS1_cfi')
@@ -106,13 +106,14 @@ if addPileUp:
 
 process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
-        'file:out_sim.root'
+        'file:out_sim_new3.root'
+        #'file:tempFiles/out_sim_250_1_b3K.root'
     )
 )
 
 process.output = cms.OutputModule("PoolOutputModule",
     fileName = cms.untracked.string(
-        'file:out_digi.root'
+        'file:out_digi_new2.root'
     ),
     outputCommands = cms.untracked.vstring(
         'keep  *_*_*_*',

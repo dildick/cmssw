@@ -55,6 +55,7 @@ class CSCTriggerPrimitivesBuilder
 	     const CSCWireDigiCollection* wiredc,
 	     const CSCComparatorDigiCollection* compdc,
 	     const GEMCSCPadDigiCollection* gemPads,
+	     const GEMCSCPadDigiCollection* gemCoPads,
 	     CSCALCTDigiCollection& oc_alct, CSCCLCTDigiCollection& oc_clct,
              CSCCLCTPreTriggerCollection & oc_pretrig,
 	     CSCCorrelatedLCTDigiCollection& oc_lct,
