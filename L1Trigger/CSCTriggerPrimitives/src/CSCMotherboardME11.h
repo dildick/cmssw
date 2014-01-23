@@ -168,6 +168,10 @@ class CSCMotherboardME11 : public CSCMotherboard
 
   bool print_available_pads;
 
+  // max BX for window to perform matching
   int maxPadDeltaBX_;
+  
+  // Drop low quality stubs if they don't have GEMs
+  bool dropLowQualityCLCTsNoGEMs_;
 };
 #endif

@@ -1,5 +1,6 @@
 
 import FWCore.ParameterSet.Config as cms
+import os
 
 process = cms.Process("GEMDIGI")
 
@@ -26,6 +27,31 @@ process.options = cms.untracked.PSet(
     wantSummary = cms.untracked.bool(True)
 )
 
+################### Take inputs from crab.cfg file ##############
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing ('python')
+options.register ('pu',
+                  100,
+                  VarParsing.multiplicity.singleton,
+                  VarParsing.varType.float,
+                  "PU: 100  default")
+
+import sys
+print sys.argv
+
+if len(sys.argv) > 0:
+    last = sys.argv.pop()
+    sys.argv.extend(last.split(","))
+    print sys.argv
+    
+if hasattr(sys, "argv") == True:
+    options.parseArguments()
+    pu = options.pu
+    print 'Using pu: %f' % pu
+    
+#--------------------------------------------------------------------------------
+    
+
 process.contentAna = cms.EDAnalyzer("EventContentAnalyzer")
 
 # GEM digitizer
@@ -38,6 +64,13 @@ from SimMuon.GEMDigitizer.customizeGEMDigi import *
 #process = customize_digi_addGEM(process)  # run all detectors digi
 process = customize_digi_addGEM_muon_only(process) # only muon+GEM digi
 #process = customize_digi_addGEM_gem_only(process)  # only GEM digi
+
+## GEM geometry customization
+use6part = True
+if use6part:
+    mynum = process.XMLIdealGeometryESSource.geomXMLFiles.index('Geometry/MuonCommonData/data/v4/gemf.xml')
+    process.XMLIdealGeometryESSource.geomXMLFiles.remove('Geometry/MuonCommonData/data/v4/gemf.xml')
+    process.XMLIdealGeometryESSource.geomXMLFiles.insert(mynum,'Geometry/MuonCommonData/data/v2/gemf.xml')
 
 runCSCforSLHC = True
 if runCSCforSLHC:
@@ -55,7 +88,8 @@ if addCSCstubs:
 addPileUp = False
 if addPileUp:
     # list of MinBias files for pileup has to be provided
-    ff = open('filelist_pileup.txt', "r")
+    path = os.getenv( "CMSSW_BASE" ) + "/src/GEMCode/SimMuL1/test/"
+    ff = open('%sfilelist_minbias_61M_good.txt'%(path), "r")
     pu_files = ff.read().split('\n')
     ff.close()
     pu_files = filter(lambda x: x.endswith('.root'),  pu_files)
@@ -63,7 +97,7 @@ if addPileUp:
     process.mix.input = cms.SecSource("PoolSource",
         nbPileupEvents = cms.PSet(
              #### THIS IS AVERAGE PILEUP NUMBER THAT YOU NEED TO CHANGE
-            averageNumber = cms.double(50)
+            averageNumber = cms.double(pu)
         ),
         type = cms.string('poisson'),
         sequential = cms.untracked.bool(False),
@@ -85,21 +119,21 @@ process.output = cms.OutputModule("PoolOutputModule",
         'keep  *_*_*_*',
         #'drop CastorDataFramesSorted_simCastorDigis_*_GEMDIGI'
         # drop all CF stuff
-        ##'drop *_mix_*_*',
+        'drop *_mix_*_*',
         # drop tracker simhits
-        ##'drop PSimHits_*_Tracker*_*',
+        'drop PSimHits_*_Tracker*_*',
         # drop calorimetry stuff
-        ##'drop PCaloHits_*_*_*',
+        'drop PCaloHits_*_*_*',
         # clean up simhits from other detectors
-        ##'drop PSimHits_*_Totem*_*',
-        ##'drop PSimHits_*_FP420*_*',
-        ##'drop PSimHits_*_BSC*_*',
+        'drop PSimHits_*_Totem*_*',
+        'drop PSimHits_*_FP420*_*',
+        'drop PSimHits_*_BSC*_*',
         # drop some not useful muon digis and links
-        ##'drop *_*_MuonCSCStripDigi_*',
-        ##'drop *_*_MuonCSCStripDigiSimLinks_*',
-        #'drop *SimLink*_*_*_*',
-        ##'drop *RandomEngineStates_*_*_*',
-        ##'drop *_randomEngineStateProducer_*_*'
+        'drop *_*_MuonCSCStripDigi_*',
+        'drop *_*_MuonCSCStripDigiSimLinks_*',
+        'drop *SimLink*_*_*_*',
+        'drop *RandomEngineStates_*_*_*',
+        'drop *_randomEngineStateProducer_*_*'
     ),
     SelectEvents = cms.untracked.PSet(
         SelectEvents = cms.vstring('digi_step')
