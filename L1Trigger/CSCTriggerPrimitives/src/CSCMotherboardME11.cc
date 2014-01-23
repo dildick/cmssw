@@ -152,6 +152,8 @@ CSCMotherboardME11::CSCMotherboardME11(unsigned endcap, unsigned station,
 
   // drop low quality stubs if they don't have GEMs
   dropLowQualityCLCTsNoGEMs_ = tmbParams.getUntrackedParameter<bool>("dropLowQualityCLCTsNoGEMs",false);
+
+  // correct LCT timing
 }
 
 
@@ -206,8 +208,7 @@ void CSCMotherboardME11::setConfigParameters(const CSCDBL1TPParameters* conf)
 
 void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
                              const CSCComparatorDigiCollection* compdc,
-                             const GEMCSCPadDigiCollection* gemPads,
-			     const GEMCSCPadDigiCollection* gemCoPads)
+                             const GEMCSCPadDigiCollection* gemPads)
 {
   clear();
   
