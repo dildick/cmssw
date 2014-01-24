@@ -53,6 +53,9 @@ CSCTriggerPrimitivesBuilder::CSCTriggerPrimitivesBuilder(const edm::ParameterSet
 
   checkBadChambers_ = conf.getUntrackedParameter<bool>("checkBadChambers", true);
 
+  edm::ParameterSet tmbParams = conf.getParameter<edm::ParameterSet>("tmbSLHC");
+  runFactorizedModel_ = tmbParams.getUntrackedParameter<bool>("runFactorizedModel",true);
+
   // ORCA way of initializing boards.
   for (int endc = min_endcap; endc <= max_endcap; endc++)
   {
@@ -214,8 +217,11 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
               tmb11->setGEMGeometry(gem_g);
  
               //LogTrace("CSCTriggerPrimitivesBuilder")<<"CSCTriggerPrimitivesBuilder::build in E:"<<endc<<" S:"<<stat<<" R:"<<ring;
- 
-              tmb11->run(wiredc, compdc, gemPads);
+	      if (runFactorizedModel_)
+		tmb11->run(wiredc, compdc, gemPads);
+	      else 
+		tmb11->runNewAlgorithm(wiredc, compdc, gemPads);
+
               std::vector<CSCCorrelatedLCTDigi> lctV = tmb11->readoutLCTs1b();
               std::vector<CSCCorrelatedLCTDigi> lctV1a = tmb11->readoutLCTs1a();
  

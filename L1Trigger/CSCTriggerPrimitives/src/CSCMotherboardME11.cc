@@ -688,6 +688,12 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   //  <<"  a "<<n_clct_a<<"  b "<<n_clct_b<<"  ab "<<n_clct_a+n_clct_b;
 }
 
+void CSCMotherboardME11::runNewAlgorithm(const CSCWireDigiCollection* wiredc,
+					 const CSCComparatorDigiCollection* compdc,
+					 const GEMCSCPadDigiCollection* gemPads)
+{
+}
+
 
 std::vector<CSCCorrelatedLCTDigi> CSCMotherboardME11::readoutLCTs1a()
 {

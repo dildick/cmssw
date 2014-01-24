@@ -40,6 +40,11 @@ class CSCMotherboardME11 : public CSCMotherboard
 	   const CSCComparatorDigiCollection* compdc,
 	   const GEMCSCPadDigiCollection* gemPads);
 
+  /** New algorithm that is based on a voting principle **/
+  void runNewAlgorithm(const CSCWireDigiCollection* wiredc,
+		       const CSCComparatorDigiCollection* compdc,
+		       const GEMCSCPadDigiCollection* gemPads);
+  
   /** Returns vectors of found correlated LCTs in ME1a and ME1b, if any. */
   std::vector<CSCCorrelatedLCTDigi> getLCTs1a();
   std::vector<CSCCorrelatedLCTDigi> getLCTs1b();
