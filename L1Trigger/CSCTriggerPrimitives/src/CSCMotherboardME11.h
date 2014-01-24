@@ -118,7 +118,12 @@ class CSCMotherboardME11 : public CSCMotherboard
   void buildCoincidencePads(const GEMCSCPadDigiCollection* out_pads, 
 			    GEMCSCPadDigiCollection& out_co_pads,
 			    int deltaPad = 0, int deltaRoll = 0);
-  
+
+  void createGEMPadLUT(std::map<int,std::pair<double,double> >& gemPadLUT);
+
+  int assignGEMRoll(double eta);
+  int assignGEMStrip(double phi);
+
 
   std::vector<CSCALCTDigi> alctV;
   std::vector<CSCCLCTDigi> clctV1b;
@@ -177,5 +182,8 @@ class CSCMotherboardME11 : public CSCMotherboard
   
   // Drop low quality stubs if they don't have GEMs
   bool dropLowQualityCLCTsNoGEMs_;
+
+  // map of roll N to min and max eta
+  std::map<int,std::pair<double,double> > gemPadLUT;
 };
 #endif

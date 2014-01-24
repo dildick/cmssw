@@ -14,6 +14,7 @@
 #include <FWCore/MessageLogger/interface/MessageLogger.h>
 #include <DataFormats/MuonDetId/interface/CSCTriggerNumbering.h>
 #include <Geometry/GEMGeometry/interface/GEMGeometry.h>
+#include <Geometry/GEMGeometry/interface/GEMEtaPartitionSpecs.h>
 #include <L1Trigger/CSCCommonTrigger/interface/CSCTriggerGeometry.h>
 #include <DataFormats/Math/interface/deltaPhi.h>
 #include <typeinfo>
@@ -154,6 +155,8 @@ CSCMotherboardME11::CSCMotherboardME11(unsigned endcap, unsigned station,
   dropLowQualityCLCTsNoGEMs_ = tmbParams.getUntrackedParameter<bool>("dropLowQualityCLCTsNoGEMs",false);
 
   // correct LCT timing
+
+  createGEMPadLUT(gemPadLUT);
 }
 
 
@@ -235,6 +238,26 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   // retrieve CSCChamber geometry                                                                                                                                        
   CSCTriggerGeomManager* geo_manager = CSCTriggerGeometry::get();
   CSCChamber* cscChamber = geo_manager->chamber(theEndcap, theStation, theSector, theSubsector, theTrigChamber);
+
+
+  // loop on all wiregroups to create a LUT <WG,pad>
+  std::map<int,int> wireGroupGEMPadMap;
+  wireGroupGEMPadMap.clear();
+  int numberOfWG(cscChamber->layer(1)->geometry()->numberOfWireGroups());
+  for (int i = 0; i< numberOfWG; ++i){
+    auto gp(cscChamber->layer(1)->centerOfWireGroup(i));
+    wireGroupGEMPadMap[i] = assignGEMRoll(gp.eta());
+  }
+
+  // loop on all strips to create a LUT <csc half-strip,gem strip>
+  std::map<int,int> halfStripGEMStripME1bMap;
+  halfStripGEMStripME1bMap.clear();
+  int numberOfStrips(cscChamber->layer(1)->geometry()->numberOfStrips());
+  for (int i = 0; i< numberOfStrips; ++i){
+    auto phi(cscChamber->layer(1)->geometry()->stripAngle(i));
+    halfStripGEMStripME1bMap[i] = assignGEMStrip(phi);
+  }
+
 
   const int region((theEndcap == 1) ? 1: -1);
   auto csc_id = cscChamber->id();
@@ -1175,4 +1198,59 @@ void CSCMotherboardME11::buildCoincidencePads(const GEMCSCPadDigiCollection* out
       }
     }
   }
+}
+
+
+void CSCMotherboardME11::createGEMPadLUT(std::map<int,std::pair<double,double> >& gemPadLUT)
+{
+  // all GE1/1 chambers are equal
+  auto chamber(gem_g->chamber(GEMDetId(1,1,1,1,1,0)));
+  for(int i = 1; i< chamber->nEtaPartitions(); ++i){
+    auto roll(chamber->etaPartition(i));
+    const float half_striplength(roll->specs()->specificTopology().stripLength()/2.);
+    const LocalPoint lp_top(0., half_striplength, 0.);
+    const LocalPoint lp_bottom(0., -half_striplength, 0.);
+    const GlobalPoint gp_top(roll->toGlobal(lp_top));
+    const GlobalPoint gp_bottom(roll->toGlobal(lp_bottom));
+    gemPadLUT[i] = std::make_pair(gp_bottom.eta(), gp_top.eta());
+  }
+}
+
+
+int CSCMotherboardME11::assignGEMRoll(double eta)
+{
+  // check if eta is in fiducial 
+  // need to fine-tune this depending on the geometry
+  int result = 0;
+  if (not (eta >= 1.5 and eta <= 2.2)) return -99;
+  for(auto it = gemPadLUT.begin(); it != gemPadLUT.end(); it++) {
+    int rollN(it->first);
+    int minEta((it->second).first);
+    int maxEta((it->second).second);
+    if (minEta <= eta && eta <= maxEta) {
+      result = rollN;
+      break;
+    }
+  }
+  return result;
+}
+
+
+int CSCMotherboardME11::assignGEMStrip(double cscStripPhi)
+{
+  // pick any roll to calculate the strip phi
+  auto roll(gem_g->etaPartition(GEMDetId(1,1,1,1,1,1)));
+  int nStrips(roll->nstrips());
+  double minDphi = 99;
+  int result = 999;
+  for (int i=0; i < nStrips; ++i) {
+    auto lp(roll->centreOfStrip(i));
+    float gemStripPhi(lp.barePhi());
+    float newMinDphi(abs(deltaPhi(gemStripPhi, cscStripPhi)));    
+    if (newMinDphi < minDphi) {
+      minDphi = newMinDphi;
+      result = i;
+    }
+  }
+  return result;
 }
