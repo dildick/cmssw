@@ -156,7 +156,6 @@ CSCMotherboardME11::CSCMotherboardME11(unsigned endcap, unsigned station,
 
   // correct LCT timing
 
-  createGEMPadLUT(gemPadLUT);
 }
 
 
@@ -239,7 +238,14 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   CSCTriggerGeomManager* geo_manager = CSCTriggerGeometry::get();
   CSCChamber* cscChamber = geo_manager->chamber(theEndcap, theStation, theSector, theSubsector, theTrigChamber);
 
+  createGEMPadLUT(gemPadLUT);
 
+  // print-out
+  if ( gemPadLUT.size())
+    for(auto it = gemPadLUT.begin(); it != gemPadLUT.end(); it++) {
+      std::cout << "pad "<< it->first << " min eta " << (it->second).first << " max eta " << (it->second).second << std::endl;
+    }
+  
   // loop on all wiregroups to create a LUT <WG,pad>
   std::map<int,int> wireGroupGEMPadMap;
   wireGroupGEMPadMap.clear();
@@ -249,6 +255,12 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     wireGroupGEMPadMap[i] = assignGEMRoll(gp.eta());
   }
 
+  // print-out
+  for(auto it = wireGroupGEMPadMap.begin(); it != wireGroupGEMPadMap.end(); it++) {
+    std::cout << "WG "<< it->first << " GEM pad " << it->second << std::endl;
+  }
+
+  /*
   // loop on all strips to create a LUT <csc half-strip,gem strip>
   std::map<int,int> halfStripGEMStripME1bMap;
   halfStripGEMStripME1bMap.clear();
@@ -257,6 +269,8 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     auto phi(cscChamber->layer(1)->geometry()->stripAngle(i));
     halfStripGEMStripME1bMap[i] = assignGEMStrip(phi);
   }
+  */
+  
 
 
   const int region((theEndcap == 1) ? 1: -1);
@@ -1204,15 +1218,27 @@ void CSCMotherboardME11::buildCoincidencePads(const GEMCSCPadDigiCollection* out
 void CSCMotherboardME11::createGEMPadLUT(std::map<int,std::pair<double,double> >& gemPadLUT)
 {
   // all GE1/1 chambers are equal
+  if (!gem_g) {
+    std::cout << "ERROR: no GEM geometry" << std::endl;
+    return;
+  }
   auto chamber(gem_g->chamber(GEMDetId(1,1,1,1,1,0)));
-  for(int i = 1; i< chamber->nEtaPartitions(); ++i){
+  if (!chamber){
+    std::cout << "ERROR: no GEM chamber" << std::endl;
+    return;
+  }
+  for(int i = 1; i<= chamber->nEtaPartitions(); ++i){
     auto roll(chamber->etaPartition(i));
+    if (!roll){
+      std::cout << "ERROR: no GEM roll" << std::endl;
+      continue;
+    }
     const float half_striplength(roll->specs()->specificTopology().stripLength()/2.);
-    const LocalPoint lp_top(0., half_striplength, 0.);
-    const LocalPoint lp_bottom(0., -half_striplength, 0.);
+    const LocalPoint lp_top(0., half_striplength+0.025, 0.);
+    const LocalPoint lp_bottom(0., -half_striplength-0.025, 0.);
     const GlobalPoint gp_top(roll->toGlobal(lp_top));
     const GlobalPoint gp_bottom(roll->toGlobal(lp_bottom));
-    gemPadLUT[i] = std::make_pair(gp_bottom.eta(), gp_top.eta());
+    gemPadLUT[i] = std::make_pair(gp_top.eta(), gp_bottom.eta());
   }
 }
 
@@ -1221,12 +1247,14 @@ int CSCMotherboardME11::assignGEMRoll(double eta)
 {
   // check if eta is in fiducial 
   // need to fine-tune this depending on the geometry
-  int result = 0;
+  int result = 1;
   if (not (eta >= 1.5 and eta <= 2.2)) return -99;
+  std::cout << "eta  = " << eta << std::endl;
   for(auto it = gemPadLUT.begin(); it != gemPadLUT.end(); it++) {
     int rollN(it->first);
-    int minEta((it->second).first);
-    int maxEta((it->second).second);
+    float minEta((it->second).first);
+    float maxEta((it->second).second);
+    std::cout << "rollN "<< rollN << " minEta "<<minEta << " maxEta " << maxEta << std::endl;
     if (minEta <= eta && eta <= maxEta) {
       result = rollN;
       break;
