@@ -327,6 +327,14 @@ void CSCMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     // matching in ME1b
     if (clct->bestCLCT[bx_clct].isValid())
     {
+      if (print_available_pads) std::cout << "========================================================================" << std::endl;
+      if (print_available_pads) std::cout << "Attempt to reconstruct LCT stubs in ME1/b chamber: " << cscChamber->id() << std::endl;
+      if (print_available_pads) std::cout << "------------------------------------------------------------------------" << std::endl;
+      if (print_available_pads) std::cout << "+++ Best CLCT Details: ";
+      if (print_available_pads) clct->bestCLCT[bx_clct].print();
+      if (print_available_pads) std::cout << "+++ Second CLCT Details: ";
+      if (print_available_pads) clct->secondCLCT[bx_clct].print();
+
       int bx_alct_start = bx_clct - match_trig_window_size/2;
       int bx_alct_stop  = bx_clct + match_trig_window_size/2;
 
