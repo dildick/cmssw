@@ -183,6 +183,9 @@ class CSCMotherboardME11 : public CSCMotherboard
   // Drop low quality stubs if they don't have GEMs
   bool dropLowQualityCLCTsNoGEMs_;
 
+  // Drop low quality stubs if they don't have GEMs
+  bool dropLowQualityALCTsNoGEMs_;
+
   // map of roll N to min and max eta
   std::map<int,std::pair<double,double> > gemPadLUT;
 };
