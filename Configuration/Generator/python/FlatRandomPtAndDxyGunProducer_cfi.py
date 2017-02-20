@@ -11,7 +11,7 @@ generator = cms.EDProducer("FlatRandomPtAndDxyGunProducer",
         MaxPhi = cms.double(3.14159265359),
         LzMin  = cms.double(-500.0),#in cm
         LzMax  = cms.double(500.0),#in cm
-        dxyMin = cms.double(0.0),
+        dxyMin = cms.double(-50.0),
         dxyMax = cms.double(50.0)
     ),
     Verbosity = cms.untracked.int32(0), ## set to 1 (or greater)  for printouts
