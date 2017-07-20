@@ -45,6 +45,12 @@ bool GEMPadDigi::operator<(const GEMPadDigi& digi) const
 }
 
 
+bool GEMCoPadDigi::isValid() const
+{
+  return return pad_ != 0;;
+}
+
+
 std::ostream & operator<<(std::ostream & o, const GEMPadDigi& digi)
 {
   return o << " " << digi.pad() << " " << digi.bx();
