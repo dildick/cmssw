@@ -227,9 +227,6 @@ class CSCMotherboardME11GEM : public CSCMotherboard
   // LCT ghostbusting
   bool doLCTGhostBustingWithGEMs_;
 
-  // correct LCT timing with GEMs
-  bool correctLCTtimingWithGEM_;
-
   // send LCT old dataformat
   bool useOldLCTDataFormat_;
 

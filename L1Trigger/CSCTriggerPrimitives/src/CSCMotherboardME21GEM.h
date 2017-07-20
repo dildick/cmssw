@@ -172,9 +172,6 @@ class CSCMotherboardME21GEM : public CSCMotherboard
   bool dropLowQualityCLCTsNoGEMs_;
   bool dropLowQualityALCTsNoGEMs_;
 
-  // correct LCT timing with GEMs
-  bool correctLCTtimingWithGEM_;
-
   // build LCT from ALCT and GEM
   bool buildLCTfromALCTandGEM_;
   bool buildLCTfromCLCTandGEM_;

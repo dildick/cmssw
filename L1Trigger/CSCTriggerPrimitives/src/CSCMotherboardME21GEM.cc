@@ -115,9 +115,6 @@ CSCMotherboardME21GEM::CSCMotherboardME21GEM(unsigned endcap, unsigned station,
   dropLowQualityCLCTsNoGEMs_ = me21tmbParams.getParameter<bool>("dropLowQualityCLCTsNoGEMs");
   dropLowQualityALCTsNoGEMs_ = me21tmbParams.getParameter<bool>("dropLowQualityALCTsNoGEMs");
 
-  // correct LCT timing with GEMs
-  correctLCTtimingWithGEM_ = me21tmbParams.getParameter<bool>("correctLCTtimingWithGEM");
-
   // build LCT from ALCT and GEM
   buildLCTfromALCTandGEM_ = me21tmbParams.getParameter<bool>("buildLCTfromALCTandGEM");
   buildLCTfromCLCTandGEM_ = me21tmbParams.getParameter<bool>("buildLCTfromCLCTandGEM");
@@ -418,15 +415,6 @@ CSCMotherboardME21GEM::run(const CSCWireDigiCollection* wiredc,
             std::cout << "+++ Second CLCT INVALID" << std::endl;
           else
             std::cout << "+++ Second CLCT Details: " << clct->secondCLCT[bx_clct] << std:: endl;
-
-          // check timing
-          if (runME21ILT_ and correctLCTtimingWithGEM_){
-            int nFound(matchingCoPads.size());
-            if (nFound != 0 and bx_alct == 6 and bx_clct != 6){
-              if (debug_gem_matching) std::cout << "\tInfo: CLCT with incorrect timing" << std::endl;
-              continue;
-            }
-          }
 
           ++nSuccesFulMatches;
           hasLCTs = true;

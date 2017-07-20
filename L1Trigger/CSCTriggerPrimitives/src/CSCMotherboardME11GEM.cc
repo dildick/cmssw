@@ -255,9 +255,6 @@ CSCMotherboardME11GEM::CSCMotherboardME11GEM(unsigned endcap, unsigned station,
   // LCT ghostbusting
   doLCTGhostBustingWithGEMs_ = me11tmbParams.getParameter<bool>("doLCTGhostBustingWithGEMs");
 
-  // correct LCT timing with GEMs
-  correctLCTtimingWithGEM_ = me11tmbParams.getParameter<bool>("correctLCTtimingWithGEM");
-
   // use "old" or "new" dataformat for integrated LCTs?
   useOldLCTDataFormat_ = me11tmbParams.getParameter<bool>("useOldLCTDataFormat");
 
@@ -658,15 +655,6 @@ void CSCMotherboardME11GEM::run(const CSCWireDigiCollection* wiredc,
                 if (debug_gem_matching) std::cout << "\tWarning: low quality CLCT without matching GEM trigger pad" << std::endl;
                 continue;
               }
-            }
-          }
-
-          // check timing
-          if (runME11ILT_ and correctLCTtimingWithGEM_){
-            int nFound(matchingCoPads.size());
-            if (nFound != 0 and bx_alct == 6 and bx_clct != 6){
-              if (debug_gem_matching) std::cout << "\tInfo: CLCT with incorrect timing" << std::endl;
-              continue;
             }
           }
 
