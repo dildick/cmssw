@@ -84,7 +84,9 @@ bool CSCUpgradeMotherboard::sortLCTsByGEMDphi(const CSCCorrelatedLCTDigi& lct1, 
   return true;
 }
 
-void CSCUpgradeMotherboard::sortLCTs(std::vector<CSCCorrelatedLCTDigi>& lcts, bool (*sorter)(const CSCCorrelatedLCTDigi&,const CSCCorrelatedLCTDigi&)){
+void CSCUpgradeMotherboard::sortLCTs(std::vector<CSCCorrelatedLCTDigi>& lcts, 
+				     bool (*sorter)(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&)) const
+{
   std::sort(lcts.begin(), lcts.end(), *sorter);
   if (lcts.size() > max_lcts) lcts.erase(lcts.begin()+max_lcts, lcts.end());
 }

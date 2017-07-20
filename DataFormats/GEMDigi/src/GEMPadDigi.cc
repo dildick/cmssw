@@ -45,9 +45,9 @@ bool GEMPadDigi::operator<(const GEMPadDigi& digi) const
 }
 
 
-bool GEMCoPadDigi::isValid() const
+bool GEMPadDigi::isValid() const
 {
-  return return pad_ != 0;;
+  return pad_ != 0;;
 }
 
 

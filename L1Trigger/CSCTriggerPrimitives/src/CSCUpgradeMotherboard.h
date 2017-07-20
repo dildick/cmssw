@@ -49,15 +49,15 @@ public:
   virtual ~CSCUpgradeMotherboard();
 
   template <class S>
-  bool compare(const S& p, const S& q);
+  bool compare(const S& p, const S& q) const;
 
   template <class S>
-  S intersection(const S& d1, const S& d2);
+  void intersection(const S& d1, const S& d2, S& result) const;
 
   /** Methods to sort the LCTs */
   static bool sortLCTsByQuality(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&); 
   static bool sortLCTsByGEMDphi(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&); 
-  void sortLCTs(std::vector<CSCCorrelatedLCTDigi>& lcts, bool (*sorter)(const CSCCorrelatedLCTDigi&,const CSCCorrelatedLCTDigi&));
+  void sortLCTs(std::vector<CSCCorrelatedLCTDigi>& lcts, bool (*sorter)(const CSCCorrelatedLCTDigi&,const CSCCorrelatedLCTDigi&)) const;
 
   void setCSCGeometry(const CSCGeometry *g) { csc_g = g; }
   void setupGeometry();
@@ -107,15 +107,14 @@ public:
 };
 
 template <class S>
-bool CSCUpgradeMotherboard::compare(const S& p, const S& q)
+bool CSCUpgradeMotherboard::compare(const S& p, const S& q) const
 { 
   return (p.first == q.first) and (p.second == q.second); 
 }
 
 template <class S>
-S CSCUpgradeMotherboard::intersection(const S& d1, const S& d2)
+void CSCUpgradeMotherboard::intersection(const S& d1, const S& d2, S& result) const
 {
-  S result;
   for (const auto& p: d1){
     for (const auto& q: d2){
       if (compare(p,q)){
@@ -124,7 +123,6 @@ S CSCUpgradeMotherboard::intersection(const S& d1, const S& d2)
       }
     }
   }
-  return result;
  }
 
 

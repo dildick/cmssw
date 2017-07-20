@@ -115,6 +115,7 @@ public:
   std::vector<int> get_rpc_strip_to_csc_hs(Parity par) const;
   std::vector<std::pair<int,int> > get_csc_hs_to_rpc_strip(Parity par) const;
   std::vector<int> get_csc_wg_to_rpc_roll(Parity par) const;
+  std::vector<int> get_rpc_roll_to_csc_wg(Parity par) const;
 
  protected:
   // map of wg to eta roll
@@ -134,6 +135,10 @@ public:
 
   std::vector<int> csc_wg_to_rpc_roll_odd;
   std::vector<int> csc_wg_to_rpc_roll_even;
+  
+  // map the RPC roll to the wire-group in the middle of that roll
+  std::vector<int> rpc_roll_to_csc_wg_odd;
+  std::vector<int> rpc_roll_to_csc_wg_even;
 };
 
 class CSCRPCMotherboardLUTME31 : public CSCRPCMotherboardLUT 
