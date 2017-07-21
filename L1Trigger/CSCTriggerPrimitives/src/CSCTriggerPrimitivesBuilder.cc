@@ -625,8 +625,6 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
       for(int st = min_station; st <= max_station; ++st)
         for(int se = min_sector; se <= max_sector; ++se)
         {
-	  // only station 1 has trigger subsectors 
-	  // (10 degree chambers)
           if(st == 1)
           {
             std::vector<csctf::TrackStub> subs1, subs2;
@@ -635,8 +633,6 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
             result.insert(result.end(), subs1.begin(), subs1.end());
             result.insert(result.end(), subs2.begin(), subs2.end());
           }
-	  // stations 2,3,4 do not have trigger subsectors
-	  // (20 degree chambers)
           else
           {
             std::vector<csctf::TrackStub> sector;
