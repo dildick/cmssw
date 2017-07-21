@@ -23,7 +23,12 @@
  * in ORCA).
  * Porting from ORCA by S. Valuev (Slava.Valuev@cern.ch), May 2006.
  *
+ * Updates for high pileup running by Vadim Khotilovich (TAMU), December 2012
  *
+ * Updates for integrated local trigger with GEMs and RPCs by 
+ * Sven Dildick (TAMU) and Tao Huang (TAMU), April 2015
+ *
+ * Removing usage of outdated class CSCTriggerGeometry by Sven Dildick (TAMU)
  */
 
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
