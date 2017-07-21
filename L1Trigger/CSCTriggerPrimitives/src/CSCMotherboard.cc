@@ -605,7 +605,7 @@ void CSCMotherboard::correlateLCTs(CSCALCTDigi bestALCT,
 // This method calculates all the TMB words and then passes them to the
 // constructor of correlated LCTs.
 CSCCorrelatedLCTDigi CSCMotherboard::constructLCTs(const CSCALCTDigi& aLCT,
-                                                   const CSCCLCTDigi& cLCT) {
+                                                   const CSCCLCTDigi& cLCT) const {
   // CLCT pattern number
   unsigned int pattern = encodePattern(cLCT.getPattern(), cLCT.getStripType());
 

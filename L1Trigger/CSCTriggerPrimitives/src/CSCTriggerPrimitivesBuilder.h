@@ -22,6 +22,7 @@
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTPreTriggerCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
+#include "DataFormats/GEMDigi/interface/GEMPadDigiClusterCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMCoPadDigiCollection.h"
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -63,6 +64,7 @@ class CSCTriggerPrimitivesBuilder
 	     const CSCWireDigiCollection* wiredc,
 	     const CSCComparatorDigiCollection* compdc,
 	     const GEMPadDigiCollection* gemPads,
+	     const GEMPadDigiClusterCollection* gemPadClusters,
 	     const RPCDigiCollection* rpcDigis,
 	     CSCALCTDigiCollection& oc_alct, CSCCLCTDigiCollection& oc_clct,
              CSCCLCTPreTriggerCollection & oc_pretrig,
@@ -109,6 +111,9 @@ class CSCTriggerPrimitivesBuilder
 
   /** SLHC: special switch for the upgrade ME3/1 and ME4/1 TMB */
   bool runME3141ILT_;
+
+  /** SLHC: special switch to use gem clusters */
+  bool useClusters_;
 
   int m_minBX, m_maxBX; // min and max BX to sort.
 
