@@ -48,6 +48,7 @@ CSCTriggerPrimitivesProducer::CSCTriggerPrimitivesProducer(const edm::ParameterS
   rpcDigiProducer_ = conf.existsAs<edm::InputTag>("RPCDigiProducer")?conf.getParameter<edm::InputTag>("RPCDigiProducer"):edm::InputTag("");
   checkBadChambers_ = conf.getParameter<bool>("checkBadChambers");
 
+  // check whether you need to run the integrated local triggers
   const edm::ParameterSet commonParam(conf.getParameter<edm::ParameterSet>("commonParam"));
   runME11ILT_ = commonParam.existsAs<bool>("runME11ILT")?commonParam.getParameter<bool>("runME11ILT"):false;
   runME21ILT_ = commonParam.existsAs<bool>("runME21ILT")?commonParam.getParameter<bool>("runME21ILT"):false;
@@ -71,9 +72,6 @@ CSCTriggerPrimitivesProducer::CSCTriggerPrimitivesProducer(const edm::ParameterS
 CSCTriggerPrimitivesProducer::~CSCTriggerPrimitivesProducer() 
 {
 }
-
-//void CSCTriggerPrimitivesProducer::beginRun(const edm::EventSetup& setup) {
-//}
 
 void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const edm::EventSetup& setup) const
 {
@@ -133,7 +131,7 @@ void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const 
   ev.getByToken(comp_token_, compDigis);
   ev.getByToken(wire_token_, wireDigis);
 
-
+  // input GEM pad collection for upgrade scenarios 
   const GEMPadDigiCollection *gemPads = nullptr;
   if (!gemPadDigiProducer_.label().empty()) {
     edm::Handle<GEMPadDigiCollection> gemPadDigis; 
@@ -141,6 +139,7 @@ void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const 
     gemPads = gemPadDigis.product();
   }
 
+  // input GEM pad cluster collection for upgrade scenarios 
   const GEMPadDigiClusterCollection *gemPadClusters = nullptr;
   if (!gemPadDigiClusterProducer_.label().empty()) {
     edm::Handle<GEMPadDigiClusterCollection> gemPadDigiClusters;
@@ -148,6 +147,7 @@ void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const 
     gemPadClusters = gemPadDigiClusters.product();
   }
   
+  // input RPC strip collection for upgrade scenarios 
   const RPCDigiCollection *rpcDigis = nullptr;
   if (!rpcDigiProducer_.label().empty()) {
     edm::Handle<RPCDigiCollection> rpcs; 
@@ -155,7 +155,7 @@ void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const 
     rpcDigis = rpcs.product();
   }
 
- // Create empty collections of ALCTs, CLCTs, and correlated LCTs upstream
+  // Create empty collections of ALCTs, CLCTs, and correlated LCTs upstream
   // and downstream of MPC.
   std::unique_ptr<CSCALCTDigiCollection> oc_alct(new CSCALCTDigiCollection);
   std::unique_ptr<CSCCLCTDigiCollection> oc_clct(new CSCCLCTDigiCollection);
@@ -194,6 +194,8 @@ void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const 
   ev.put(std::move(oc_pretrig));
   ev.put(std::move(oc_lct));
   ev.put(std::move(oc_sorted_lct),"MPCSORTED");
+  // only put GEM copad collections in the event when the
+  // integrated local triggers are running
   if (runME11ILT_ or runME21ILT_)
     ev.put(std::move(oc_gemcopad));
 }

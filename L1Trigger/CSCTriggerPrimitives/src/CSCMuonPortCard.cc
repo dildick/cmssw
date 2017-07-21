@@ -83,7 +83,6 @@ std::vector<csctf::TrackStub> CSCMuonPortCard::sort(const unsigned endcap, const
     if (result.size() > max_stubs_)
       result.erase(result.begin() + max_stubs_, result.end());
 
-
     // Go through the sorted list and label the LCTs with a sorting number.
     unsigned i = 0;
     for (LCT = result.begin(); LCT != result.end(); LCT++)

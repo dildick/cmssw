@@ -182,15 +182,17 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
         {
           for (int cham = min_chamber; cham <= max_chamber; cham++)
           {
-            
+            // extra the ring number
             int ring = CSCTriggerNumbering::ringFromTriggerLabels(stat, cham);
-            
+
+	    // case when you want to ignore ME42
             if (disableME42 && stat==4 && ring==2) continue;
 
             CSCMotherboard* tmb = tmb_[endc-1][stat-1][sect-1][subs-1][cham-1].get();
 
 	    tmb->setCSCGeometry(csc_g);
 
+	    // actual chamber number =/= trigger chamber number
             int chid = CSCTriggerNumbering::chamberFromTriggerLabels(sect, subs, stat, cham);
 
             // 0th layer means whole chamber.
@@ -567,18 +569,6 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
                   << "CSCTriggerPrimitivesBuilder got results in " <<detid;
               }
 
-              /*
-              // tmp kludge: tightening of ME1a LCTs
-              if (stat==1 && ring==1) {
-                std::vector<CSCCorrelatedLCTDigi> lctV11;
-                for (unsigned t=0;t<lctV.size();t++){
-                  if (lctV[t].getStrip() < 127) lctV11.push_back(lctV[t]);
-                  else if (lctV[t].getQuality() >= 14) lctV11.push_back(lctV[t]);
-                }
-                lctV = lctV11;
-              }
-              */
-
               // Correlated LCTs.
               if (!lctV.empty()) {
                 LogTrace("L1CSCTrigger")
@@ -621,17 +611,22 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
   m_muonportcard->loadDigis(oc_lct);
 
   // temporary hack to ensure that all MPC LCTs are read out
+  // in the correct readout window
   if (runOnData_) {
     m_minBX = 5;
     m_maxBX = 11;
   }
 
+  // sort the LCTs per sector
+  // insert them into the result vector
   std::vector<csctf::TrackStub> result;
   for(int bx = m_minBX; bx <= m_maxBX; ++bx)
     for(int e = min_endcap; e <= max_endcap; ++e)
       for(int st = min_station; st <= max_station; ++st)
         for(int se = min_sector; se <= max_sector; ++se)
         {
+	  // only station 1 has trigger subsectors 
+	  // (10 degree chambers)
           if(st == 1)
           {
             std::vector<csctf::TrackStub> subs1, subs2;
@@ -640,6 +635,8 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
             result.insert(result.end(), subs1.begin(), subs1.end());
             result.insert(result.end(), subs2.begin(), subs2.end());
           }
+	  // stations 2,3,4 do not have trigger subsectors
+	  // (20 degree chambers)
           else
           {
             std::vector<csctf::TrackStub> sector;
@@ -648,6 +645,8 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
           }
         }
 
+  // now convert csctf::TrackStub back into CSCCorrelatedLCTDigi
+  // put MPC stubs into the event
   std::vector<csctf::TrackStub>::const_iterator itr = result.begin();
   for (; itr != result.end(); itr++)
   {

@@ -17,14 +17,19 @@
  *
  * \author Slava Valuev, UCLA.
  *
- * https://github.com/cms-sw/cmssw/compare/master...dildick:from-CMSSW_9_2_X_2017-05-09-2300-derive-gem-rpc-tmb-classes?expand=1#diff-353f7df9cb2881b088e11c4ed24e4275
+ * The trigger primitive emulator has been expanded with options to 
+ * use both ALCTs, CLCTs and GEM pads or RPC digis. The GEM-CSC integrated 
+ * local trigger combines ALCT, CLCT and GEM information to produce integrated 
+ * stubs. The available stub types can be found in the class definition of
+ * CSCCorrelatedLCTDigi (DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h)
+ * Either single GEM pads or GEM pad clusters can be used as input. The online 
+ * system will use GEM pad clusters however. 
+ * The CSC-RPC integrated local trigger will not be realized in Phase-II. As 
+ * such the CSCRPCMotherboard are in principle obsolete. However, it is kept 
+ * in the code just in case someone wants to reinvestigate it. 
+ *
+ * authors: Sven Dildick (TAMU), Tao Huang (TAMU)
  */
-
-#include "DataFormats/CSCDigi/interface/CSCComparatorDigiCollection.h"
-#include "DataFormats/CSCDigi/interface/CSCWireDigiCollection.h"
-#include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
-#include "DataFormats/GEMDigi/interface/GEMPadDigiClusterCollection.h"
-#include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -33,8 +38,12 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
-class CSCTriggerPrimitivesBuilder;
-
+#include "DataFormats/CSCDigi/interface/CSCComparatorDigiCollection.h"
+#include "DataFormats/CSCDigi/interface/CSCWireDigiCollection.h"
+#include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
+#include "DataFormats/GEMDigi/interface/GEMPadDigiClusterCollection.h"
+#include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
+ 
 class CSCTriggerPrimitivesProducer : public edm::global::EDProducer<>
 {
  public:
@@ -45,15 +54,18 @@ class CSCTriggerPrimitivesProducer : public edm::global::EDProducer<>
   virtual void produce(edm::StreamID, edm::Event&, const edm::EventSetup&) const override;
 
  private:
-  int iev; // event number
 
+  // master configuration
   edm::ParameterSet config_;
  
+  // input tags for input collections
   edm::InputTag compDigiProducer_;
   edm::InputTag wireDigiProducer_;
   edm::InputTag gemPadDigiProducer_;
   edm::InputTag gemPadDigiClusterProducer_;
   edm::InputTag rpcDigiProducer_;
+
+  // tokens
   edm::EDGetTokenT<CSCComparatorDigiCollection> comp_token_;
   edm::EDGetTokenT<CSCWireDigiCollection> wire_token_;
   edm::EDGetTokenT<GEMPadDigiCollection> gem_pad_token_;
@@ -62,8 +74,11 @@ class CSCTriggerPrimitivesProducer : public edm::global::EDProducer<>
  
   // switch to force the use of parameters from config file rather then from DB
   bool debugParameters_;
+
   // switch to for enabling checking against the list of bad chambers
   bool checkBadChambers_;
+  
+  // switch to enable the integrated local triggers in ME11 and ME21
   bool runME11ILT_;
   bool runME21ILT_;
 };

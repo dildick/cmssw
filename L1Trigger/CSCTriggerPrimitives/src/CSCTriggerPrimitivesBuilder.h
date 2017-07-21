@@ -1,7 +1,7 @@
 #ifndef L1Trigger_CSCTriggerPrimitives_CSCTriggerPrimitivesBuilder_h
 #define L1Trigger_CSCTriggerPrimitives_CSCTriggerPrimitivesBuilder_h
 
-/** \class CSCTriggerPrimitivesBuilder
+/** class CSCTriggerPrimitivesBuilder
  *
  * Algorithm to build anode, cathode, and correlated LCTs from wire and
  * comparator digis in endcap muon CSCs by implementing a 'build' function
@@ -9,9 +9,13 @@
  *
  * Configured via the Producer's ParameterSet.
  *
- * \author Slava Valuev, UCLA.
+ * author Slava Valuev, UCLA.
  *
+ * The builder was expanded to use GEM pad or GEM pad clusters and RPC
+ * digis. In addition the builder can produce GEM coincidence pads in
+ * case an upgrade scenario with GEMs is run. 
  *
+ * authors: Sven Dildick (TAMU), Tao Huang (TAMU)
  */
 
 #include "CondFormats/CSCObjects/interface/CSCBadChambers.h"
@@ -33,7 +37,6 @@ class CSCMuonPortCard;
 class CSCGeometry;
 class GEMGeometry;
 class RPCGeometry;
-
 class CSCTriggerPrimitivesBuilder
 {
  public:
@@ -54,7 +57,13 @@ class CSCTriggerPrimitivesBuilder
   void setGEMGeometry(const GEMGeometry *g) { gem_g = g; }
   void setRPCGeometry(const RPCGeometry *g) { rpc_g = g; }
 
-  /* temporary function to check if running on data */
+  /* temporary function to check if running on data. 
+   * Currently in simulation the central BX is BX6; in data
+   * it is BX8. This mismatch in conventions is expeced to 
+   * be resolved in the near future. The member runOnData_ 
+   * is used in the builder to shift the LCT BX readout 
+   * with +2 from [3,9] to [5,11].  
+   */
   void runOnData(bool runOnData) {runOnData_ = runOnData;}
 
   /** Build anode, cathode, and correlated LCTs in each chamber and fill
@@ -121,6 +130,7 @@ class CSCTriggerPrimitivesBuilder
   std::unique_ptr<CSCMotherboard>
     tmb_[MAX_ENDCAPS][MAX_STATIONS][MAX_SECTORS][MAX_SUBSECTORS][MAX_CHAMBERS];
 
+  // pointers to the geometry
   const CSCGeometry* csc_g;
   const GEMGeometry* gem_g;
   const RPCGeometry* rpc_g;
