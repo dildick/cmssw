@@ -44,12 +44,15 @@ class CSCRPCMotherboard : public CSCUpgradeMotherboard
   void setRPCGeometry(const RPCGeometry *g) { rpc_g = g; }
   void setupGeometry();
 
+  /* store the CLCTs found earlier */
   std::vector<CSCCLCTDigi> clctV;
 
+  /* readout the two best LCTs in this CSC */
   std::vector<CSCCorrelatedLCTDigi> readoutLCTs() const;
 
  private: 
 
+  /* access to the LUTs needed for matching */
   const CSCRPCMotherboardLUT* getLUT() const {return tmbLUT_;}
   const CSCRPCMotherboardLUT* tmbLUT_;
 
@@ -60,18 +63,37 @@ class CSCRPCMotherboard : public CSCUpgradeMotherboard
   void retrieveRPCDigis(const RPCDigiCollection* digis, unsigned id);
   void printRPCTriggerDigis(int minBX, int maxBx);
 
+  // match CLCT to RPC digi
   void matchingRPCDigis(const CSCCLCTDigi&, RPCDigiIds&) const;  
+
+  // match ALCT to RPC digi
   void matchingRPCDigis(const CSCALCTDigi&, RPCDigiIds&) const;  
+
+  // find common matches between an ALCT and CLCT
   void matchingRPCDigis(const CSCCLCTDigi&, const CSCALCTDigi&, RPCDigiIds&) const;
+
+  // find all matching digis to a pair of ALCT and a pair of CLCT
   void matchingRPCDigis(const CSCCLCTDigi&, const CSCCLCTDigi&,
 			const CSCALCTDigi&, const CSCALCTDigi&, RPCDigiIds&) const;
+
+
+  // find the matching digis to a pair of ALCT/CLCT
   template <class S>
   void matchingRPCDigis(const S& d1, const S& d2, RPCDigiIds&) const;
   
-  RPCDigiId bestMatchingDigi(const CSCALCTDigi&, const matches<RPCDigi>&) const;
-  RPCDigiId bestMatchingDigi(const CSCCLCTDigi&, const matches<RPCDigi>&) const;
-  RPCDigiId bestMatchingDigi(const CSCALCTDigi&, const CSCCLCTDigi&, const matches<RPCDigi>&) const;
+  // find the best matching digi to an ALCT
+  RPCDigiId bestMatchingDigi(const CSCALCTDigi&, const RPCDigiIds&) const;
 
+  // find the best matching digi to an CLCT
+  RPCDigiId bestMatchingDigi(const CSCCLCTDigi&, const RPCDigiIds&) const;
+
+  // find the best matching digi to an ALCT and CLCT
+  RPCDigiId bestMatchingDigi(const CSCALCTDigi&, const CSCCLCTDigi&, 
+			     const RPCDigiIds&) const;
+
+  // correlate ALCTs/CLCTs with a set of matching RPC digis
+  // use this function when the best matching digis are not clear yet
+  // the template is ALCT or CLCT
   template <class T>  
   void correlateLCTsRPC(T& best, T& second, const RPCDigiIds& coDigis, 
 			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2) const;
@@ -81,16 +103,43 @@ class CSCRPCMotherboard : public CSCUpgradeMotherboard
 			const RPCDigiIds& digis,
 			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2) const;
 
-  CSCCorrelatedLCTDigi constructLCTsRPC(const CSCCLCTDigi& clct, const RPCDigiId& rpc, int) const;
-  CSCCorrelatedLCTDigi constructLCTsRPC(const CSCALCTDigi& alct, const RPCDigiId& rpc, int) const;
-  CSCCorrelatedLCTDigi constructLCTsRPC(const CSCALCTDigi& alct, const CSCCLCTDigi& clct, const RPCDigiId& digi, int) const; 
+  /* correlate a pair of ALCTs and a pair of CLCTs with matched digis 
+     the output is up to two LCTs in a sector of ME31/ME41 */
+  // the template is ALCT or CLCT
+  template <class T>
+  void correlateLCTsRPC(const T& best, const T& second, 
+			const RPCDigiId&, const RPCDigiId&,
+			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2) const;
 
-  unsigned int findQualityRPC(const CSCALCTDigi& aLCT, const CSCCLCTDigi& cLCT, bool hasRPC) const;
+  // construct LCT from CLCT and RPC digi
+  // third argument is the LCT number (1 or 2)
+  CSCCorrelatedLCTDigi constructLCTsRPC(const CSCCLCTDigi& clct, 
+					const RPCDigiId& rpc, int) const;
+
+  // construct LCT from ALCT and RPC digi
+  // third argument is the LCT number (1 or 2)
+  CSCCorrelatedLCTDigi constructLCTsRPC(const CSCALCTDigi& alct, 
+					const RPCDigiId& rpc, int) const;
+
+  // construct LCT from ALCT,CLCT and RPC digi
+  // fourth argument is the LCT number (1 or 2)
+  CSCCorrelatedLCTDigi constructLCTsRPC(const CSCALCTDigi& alct, 
+					const CSCCLCTDigi& clct, 
+					const RPCDigiId& digi, int) const; 
+
+  // quality of the LCT in case RPC digi is present
+  unsigned int findQualityRPC(const CSCALCTDigi& aLCT, 
+			      const CSCCLCTDigi& cLCT, 
+			      bool hasRPC) const;
+
+  // aux functions to get BX and position of a digi
   int getBX(const RPCDigi& p) const;
   int getRoll(const RPCDigiId& p) const;
   int getRoll(const CSCALCTDigi& alct) const;
+
   float getStrip(const RPCDigiId& p) const;
   float getStrip(const CSCCLCTDigi& clct) const;
+
   bool isValid(const RPCDigiId& p) const;
   
   /** Chamber id (trigger-type labels). */
@@ -142,34 +191,18 @@ void CSCRPCMotherboard::correlateLCTsRPC(S& bestLCT,
 					 CSCCorrelatedLCTDigi& lct1,
 					 CSCCorrelatedLCTDigi& lct2) const
 {
-  // FIXME
-  // is best ALCT alwasy valid?
-  // if best ALCT/CLCT invalid, it will be matched to an RPC digi that is not there!!
   const bool bestValid     = bestLCT.isValid();
   const bool secondValid   = secondLCT.isValid();
+
+  // check which one is valid, which one is not
+  if (bestValid and !secondValid) secondLCT = bestLCT;
+  if (!bestValid and secondValid) bestLCT   = secondLCT;
 
   // get best matching copad1
   const RPCDigiId& bestDigi = bestMatchingDigi(bestLCT, digis);
   const RPCDigiId& secondDigi = bestMatchingDigi(secondLCT, digis);
 
-  if (bestValid and !secondValid) secondLCT = bestLCT;
-  if (!bestValid and secondValid) bestLCT   = secondLCT;
-
-  bool lct_trig_enable;
-  if (std::is_same<S, CSCALCTDigi>::value) lct_trig_enable = alct_trig_enable;
-  if (std::is_same<S, CSCCLCTDigi>::value) lct_trig_enable = clct_trig_enable;
-    
-  if ((lct_trig_enable  and bestLCT.isValid()) or
-      (match_trig_enable and bestLCT.isValid()))
-    {
-      lct1 = constructLCTsRPC(bestLCT, bestDigi, 1);
-    }
-  
-  if ((lct_trig_enable  and secondLCT.isValid()) or
-      (match_trig_enable and secondLCT.isValid() and secondLCT != bestLCT))
-    {
-      lct2 = constructLCTsRPC(secondLCT, secondDigi, 2);
-    }
+  correlateLCTsRPC(bestLCT, secondLCT, bestDigi, secondDigi, lct1, lct2);
 }
 
 

@@ -38,6 +38,7 @@ class CSCGEMMotherboardME11 : public CSCGEMMotherboard
 	   const CSCComparatorDigiCollection* compdc,
 	   const GEMPadDigiCollection* gemPads) override;
 
+  /* readout the LCTs in ME1a or ME1b */
   std::vector<CSCCorrelatedLCTDigi> readoutLCTs1a() const;
   std::vector<CSCCorrelatedLCTDigi> readoutLCTs1b() const;
 
@@ -46,6 +47,7 @@ class CSCGEMMotherboardME11 : public CSCGEMMotherboard
 
  private:
 
+  /* access to the LUTs needed for matching */
   const CSCGEMMotherboardLUTME11* getLUT() const override {return tmbLUT_;}
   const CSCGEMMotherboardLUTME11* tmbLUT_;
 
@@ -56,27 +58,34 @@ class CSCGEMMotherboardME11 : public CSCGEMMotherboard
   std::vector<CSCCLCTDigi> getCLCTs1a() const {return clctV1a;}
   std::vector<CSCCLCTDigi> getCLCTs1b() const {return clctV1b;}
 
+  /* readout the LCTs in a sector of ME11 */
   std::vector<CSCCorrelatedLCTDigi> readoutLCTs(enum CSCPart me1ab) const;
 
   /** Methods to sort the LCTs */
   std::vector<CSCCorrelatedLCTDigi> sortLCTsByQuality(enum CSCPart = ME1B) const;
   std::vector<CSCCorrelatedLCTDigi> sortLCTsByGEMDPhi(enum CSCPart = ME1B) const;
   
+  /* check if an ALCT cross a CLCT in an ME11 sector */
   bool doesALCTCrossCLCT(const CSCALCTDigi &a, const CSCCLCTDigi &c, int me) const;
 
+  /* correlate a pair of ALCTs and a pair of CLCTs with matched pads or copads 
+     the output is up to two LCTs in a sector of ME11 */
   void correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi& secondALCT,
 			CSCCLCTDigi& bestCLCT, CSCCLCTDigi& secondCLCT,
 			const GEMPadDigiIds& pads, const GEMCoPadDigiIds& copads,
-			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, enum CSCPart p) const;
+			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, 
+			enum CSCPart p) const;
 
+  /* store the LCTs found separately in ME1a and ME1b */
   LCTContainer allLCTs1b;
   LCTContainer allLCTs1a;
 
   /** SLHC: special configuration parameters for ME11 treatment. */
   bool smartME1aME1b, disableME1a, gangedME1a;
 
-  std::vector<CSCCLCTDigi> clctV1b;
+  /* store the CLCTs found separately in ME1a and ME1b */
   std::vector<CSCCLCTDigi> clctV1a;
+  std::vector<CSCCLCTDigi> clctV1b;
 
   // Drop low quality stubs if they don't have GEMs
   bool dropLowQualityCLCTsNoGEMs_ME1a_;

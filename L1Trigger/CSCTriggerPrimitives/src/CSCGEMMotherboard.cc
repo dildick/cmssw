@@ -423,9 +423,12 @@ void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCCLCTDigi& clct, enum
 }
 
 template<>
-void CSCGEMMotherboard::correlateLCTsGEM<CSCALCTDigi>(const CSCALCTDigi& bestLCT, const CSCALCTDigi& secondLCT, 
-						      const GEMCoPadDigi& bestCoPad, const GEMCoPadDigi& secondCoPad,
-						      CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
+void CSCGEMMotherboard::correlateLCTsGEM<CSCALCTDigi>(const CSCALCTDigi& bestLCT, 
+						      const CSCALCTDigi& secondLCT, 
+						      const GEMCoPadDigi& bestCoPad, 
+						      const GEMCoPadDigi& secondCoPad,
+						      CSCCorrelatedLCTDigi& lct1, 
+						      CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
 {
   if ((alct_trig_enable  and bestLCT.isValid()) or
       (match_trig_enable and bestLCT.isValid()))
@@ -442,9 +445,12 @@ void CSCGEMMotherboard::correlateLCTsGEM<CSCALCTDigi>(const CSCALCTDigi& bestLCT
 
 
 template<>
-void CSCGEMMotherboard::correlateLCTsGEM<CSCCLCTDigi>(const CSCCLCTDigi& bestLCT, const CSCCLCTDigi& secondLCT,
-						      const GEMCoPadDigi& bestCoPad, const GEMCoPadDigi& secondCoPad,
-						      CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
+void CSCGEMMotherboard::correlateLCTsGEM<CSCCLCTDigi>(const CSCCLCTDigi& bestLCT, 
+						      const CSCCLCTDigi& secondLCT,
+						      const GEMCoPadDigi& bestCoPad, 
+						      const GEMCoPadDigi& secondCoPad,
+						      CSCCorrelatedLCTDigi& lct1, 
+						      CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
 {
   if ((clct_trig_enable  and bestLCT.isValid()) or
       (match_trig_enable and bestLCT.isValid()))

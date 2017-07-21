@@ -236,6 +236,7 @@ template <class S>
 S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const matches<S>& pads, enum CSCPart) const
 {
   S result;
+  // no matching pads for invalid stub
   if (not alct1.isValid()) return result;
 
   // return the first one with the same roll number
@@ -255,6 +256,7 @@ template <class S>
 S CSCGEMMotherboard::bestMatchingPad(const CSCCLCTDigi& clct, const matches<S>& pads, enum CSCPart part) const
 {
   S result;
+  // no matching pads for invalid stub
   if (not clct.isValid()) return result;
 
   // return the pad with the smallest bending angle
@@ -279,6 +281,7 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const CSCCLCTDigi
 				     const matches<S>& pads, enum CSCPart part) const
 {
   S result;
+  // no matching pads for invalid stub
   if (not alct1.isValid() or not clct1.isValid()) return result;
 
   // return the pad with the smallest bending angle
@@ -291,7 +294,8 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const CSCCLCTDigi
     }
     float averagePadNumberGEM = getPad(p.second);
     // add another safety to make sure that the deltaPad is not larger than max value!!!
-    if (std::abs(averagePadNumberCSC - averagePadNumberGEM) < minDeltaPad and getRoll(p) == getRoll(alct1)){
+    if (std::abs(averagePadNumberCSC - averagePadNumberGEM) < minDeltaPad and 
+	getRoll(p) == getRoll(alct1)){
       minDeltaPad = std::abs(averagePadNumberCSC - averagePadNumberGEM);
       result = p.second;
     }
@@ -300,8 +304,12 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const CSCCLCTDigi
 }
 
 template <class T>
-void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT, T& secondLCT, const GEMCoPadDigiIds& coPads, 
-					 CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
+void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT, 
+					 T& secondLCT, 
+					 const GEMCoPadDigiIds& coPads, 
+					 CSCCorrelatedLCTDigi& lct1, 
+					 CSCCorrelatedLCTDigi& lct2, 
+					 enum CSCPart p)
 {
   bool bestValid     = bestLCT.isValid();
   bool secondValid   = secondLCT.isValid();
@@ -311,8 +319,8 @@ void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT, T& secondLCT, const GEMCoPa
   if (!bestValid and secondValid) bestLCT   = secondLCT;
 
   // get best matching copad1
-  GEMCoPadDigi bestCoPad = bestMatchingPad<GEMCoPadDigi>(bestLCT, coPads, p);
-  GEMCoPadDigi secondCoPad = bestMatchingPad<GEMCoPadDigi>(secondLCT, coPads, p);
+  const GEMCoPadDigi& bestCoPad = bestMatchingPad<GEMCoPadDigi>(bestLCT, coPads, p);
+  const GEMCoPadDigi& secondCoPad = bestMatchingPad<GEMCoPadDigi>(secondLCT, coPads, p);
 
   correlateLCTsGEM(bestLCT, secondLCT, bestCoPad, secondCoPad, lct1, lct2, p);
 }
