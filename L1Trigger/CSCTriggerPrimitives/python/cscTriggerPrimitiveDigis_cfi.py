@@ -328,17 +328,22 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         sortStubs = cms.bool(False),
         dropInvalidStubs = cms.bool(False),
         dropLowQualityStubs = cms.bool(False),
-    )
+    ) 
 )
 
 # Upgrade era customizations involving GEMs and RPCs
 # ==================================================
-copadParam = cms.PSet(
+copadParamGE11 = cms.PSet(
      verbosity = cms.uint32(0),
-     maxDeltaPadGE11 = cms.uint32(2),
-     maxDeltaPadGE21 = cms.uint32(2),
-     maxDeltaRollGE11 = cms.uint32(1),
-     maxDeltaRollGE21 = cms.uint32(1),
+     maxDeltaPad = cms.uint32(2),
+     maxDeltaRoll = cms.uint32(1),
+     maxDeltaBX = cms.uint32(1)
+ )
+
+copadParamGE21 = cms.PSet(
+     verbosity = cms.uint32(0),
+     maxDeltaPad = cms.uint32(2),
+     maxDeltaRoll = cms.uint32(1),
      maxDeltaBX = cms.uint32(1)
  )
 
@@ -356,10 +361,10 @@ me11tmbSLHCGEM = cms.PSet(
     tmbDropUsedAlcts = cms.bool(False),
     clctToAlct = cms.bool(False),
     tmbDropUsedClcts = cms.bool(False),
-    matchEarliestAlctME11Only = cms.bool(False),
-    matchEarliestClctME11Only = cms.bool(False),
+    matchEarliestAlctOnly = cms.bool(False),
+    matchEarliestClctOnly = cms.bool(False),
     tmbCrossBxAlgorithm = cms.uint32(2),
-    maxME11LCTs = cms.uint32(2),
+    maxLCTs = cms.uint32(2),
 
     ## run in debug mode
     debugLUTs = cms.bool(False),
@@ -368,17 +373,13 @@ me11tmbSLHCGEM = cms.PSet(
     ## use old dataformat
     useOldLCTDataFormat = cms.bool(True),
 
-    ## matching to pads in case LowQ CLCT
-    maxDeltaBXPadEven = cms.int32(1),
-    maxDeltaBXPadOdd = cms.int32(1),
-    maxDeltaPadPadEven = cms.int32(12),
-    maxDeltaPadPadOdd = cms.int32(24),
-
-    ## matching to pads in case absent CLCT
-    maxDeltaBXCoPadEven = cms.int32(1),
-    maxDeltaBXCoPadOdd = cms.int32(1),
-    maxDeltaPadCoPadEven = cms.int32(12),
-    maxDeltaPadCoPadOdd = cms.int32(24),
+    ## matching to pads
+    maxDeltaBXPad = cms.int32(1),
+    maxDeltaBXCoPad = cms.int32(1),
+    maxDeltaPadL1Even = cms.int32(12),
+    maxDeltaPadL1Odd = cms.int32(24),
+    maxDeltaPadL2Even = cms.int32(12),
+    maxDeltaPadL2Odd = cms.int32(24),
 
     ## efficiency recovery switches
     dropLowQualityCLCTsNoGEMs_ME1a = cms.bool(False),
@@ -410,10 +411,10 @@ me21tmbSLHCGEM = cms.PSet(
     tmbDropUsedAlcts = cms.bool(False),
     clctToAlct = cms.bool(False),
     tmbDropUsedClcts = cms.bool(False),
-    matchEarliestAlctME21Only = cms.bool(False),
-    matchEarliestClctME21Only = cms.bool(False),
+    matchEarliestAlctOnly = cms.bool(False),
+    matchEarliestClctOnly = cms.bool(False),
     tmbCrossBxAlgorithm = cms.uint32(2),
-    maxME21LCTs = cms.uint32(2),
+    maxLCTs = cms.uint32(2),
 
     ## run in debug mode
     debugLUTs = cms.bool(False),
@@ -422,15 +423,13 @@ me21tmbSLHCGEM = cms.PSet(
     ## use old dataformat
     useOldLCTDataFormat = cms.bool(True),
 
-    ## matching to pads in case LowQ CLCT
+    ## matching to pads
     maxDeltaBXPad = cms.int32(1),
-    maxDeltaPadPadEven = cms.int32(6),
-    maxDeltaPadPadOdd = cms.int32(12),
-
-    ## matching to pads in case absent CLCT
     maxDeltaBXCoPad = cms.int32(1),
-    maxDeltaPadCoPadEven = cms.int32(6),
-    maxDeltaPadCoPadOdd = cms.int32(12),
+    maxDeltaPadL1Even = cms.int32(6),
+    maxDeltaPadL1Odd = cms.int32(12),
+    maxDeltaPadL2Even = cms.int32(6),
+    maxDeltaPadL2Odd = cms.int32(12),
 
     ## efficiency recovery switches
     dropLowQualityALCTsNoGEMs = cms.bool(False),
@@ -459,7 +458,7 @@ me3141tmbSLHCRPC = cms.PSet(
     tmbDropUsedClcts = cms.bool(False),
     matchEarliestClctME3141Only = cms.bool(False),
     tmbCrossBxAlgorithm = cms.uint32(2),
-    maxME3141LCTs = cms.uint32(2),
+    maxLCTs = cms.uint32(2),
 
     ## run in debug mode
     debugLUTs = cms.bool(False),
@@ -472,7 +471,6 @@ me3141tmbSLHCRPC = cms.PSet(
     maxDeltaBXRPC = cms.int32(0),
     maxDeltaStripRPCOdd = cms.int32(6),
     maxDeltaStripRPCEven = cms.int32(4),
-    maxDeltaWg = cms.int32(2),
 
     ## efficiency recovery switches
     dropLowQualityCLCTsNoRPCs = cms.bool(True),
@@ -496,12 +494,14 @@ run2_common.toModify( cscTriggerPrimitiveDigis,
 from Configuration.Eras.Modifier_run3_GEM_cff import run3_GEM
 run3_GEM.toModify( cscTriggerPrimitiveDigis,
                    GEMPadDigiProducer = cms.InputTag("simMuonGEMPadDigis"),
+                   GEMPadDigiClusterProducer = cms.InputTag("simMuonGEMPadDigiClusters"),
                    commonParam = dict(isSLHC = cms.bool(True),
                                       smartME1aME1b = cms.bool(True),
-                                      runME11ILT = cms.bool(True)),
+                                      runME11ILT = cms.bool(True),
+                                      useClusters = cms.bool(False)),
                    clctSLHC = dict(clctNplanesHitPattern = 3),
                    me11tmbSLHCGEM = me11tmbSLHCGEM,
-                   copadParam = copadParam
+                   copadParamGE11 = copadParamGE11
                    )
 
 ## GEM-CSC ILT in ME2/1, CSC-RPC ILT in ME3/1 and ME4/1
@@ -510,14 +510,13 @@ phase2_muon.toModify( cscTriggerPrimitiveDigis,
                       ## on rpc digis -> no integrated CSC-RCP stubs
                       RPCDigiProducer = cms.InputTag(""),
                       commonParam = dict(runME21ILT = cms.bool(True),
-                                         ## to use the upgraded ALCT, CLCT processor
-                                         runME3141ILT = cms.bool(True)), 
+                                         runME3141ILT = cms.bool(True)),
                       alctSLHCME21 = cscTriggerPrimitiveDigis.alctSLHC.clone(alctNplanesHitPattern = 3),
                       clctSLHCME21 = cscTriggerPrimitiveDigis.clctSLHC.clone(clctNplanesHitPattern = 3),
-                      ## use the upgrade processors!
                       alctSLHCME3141 = cscTriggerPrimitiveDigis.alctSLHC.clone(alctNplanesHitPattern = 4),
                       clctSLHCME3141 = cscTriggerPrimitiveDigis.clctSLHC.clone(clctNplanesHitPattern = 4),
                       me21tmbSLHCGEM = me21tmbSLHCGEM,
                       me3141tmbSLHCRPC = me3141tmbSLHCRPC,
-                      copadParam = copadParam
+                      copadParamGE11 = copadParamGE11,
+                      copadParamGE21 = copadParamGE21
 )
