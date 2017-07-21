@@ -350,6 +350,7 @@ void CSCRPCMotherboard::printRPCTriggerDigis(int bx_start, int bx_stop)
 void
 CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct, RPCDigiIds& result) const
 {
+  // no matching digis for invalid stub
   if (not clct.isValid()) return;
   
   const auto& mymap = (getLUT()->get_csc_hs_to_rpc_strip(par));
@@ -370,6 +371,7 @@ CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct, RPCDigiIds& result)
 void
 CSCRPCMotherboard::matchingRPCDigis(const CSCALCTDigi& alct, RPCDigiIds& result) const
 {
+  // no matching digis for invalid stub
   if (not alct.isValid()) return;
   
   const int alctRoll = (getLUT()->get_csc_wg_to_rpc_roll(par))[alct.getKeyWG()];

@@ -177,7 +177,7 @@ CSCCorrelatedLCTDigi CSCGEMMotherboard::constructLCTsGEM(const CSCALCTDigi& alct
 }
 
 
-bool CSCGEMMotherboard::isPadInOverlap(int roll)
+bool CSCGEMMotherboard::isPadInOverlap(int roll) const
 {
   // this only works for ME1A!
   const auto& mymap = (getLUT()->get_csc_wg_to_gem_roll(par));
@@ -337,13 +337,16 @@ unsigned int CSCGEMMotherboard::findQualityGEM(const CSCALCTDigi& aLCT, const CS
 }
 
 template<>
-void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCALCTDigi& alct, enum CSCPart part, matches<GEMPadDigi>& result)
+void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCALCTDigi& alct, 
+						 enum CSCPart part, 
+						 matches<GEMPadDigi>& result) const
 {
   result.clear();
   if (not alct.isValid()) return;
 
   std::pair<int,int> alctRoll = (getLUT()->CSCGEMMotherboardLUT::get_csc_wg_to_gem_roll(par))[alct.getKeyWG()];
-  for (const auto& p: pads_[alct.getBX()]){
+  GEMPadDigiIdsBX lut = pads_;
+  for (const auto& p: lut[alct.getBX()]){
     auto padRoll(getRoll(p));
     // only pads in overlap are good for ME1A
     if (part==CSCPart::ME1A and !isPadInOverlap(padRoll)) continue;
@@ -361,13 +364,16 @@ void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCALCTDigi& alct, enum C
 }
 
 template<>
-void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCALCTDigi& alct, enum CSCPart part, matches<GEMCoPadDigi>& result)
+void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCALCTDigi& alct, 
+						   enum CSCPart part, 
+						   matches<GEMCoPadDigi>& result) const
 {
   result.clear();
   if (not alct.isValid()) return;
 
   std::pair<int,int> alctRoll = (getLUT()->CSCGEMMotherboardLUT::get_csc_wg_to_gem_roll(par))[alct.getKeyWG()];
-  for (const auto& p: coPads_[alct.getBX()]){
+  GEMCoPadDigiIdsBX lut = coPads_;
+  for (const auto& p: lut[alct.getBX()]){
     auto padRoll(getRoll(p));
     // only pads in overlap are good for ME1A
     if (part==CSCPart::ME1A and !isPadInOverlap(padRoll)) continue;
@@ -385,7 +391,9 @@ void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCALCTDigi& alct, enum
 }
 
 template<>
-void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCCLCTDigi& clct, enum CSCPart part, matches<GEMPadDigi>& result)
+void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCCLCTDigi& clct, 
+						 enum CSCPart part, 
+						 matches<GEMPadDigi>& result) const
 {
   result.clear();
   if (not clct.isValid()) return;
@@ -393,7 +401,8 @@ void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCCLCTDigi& clct, enum C
   const auto& mymap = (getLUT()->get_csc_hs_to_gem_pad(par, part));
   const int lowPad(mymap[clct.getKeyStrip()].first);
   const int highPad(mymap[clct.getKeyStrip()].second);
-  for (const auto& p: pads_[clct.getBX()]){
+  GEMPadDigiIdsBX lut = pads_;
+  for (const auto& p: lut[clct.getBX()]){
     auto padRoll(getPad(p.second));
     int pad_bx = getBX(p.second)+lct_central_bx;
     if (std::abs(clct.getBX()-pad_bx)>maxDeltaBXPad_) continue;
@@ -404,7 +413,9 @@ void CSCGEMMotherboard::matchingPads<GEMPadDigi>(const CSCCLCTDigi& clct, enum C
 }
 
 template<>
-void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCCLCTDigi& clct, enum CSCPart part, matches<GEMCoPadDigi>& result)
+void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCCLCTDigi& clct, 
+						   enum CSCPart part, 
+						   matches<GEMCoPadDigi>& result) const
 {
   result.clear();
   if (not clct.isValid()) return;
@@ -412,7 +423,8 @@ void CSCGEMMotherboard::matchingPads<GEMCoPadDigi>(const CSCCLCTDigi& clct, enum
   const auto& mymap = (getLUT()->get_csc_hs_to_gem_pad(par, part));
   const int lowPad(mymap[clct.getKeyStrip()].first);
   const int highPad(mymap[clct.getKeyStrip()].second);
-  for (const auto& p: coPads_[clct.getBX()]){
+  GEMCoPadDigiIdsBX lut = coPads_;
+  for (const auto& p: lut[clct.getBX()]){
     auto padRoll(getPad(p.second));
     int pad_bx = getBX(p.second)+lct_central_bx;
     if (std::abs(clct.getBX()-pad_bx)>maxDeltaBXCoPad_) continue;
@@ -428,7 +440,7 @@ void CSCGEMMotherboard::correlateLCTsGEM<CSCALCTDigi>(const CSCALCTDigi& bestLCT
 						      const GEMCoPadDigi& bestCoPad, 
 						      const GEMCoPadDigi& secondCoPad,
 						      CSCCorrelatedLCTDigi& lct1, 
-						      CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
+						      CSCCorrelatedLCTDigi& lct2, enum CSCPart p) const
 {
   if ((alct_trig_enable  and bestLCT.isValid()) or
       (match_trig_enable and bestLCT.isValid()))
@@ -450,7 +462,7 @@ void CSCGEMMotherboard::correlateLCTsGEM<CSCCLCTDigi>(const CSCCLCTDigi& bestLCT
 						      const GEMCoPadDigi& bestCoPad, 
 						      const GEMCoPadDigi& secondCoPad,
 						      CSCCorrelatedLCTDigi& lct1, 
-						      CSCCorrelatedLCTDigi& lct2, enum CSCPart p)
+						      CSCCorrelatedLCTDigi& lct2, enum CSCPart p) const
 {
   if ((clct_trig_enable  and bestLCT.isValid()) or
       (match_trig_enable and bestLCT.isValid()))

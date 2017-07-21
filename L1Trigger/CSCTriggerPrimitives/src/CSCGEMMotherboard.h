@@ -80,31 +80,31 @@ protected:
   // match ALCT to GEM Pad/CoPad
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T> 
-  void matchingPads(const CSCALCTDigi& alct, enum CSCPart part, matches<T>&); 
+  void matchingPads(const CSCALCTDigi& alct, enum CSCPart part, matches<T>&) const; 
 
   // match CLCT to GEM Pad/CoPad
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T> 
-  void matchingPads(const CSCCLCTDigi& alct, enum CSCPart part, matches<T>&); 
+  void matchingPads(const CSCCLCTDigi& alct, enum CSCPart part, matches<T>&) const; 
 
   // find the matching pads to a pair of ALCT/CLCT
   // the first template is ALCT or CLCT
   // the second template is GEMPadDigi or GEMCoPadDigi
   template <class S, class T>
-  void matchingPads(const S& d1, const S& d2, enum CSCPart part, matches<T>&);
+  void matchingPads(const S& d1, const S& d2, enum CSCPart part, matches<T>&) const;
 
   // find common matches between an ALCT and CLCT
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T>
   void matchingPads(const CSCCLCTDigi& clct1, const CSCALCTDigi& alct1, 
-		    enum CSCPart part, matches<T>&);
+		    enum CSCPart part, matches<T>&) const;
 
   // find all matching pads to a pair of ALCT and a pair of CLCT
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T>
   void matchingPads(const CSCCLCTDigi& clct1, const CSCCLCTDigi& clct2,
 		    const CSCALCTDigi& alct1, const CSCALCTDigi& alct2,
-		    enum CSCPart part, matches<T>&);
+		    enum CSCPart part, matches<T>&) const;
   
   // find the best matching pad to an ALCT
   // the template is GEMPadDigi or GEMCoPadDigi
@@ -128,7 +128,7 @@ protected:
   template <class T>
   void correlateLCTsGEM(T& best, T& second, const GEMCoPadDigiIds& coPads, 
 			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, 
-			enum CSCPart);
+			enum CSCPart) const;
 
   // correlate ALCTs/CLCTs with their best matching GEM copads
   // the template is ALCT or CLCT
@@ -136,7 +136,7 @@ protected:
   void correlateLCTsGEM(const T& best, const T& second, 
 			const GEMCoPadDigi&, const GEMCoPadDigi&,
 			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, 
-			enum CSCPart);
+			enum CSCPart) const;
 
   // construct LCT from ALCT and GEM copad
   // third argument is the CSC 'partition'
@@ -196,7 +196,7 @@ protected:
   void printGEMTriggerPads(int bx_start, int bx_stop, enum CSCPart);
   void printGEMTriggerCoPads(int bx_start, int bx_stop, enum CSCPart);
 
-  bool isPadInOverlap(int roll);
+  bool isPadInOverlap(int roll) const;
   
   void setupGeometry();
 
@@ -309,7 +309,7 @@ void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT,
 					 const GEMCoPadDigiIds& coPads, 
 					 CSCCorrelatedLCTDigi& lct1, 
 					 CSCCorrelatedLCTDigi& lct2, 
-					 enum CSCPart p)
+					 enum CSCPart p) const
 {
   bool bestValid     = bestLCT.isValid();
   bool secondValid   = secondLCT.isValid();
@@ -328,7 +328,7 @@ void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT,
 
 template <class S, class T>
 void CSCGEMMotherboard::matchingPads(const S& d1, const S& d2, 
-				     enum CSCPart part, matches<T>& result)
+				     enum CSCPart part, matches<T>& result) const
 {
   matches<T> p1, p2;
 
@@ -346,7 +346,7 @@ void CSCGEMMotherboard::matchingPads(const S& d1, const S& d2,
 
 template <class T>
 void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1, const CSCALCTDigi& alct1, 
-				     enum CSCPart part, matches<T>& result)
+				     enum CSCPart part, matches<T>& result) const
 {
   matches<T> padsClct, padsAlct;
 
@@ -363,7 +363,7 @@ void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1, const CSCALCTDigi
 template <class T>
 void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1, const CSCCLCTDigi& clct2,
 				     const CSCALCTDigi& alct1, const CSCALCTDigi& alct2,
-				     enum CSCPart part, matches<T>& result)
+				     enum CSCPart part, matches<T>& result) const
 {
   matches<T> padsClct, padsAlct;
 
