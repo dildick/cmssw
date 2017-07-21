@@ -323,16 +323,8 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         maxME11LCTs = cms.uint32(2)
     ),
 
-    # MPC sorter config for Run2
+    # MPC sorter config for Run2 and beyond
     mpcRun2 = cms.PSet(
-        sortStubs = cms.bool(False),
-        dropInvalidStubs = cms.bool(False),
-        dropLowQualityStubs = cms.bool(False),
-    ),
-
-    # MPC sorter config for SLHC studies
-    mpcSLHC = cms.PSet(
-        mpcMaxStubs = cms.uint32(18),
         sortStubs = cms.bool(False),
         dropInvalidStubs = cms.bool(False),
         dropLowQualityStubs = cms.bool(False),
