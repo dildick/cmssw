@@ -19,14 +19,14 @@ CSCGEMMotherboardME21::CSCGEMMotherboardME21(unsigned endcap, unsigned station,
 }
 
 
-CSCGEMMotherboardME21::CSCGEMMotherboardME21() 
+CSCGEMMotherboardME21::CSCGEMMotherboardME21()
   : CSCGEMMotherboard()
   , allLCTs(match_trig_window_size)
 {
 }
 
 
-CSCGEMMotherboardME21::~CSCGEMMotherboardME21() 
+CSCGEMMotherboardME21::~CSCGEMMotherboardME21()
 {
 }
 
@@ -35,7 +35,7 @@ void CSCGEMMotherboardME21::clear()
 {
   CSCMotherboard::clear();
   CSCGEMMotherboard::clear();
-  
+
   for (int bx = 0; bx < MAX_LCT_BINS; bx++) {
     for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++) {
       for (int i=0;i<2;i++) {
@@ -48,7 +48,7 @@ void CSCGEMMotherboardME21::clear()
 void
 CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 			   const CSCComparatorDigiCollection* compdc,
-			   const GEMPadDigiCollection* gemPads) 
+			   const GEMPadDigiCollection* gemPads)
 {
   clear();
   setupGeometry();
@@ -67,7 +67,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
     return;
   }
   gemCoPadV = coPadProcessor->run(gemPads); // run copad processor in GE1/1
-  
+
   if (!( alct and clct))
   {
     if (infoV >= 0) edm::LogError("L1CSCTPEmulatorSetupError")
@@ -86,12 +86,12 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 
   int used_clct_mask[20];
   for (int c=0;c<20;++c) used_clct_mask[c]=0;
-  
-  // retrieve pads and copads in a certain BX window for this CSC 
-  
+
+  // retrieve pads and copads in a certain BX window for this CSC
+
   retrieveGEMPads(gemPads, gemId);
-  retrieveGEMCoPads(); 
-  
+  retrieveGEMCoPads();
+
   const bool hasPads(pads_.size()!=0);
   const bool hasCoPads(coPads_.size()!=0);
 
@@ -105,7 +105,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
       const int bx_copad_start(bx_alct - maxDeltaBXCoPad_);
       const int bx_copad_stop(bx_alct + maxDeltaBXCoPad_);
 
-      if (debug_matching){ 
+      if (debug_matching){
         LogTrace("CSCGEMCMotherboardME21") << "========================================================================" << std::endl;
         LogTrace("CSCGEMCMotherboardME21") << "ALCT-CLCT matching in ME2/1 chamber: " << cscChamber->id() << std::endl;
         LogTrace("CSCGEMCMotherboardME21") << "------------------------------------------------------------------------" << std::endl;
@@ -113,10 +113,10 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
         alct->bestALCT[bx_alct].print();
         LogTrace("CSCGEMCMotherboardME21") << "+++ Second ALCT Details: ";
         alct->secondALCT[bx_alct].print();
-        
-        printGEMTriggerPads(bx_clct_start, bx_clct_stop, CSCPart::ME21);      
-        printGEMTriggerCoPads(bx_clct_start, bx_clct_stop, CSCPart::ME21);      
-        
+
+        printGEMTriggerPads(bx_clct_start, bx_clct_stop, CSCPart::ME21);
+        printGEMTriggerCoPads(bx_clct_start, bx_clct_stop, CSCPart::ME21);
+
         LogTrace("CSCGEMCMotherboardME21") << "------------------------------------------------------------------------" << std::endl;
         LogTrace("CSCGEMCMotherboardME21") << "Attempt ALCT-CLCT matching in ME2/1 in bx range: [" << bx_clct_start << "," << bx_clct_stop << "]" << std::endl;
       }
@@ -137,14 +137,14 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
           const bool lowQuality(quality<4 or lowQualityALCT);
           if (debug_matching) LogTrace("CSCGEMCMotherboardME21") << "++Valid ME21 CLCT: " << clct->bestCLCT[bx_clct] << std::endl;
 
-	  // pick the pad that corresponds 
+	  // pick the pad that corresponds
 	  matches<GEMPadDigi> mPads;
-	  matchingPads<GEMPadDigi>(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct], 
+	  matchingPads<GEMPadDigi>(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
 				   alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME21, mPads);
 	  matches<GEMCoPadDigi> mCoPads;
-	  matchingPads<GEMCoPadDigi>(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct], 
+	  matchingPads<GEMCoPadDigi>(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
 				     alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME21, mCoPads);
-	  
+
           if (dropLowQualityCLCTsNoGEMs_ and lowQuality and hasPads){
             int nFound(mPads.size());
             const bool clctInEdge(clct->bestCLCT[bx_clct].getKeyStrip() < 5 or clct->bestCLCT[bx_clct].getKeyStrip() > 155);
@@ -163,7 +163,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
           }
 
           ++nSuccesFulMatches;
-      
+
           int mbx = bx_clct-bx_clct_start;
 	  correlateLCTsGEM(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct],
 			   clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
@@ -194,7 +194,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
           if (not hasCoPads) {
             continue;
           }
-          
+
           // find the best matching copad
 	  matches<GEMCoPadDigi> copads;
 	  matchingPads<CSCALCTDigi, GEMCoPadDigi>(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME21, copads);
@@ -203,11 +203,11 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
           if (copads.size()==0) {
             continue;
           }
-          
+
 	  CSCGEMMotherboard::correlateLCTsGEM(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct],
 					      copads, allLCTs(bx_alct,0,0), allLCTs(bx_alct,0,1), CSCPart::ME21);
           if (allLCTs(bx_alct,0,0).isValid()) {
-            ++nSuccesFulGEMMatches;            
+            ++nSuccesFulGEMMatches;
             if (match_earliest_clct_only) break;
           }
           if (debug_matching) {
@@ -226,17 +226,17 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
                     << ", bx_alct = " << bx_alct
                     << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
         else if (nSuccesFulMatches==1)
-          LogTrace("CSCGEMCMotherboardME21") << "1 successful ALCT-CLCT match in ME21: " 
+          LogTrace("CSCGEMCMotherboardME21") << "1 successful ALCT-CLCT match in ME21: "
                     << " CSCDetId " << cscChamber->id()
                     << ", bx_alct = " << bx_alct
                     << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
         else if (nSuccesFulGEMMatches==1)
-          LogTrace("CSCGEMCMotherboardME21") << "1 successful ALCT-GEM match in ME21: " 
+          LogTrace("CSCGEMCMotherboardME21") << "1 successful ALCT-GEM match in ME21: "
                     << " CSCDetId " << cscChamber->id()
                     << ", bx_alct = " << bx_alct
                     << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
-        else 
-          LogTrace("CSCGEMCMotherboardME21") << "Unsuccessful ALCT-CLCT match in ME21: " 
+        else
+          LogTrace("CSCGEMCMotherboardME21") << "Unsuccessful ALCT-CLCT match in ME21: "
                     << "CSCDetId " << cscChamber->id()
                     << ", bx_alct = " << bx_alct
                     << "; match window: [" << bx_clct_start << "; " << bx_clct_stop << "]" << std::endl;
@@ -248,8 +248,8 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
       if (coPads.size() and buildLCTfromCLCTandGEM_) {
         const int bx_clct_start(bx_alct - match_trig_window_size/2);
 	const int bx_clct_stop(bx_alct + match_trig_window_size/2);
-        
-        if (debug_matching){ 
+
+        if (debug_matching){
           LogTrace("CSCGEMCMotherboardME21") << "========================================================================" << std::endl;
 	  LogTrace("CSCGEMCMotherboardME21") <<"GEM-CLCT matching in ME2/1 chamber: "<< cscChamber->id()<< "in bx:"<<bx_alct<<std::endl;
 	  LogTrace("CSCGEMCMotherboardME21") << "------------------------------------------------------------------------" << std::endl;
@@ -261,15 +261,15 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
          if (bx_clct < 0 or bx_clct >= CSCCathodeLCTProcessor::MAX_CLCT_BINS) continue;
 	 if (drop_used_clcts and used_clct_mask[bx_clct]) continue;
 	 if (clct->bestCLCT[bx_clct].isValid())
-	   {          
+	   {
 	     const int quality(clct->bestCLCT[bx_clct].getQuality());
 	     // only use high-Q stubs for the time being
 	     if (quality < 4) continue;
-	     
+
 	     ++nSuccesFulMatches;
-	     
+
 	     int mbx = std::abs(clct->bestCLCT[bx_clct].getBX()-bx_alct);
-	     int bx_gem = (coPads[0].second).bx(1)+lct_central_bx;	    
+	     int bx_gem = (coPads[0].second).bx(1)+lct_central_bx;
 	     CSCGEMMotherboard::correlateLCTsGEM(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct], coPads,
 						 allLCTs(bx_gem,mbx,0), allLCTs(bx_gem,mbx,1), CSCPart::ME21);
 	     if (debug_matching) {
@@ -303,11 +303,11 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 	    if (allLCTs(bx,mbx,i).isValid())
 	      {
 		++n;
-		if (infoV > 0) LogDebug("CSCGEMMotherboardME21") 
+		if (infoV > 0) LogDebug("CSCGEMMotherboardME21")
 				 << "LCT"<<i+1<<" "<<bx<<"/"<<cbx<<": "<<allLCTs(bx,mbx,i)<<std::endl;
 	      }
 	  }
-    
+
       // some simple cross-bx sorting algorithms
       if (tmb_cross_bx_algo == 1 and (n>2))
 	{
@@ -330,15 +330,15 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 		if (allLCTs(bx,mbx,i).isValid())
 		  {
 		    n++;
-		    if (infoV > 0) LogDebug("CSCGEMMotherboardME21") 
+		    if (infoV > 0) LogDebug("CSCGEMMotherboardME21")
 				     << "LCT"<<i+1<<" "<<bx<<"/"<<cbx<<": "<<allLCTs(bx,mbx,i)<< std::endl;
 		  }
 	      }
-	  if (infoV > 0 and n>0) LogDebug("CSCGEMMotherboardME21") 
+	  if (infoV > 0 and n>0) LogDebug("CSCGEMMotherboardME21")
 				   <<"bx "<<bx<<" nnLCT:"<<n<<" "<<n<<std::endl;
 	} // x-bx sorting
     }
-  
+
   bool first = true;
   unsigned int n=0;
   for (const auto& p : readoutLCTs()) {
@@ -347,7 +347,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
       LogTrace("CSCGEMCMotherboardME21") << "Counting the final LCTs" << std::endl;
       LogTrace("CSCGEMCMotherboardME21") << "========================================================================" << std::endl;
       first = false;
-      LogTrace("CSCGEMCMotherboardME21") << "tmb_cross_bx_algo: " << tmb_cross_bx_algo << std::endl;        
+      LogTrace("CSCGEMCMotherboardME21") << "tmb_cross_bx_algo: " << tmb_cross_bx_algo << std::endl;
     }
     n++;
     if (debug_matching)
@@ -355,7 +355,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
   }
 }
 
-//readout LCTs 
+//readout LCTs
 std::vector<CSCCorrelatedLCTDigi> CSCGEMMotherboardME21::readoutLCTs() const
 {
   std::vector<CSCCorrelatedLCTDigi> result;
@@ -374,7 +374,7 @@ void CSCGEMMotherboardME21::correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi&
   // assume that always anodeBestValid and cathodeBestValid
   if (secondALCT == bestALCT) secondALCT.clear();
   if (secondCLCT == bestCLCT) secondCLCT.clear();
-  
+
   if (copads.size() or pads.size()){
 
     // check matching copads
@@ -390,12 +390,12 @@ void CSCGEMMotherboardME21::correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi&
     const GEMPadDigi& ss_pad = bestMatchingPad<GEMPadDigi>(secondALCT, secondCLCT, pads, p);
 
     // evaluate possible combinations
-    const bool ok_bb_copad = bestALCT.isValid() and bestCLCT.isValid() and bb_copad.isValid(); 
+    const bool ok_bb_copad = bestALCT.isValid() and bestCLCT.isValid() and bb_copad.isValid();
     const bool ok_bs_copad = bestALCT.isValid() and secondCLCT.isValid() and bs_copad.isValid();
     const bool ok_sb_copad = secondALCT.isValid() and bestCLCT.isValid() and sb_copad.isValid();
     const bool ok_ss_copad = secondALCT.isValid() and secondCLCT.isValid() and ss_copad.isValid();
-    
-    const bool ok_bb_pad = (not ok_bb_copad) and bestALCT.isValid() and bestCLCT.isValid() and bb_pad.isValid(); 
+
+    const bool ok_bb_pad = (not ok_bb_copad) and bestALCT.isValid() and bestCLCT.isValid() and bb_pad.isValid();
     const bool ok_bs_pad = (not ok_bs_copad) and bestALCT.isValid() and secondCLCT.isValid() and bs_pad.isValid();
     const bool ok_sb_pad = (not ok_sb_copad) and secondALCT.isValid() and bestCLCT.isValid() and sb_pad.isValid();
     const bool ok_ss_pad = (not ok_ss_copad) and secondALCT.isValid() and secondCLCT.isValid() and ss_pad.isValid();
@@ -409,11 +409,11 @@ void CSCGEMMotherboardME21::correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi&
       if (ok_bs_copad) lct1 = constructLCTsGEM(bestALCT, secondCLCT, bs_copad, p, 1);
       if (ok_sb_copad) lct2 = constructLCTsGEM(secondALCT, bestCLCT, sb_copad, p, 2);
     }
-    
+
     // done processing?
     if (lct1.isValid() and lct2.isValid()) return;
 
-    // possible cases with pad  
+    // possible cases with pad
     if ((ok_bb_pad or ok_ss_pad) and not (ok_bs_copad or ok_sb_copad)){
       if (ok_bb_pad) lct1 = constructLCTsGEM(bestALCT, bestCLCT, bb_pad, p, 1);
       if (ok_ss_pad) lct2 = constructLCTsGEM(secondALCT, secondCLCT, ss_pad, p, 2);
@@ -424,10 +424,10 @@ void CSCGEMMotherboardME21::correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi&
     }
   } else {
     // run without gems - happens in less than 0.04% of the time
-    lct1 = constructLCTs(bestALCT, bestCLCT); 
+    lct1 = constructLCTs(bestALCT, bestCLCT, CSCCorrelatedLCTDigi::ALCTCLCT);
     lct1.setTrknmb(1);
-    
-    lct2 = constructLCTs(secondALCT, secondCLCT); 
+
+    lct2 = constructLCTs(secondALCT, secondCLCT, CSCCorrelatedLCTDigi::ALCTCLCT);
     lct2.setTrknmb(2);
   }
 }

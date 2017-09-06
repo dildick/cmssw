@@ -8,7 +8,7 @@ CSCRPCMotherboard::CSCRPCMotherboard(unsigned endcap, unsigned station,
   : CSCUpgradeMotherboard(endcap, station, sector, subsector, chamber, conf)
   , allLCTs(match_trig_window_size)
   , maxDeltaBX_(tmbParams_.getParameter<int>("maxDeltaBXRPC"))
-  , maxDeltaStrip_(par ? tmbParams_.getParameter<int>("maxDeltaStripRPCEven") : 
+  , maxDeltaStrip_(par ? tmbParams_.getParameter<int>("maxDeltaStripRPCEven") :
 		   tmbParams_.getParameter<int>("maxDeltaStripRPCOdd"))
   , useOldLCTDataFormat_(tmbParams_.getParameter<bool>("useOldLCTDataFormat"))
   , dropLowQualityCLCTsNoRPCs_(tmbParams_.getParameter<bool>("dropLowQualityCLCTsNoRPCs"))
@@ -21,7 +21,7 @@ CSCRPCMotherboard::CSCRPCMotherboard(unsigned endcap, unsigned station,
 {
 }
 
-CSCRPCMotherboard::~CSCRPCMotherboard() 
+CSCRPCMotherboard::~CSCRPCMotherboard()
 {
 }
 
@@ -42,7 +42,7 @@ void CSCRPCMotherboard::clear()
 void
 CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
 		       const CSCComparatorDigiCollection* compdc,
-		       const RPCDigiCollection* rpcDigis) 
+		       const RPCDigiCollection* rpcDigis)
 {
   clear();
   setupGeometry();
@@ -94,7 +94,7 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
     {
       const int bx_clct_start(bx_alct - match_trig_window_size/2);
       const int bx_clct_stop(bx_alct + match_trig_window_size/2);
-      if (debug_matching){ 
+      if (debug_matching){
         LogTrace("CSCRPCMotherboard") << "========================================================================" << std::endl;
         LogTrace("CSCRPCMotherboard") << "ALCT-CLCT matching in ME" << theStation << "/1 chamber: " << csc_id << std::endl;
         LogTrace("CSCRPCMotherboard") << "------------------------------------------------------------------------" << std::endl;
@@ -104,32 +104,32 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
         alct->secondALCT[bx_alct].print();
         LogTrace("CSCRPCMotherboard") << "------------------------------------------------------------------------" << std::endl;
         LogTrace("CSCRPCMotherboard") << "RPC Chamber " << rpc_id << std::endl;
-        printRPCTriggerDigis(bx_clct_start, bx_clct_stop);      
-        
+        printRPCTriggerDigis(bx_clct_start, bx_clct_stop);
+
         LogTrace("CSCRPCMotherboard") << "------------------------------------------------------------------------" << std::endl;
         LogTrace("CSCRPCMotherboard") << "Attempt ALCT-CLCT matching in ME" << theStation << "/1 in bx range: [" << bx_clct_start << "," << bx_clct_stop << "]" << std::endl;
       }
 
       // low quality ALCT
       const bool lowQualityALCT(alct->bestALCT[bx_alct].getQuality() == 0);
-      
+
       // ALCT-to-CLCT
       int nSuccesFulMatches = 0;
       for (int bx_clct = bx_clct_start; bx_clct <= bx_clct_stop; bx_clct++) {
-        if (bx_clct < 0 or bx_clct >= CSCCathodeLCTProcessor::MAX_CLCT_BINS) continue;          
+        if (bx_clct < 0 or bx_clct >= CSCCathodeLCTProcessor::MAX_CLCT_BINS) continue;
         if (drop_used_clcts and used_clct_mask[bx_clct]) continue;
         if (clct->bestCLCT[bx_clct].isValid()) {
-          
-          // pick the digi that corresponds 
+
+          // pick the digi that corresponds
           RPCDigiIds matchingDigis;
 	  matchingRPCDigis(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
 			   alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], matchingDigis);
-          
+
           // clct quality
           const int quality(clct->bestCLCT[bx_clct].getQuality());
           // low quality ALCT or CLCT
           const bool lowQuality(quality<4 or lowQualityALCT);
-          
+
           if (dropLowQualityCLCTsNoRPCs_ and lowQuality and hasRPCDigis){
             int nFound(matchingDigis.size());
             const bool clctInEdge(clct->bestCLCT[bx_clct].getKeyStrip() < 5 or clct->bestCLCT[bx_clct].getKeyStrip() > 155);
@@ -146,12 +146,12 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
               }
             }
           }
-          
+
           int mbx = bx_clct-bx_clct_start;
           correlateLCTsRPC(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct],
-			   clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct], 
+			   clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
 			   matchingDigis,
-			   allLCTs(bx_alct,mbx,0), allLCTs(bx_alct,mbx,1));            
+			   allLCTs(bx_alct,mbx,0), allLCTs(bx_alct,mbx,1));
           ++nSuccesFulMatches;
           if (debug_matching) {
             if (infoV > 1) LogTrace("CSCRPCMotherboard")
@@ -174,20 +174,20 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
       if (nSuccesFulMatches==0 and buildLCTfromALCTandRPC_){
         if (debug_matching) LogTrace("CSCRPCMotherboard") << "++No valid ALCT-CLCT matches in ME"<<theStation<<"1" << std::endl;
         for (int bx_rpc = bx_clct_start; bx_rpc <= bx_clct_stop; bx_rpc++) {
-          if (lowQualityALCT and !buildLCTfromLowQstubandRPC_) continue; // build lct from low-Q ALCTs and rpc if para is set true        
+          if (lowQualityALCT and !buildLCTfromLowQstubandRPC_) continue; // build lct from low-Q ALCTs and rpc if para is set true
           if (not hasRPCDigis) continue;
-          
-          // find the best matching copad - first one 
+
+          // find the best matching copad - first one
           RPCDigiIds digis;
 	  matchingRPCDigis(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], digis);
 
           if (debug_matching) LogTrace("CSCRPCMotherboard") << "\t++Number of matching RPC Digis in BX " << bx_alct << " : "<< digis.size() << std::endl;
           if (digis.size()==0) continue;
-          
+
 	  correlateLCTsRPC(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], digis,
-			   allLCTs(bx_alct,0,0), allLCTs(bx_alct,0,1));            
+			   allLCTs(bx_alct,0,0), allLCTs(bx_alct,0,1));
           if (allLCTs(bx_alct,0,0).isValid()) {
-            ++nSuccesFulRPCMatches;            
+            ++nSuccesFulRPCMatches;
             if (match_earliest_clct_only) break;
           }
           if (debug_matching) {
@@ -209,8 +209,8 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
         //  if (bx_clct < 0 or bx_clct >= CSCCathodeLCTProcessor::MAX_CLCT_BINS) continue;
           if (drop_used_clcts and used_clct_mask[bx_alct]) continue;
           if (clct->bestCLCT[bx_alct].isValid())
-          {          
-            if (debug_matching){ 
+          {
+            if (debug_matching){
               LogTrace("CSCRPCMotherboard") << "========================================================================" << std::endl;
               LogTrace("CSCRPCMotherboard") << "RPC-CLCT matching in ME" << theStation << "/1 chamber: " << cscChamber->id() << " in bx: "<<bx_alct<< std::endl;
               LogTrace("CSCRPCMotherboard") << "------------------------------------------------------------------------" << std::endl;
@@ -218,13 +218,13 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
             const int quality(clct->bestCLCT[bx_alct].getQuality());
             // we also use low-Q stubs for the time being
             if (quality < 4 and !buildLCTfromLowQstubandRPC_) continue;
-            
+
             ++nSuccesFulMatches;
-            
+
             int mbx = std::abs(clct->bestCLCT[bx_alct].getBX()-bx_alct);
-            int bx_rpc = lct_central_bx;	    
+            int bx_rpc = lct_central_bx;
             correlateLCTsRPC(clct->bestCLCT[bx_alct], clct->secondCLCT[bx_alct], digis,
-			     allLCTs(bx_rpc,mbx,0), allLCTs(bx_rpc,mbx,1));            
+			     allLCTs(bx_rpc,mbx,0), allLCTs(bx_rpc,mbx,1));
 	    if (infoV > 1) {
 	      LogTrace("CSCRPCMotherboard") << "Successful RPC-CLCT match in ME"<<theStation<<"/1: bx_alct = " << bx_alct
 					    << std::endl;
@@ -255,11 +255,11 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
         if (allLCTs(bx,mbx,i).isValid())
         {
           ++n;
-	  if (infoV > 0) LogDebug("CSCMotherboard") 
+	  if (infoV > 0) LogDebug("CSCMotherboard")
 			   << "LCT"<<i+1<<" "<<bx<<"/"<<cbx<<": "<<allLCTs(bx,mbx,i)<<std::endl;
         }
       }
-    
+
     // some simple cross-bx sorting algorithms
     if (tmb_cross_bx_algo == 1 and (n>2))
     {
@@ -285,11 +285,11 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
             if (infoV > 0) LogDebug("CSCMotherboard") << "LCT"<<i+1<<" "<<bx<<"/"<<cbx<<": "<<allLCTs(bx,mbx,i) << std::endl;
           }
         }
-      if (infoV > 0 and n>0) LogDebug("CSCMotherboard") 
+      if (infoV > 0 and n>0) LogDebug("CSCMotherboard")
         <<"bx "<<bx<<" nnLCT:"<<n<<" "<<n<<std::endl;
     } // x-bx sorting
   }
-  
+
   bool first = true;
   unsigned int n=0;
   for (const auto& p : readoutLCTs()) {
@@ -298,7 +298,7 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
       LogTrace("CSCRPCMotherboard") << "Counting the final LCTs" << std::endl;
       LogTrace("CSCRPCMotherboard") << "========================================================================" << std::endl;
       first = false;
-      LogTrace("CSCRPCMotherboard") << "tmb_cross_bx_algo: " << tmb_cross_bx_algo << std::endl;        
+      LogTrace("CSCRPCMotherboard") << "tmb_cross_bx_algo: " << tmb_cross_bx_algo << std::endl;
     }
     n++;
     if (debug_matching)
@@ -317,7 +317,7 @@ void CSCRPCMotherboard::retrieveRPCDigis(const RPCDigiCollection* rpcDigis, unsi
     for (auto digi = digis_in_det.first; digi != digis_in_det.second; ++digi) {
       const int bx_shifted(lct_central_bx + digi->bx());
       for (int bx = bx_shifted - maxDeltaBX_;bx <= bx_shifted + maxDeltaBX_; ++bx) {
-        rpcDigis_[bx].emplace_back(roll_id(), *digi);  
+        rpcDigis_[bx].emplace_back(roll_id(), *digi);
       }
     }
   }
@@ -352,7 +352,7 @@ CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct, RPCDigiIds& result)
 {
   // no matching digis for invalid stub
   if (not clct.isValid()) return;
-  
+
   const auto& mymap = (getLUT()->get_csc_hs_to_rpc_strip(par));
   const int lowStrip(mymap[clct.getKeyStrip()].first);
   const int highStrip(mymap[clct.getKeyStrip()].second);
@@ -373,7 +373,7 @@ CSCRPCMotherboard::matchingRPCDigis(const CSCALCTDigi& alct, RPCDigiIds& result)
 {
   // no matching digis for invalid stub
   if (not alct.isValid()) return;
-  
+
   const int alctRoll = (getLUT()->get_csc_wg_to_rpc_roll(par))[alct.getKeyWG()];
   RPCDigiIdsBX lut = rpcDigis_;
   for (const auto& p: lut[alct.getBX()]){
@@ -384,16 +384,16 @@ CSCRPCMotherboard::matchingRPCDigis(const CSCALCTDigi& alct, RPCDigiIds& result)
 }
 
 
-void 
-CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct, 
-				    const CSCALCTDigi& alct, 
+void
+CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct,
+				    const CSCALCTDigi& alct,
 				    RPCDigiIds& result) const
 {
   RPCDigiIds digisClct, digisAlct;
 
   // digis matching to the CLCT
   matchingRPCDigis(clct, digisClct);
-  
+
   // digis matching to the ALCT
   matchingRPCDigis(alct, digisAlct);
 
@@ -401,11 +401,11 @@ CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct,
   intersection(digisClct, digisAlct, result);
 }
 
-void 
-CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct1, 
-				    const CSCCLCTDigi& clct2, 
-				    const CSCALCTDigi& alct1, 
-				    const CSCALCTDigi& alct2, 
+void
+CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct1,
+				    const CSCCLCTDigi& clct2,
+				    const CSCALCTDigi& alct1,
+				    const CSCALCTDigi& alct2,
 				    RPCDigiIds& result) const
 {
   RPCDigiIds digisClct, digisAlct;
@@ -416,7 +416,7 @@ CSCRPCMotherboard::matchingRPCDigis(const CSCCLCTDigi& clct1,
   // digis matching to the ALCTs
   matchingRPCDigis(alct1, alct2, digisAlct);
 
-  // collect *all* matching digis 
+  // collect *all* matching digis
   result.reserve(digisClct.size() + digisAlct.size());
   result.insert(std::end(result), std::begin(digisClct), std::end(digisClct));
   result.insert(std::end(result), std::begin(digisAlct), std::end(digisAlct));
@@ -441,7 +441,7 @@ unsigned int CSCRPCMotherboard::findQualityRPC(const CSCALCTDigi& aLCT, const CS
     else {
       // ALCT quality is the number of layers hit minus 3.
       // CLCT quality is the number of layers hit.
-      int n_rpc = 0;  
+      int n_rpc = 0;
       if (hasRPC) n_rpc = 1;
       const bool a4((aLCT.getQuality() >= 1 and aLCT.getQuality() != 4) or
 		    (aLCT.getQuality() == 4 and n_rpc >=1));
@@ -451,21 +451,21 @@ unsigned int CSCRPCMotherboard::findQualityRPC(const CSCALCTDigi& aLCT, const CS
       else if ( a4 && !c4) quality = 6; // HQ anode, but marginal cathode
       else if (!a4 &&  c4) quality = 7; // HQ cathode, but marginal anode
       else if ( a4 &&  c4) {
-	if (aLCT.getAccelerator()) quality = 8; // HQ muon, but accel ALCT
-	else {
-	  // quality =  9; "reserved for HQ muons with future patterns
-	  // quality = 10; "reserved for HQ muons with future patterns
-	  if (pattern == 2 || pattern == 3)      quality = 11;
-	  else if (pattern == 4 || pattern == 5) quality = 12;
-	  else if (pattern == 6 || pattern == 7) quality = 13;
-	  else if (pattern == 8 || pattern == 9) quality = 14;
-	  else if (pattern == 10)                quality = 15;
-	  else {
-	    if (infoV >= 0) edm::LogWarning("L1CSCTPEmulatorWrongValues")
-			      << "+++ findQuality: Unexpected CLCT pattern id = "
-			      << pattern << "+++\n";
-	  }
-	}
+        if (aLCT.getAccelerator()) quality = 8; // HQ muon, but accel ALCT
+        else {
+          // quality =  9; "reserved for HQ muons with future patterns
+          // quality = 10; "reserved for HQ muons with future patterns
+          if (pattern == 2 || pattern == 3)      quality = 11;
+          else if (pattern == 4 || pattern == 5) quality = 12;
+          else if (pattern == 6 || pattern == 7) quality = 13;
+          else if (pattern == 8 || pattern == 9) quality = 14;
+          else if (pattern == 10)                quality = 15;
+          else {
+            if (infoV >= 0) edm::LogWarning("L1CSCTPEmulatorWrongValues")
+                              << "+++ findQuality: Unexpected CLCT pattern id = "
+                              << pattern << "+++\n";
+          }
+        }
       }
     }
   }
@@ -473,26 +473,26 @@ unsigned int CSCRPCMotherboard::findQualityRPC(const CSCALCTDigi& aLCT, const CS
 }
 
 void CSCRPCMotherboard::correlateLCTsRPC(CSCALCTDigi& bestALCT, CSCALCTDigi& secondALCT,
-					 CSCCLCTDigi& bestCLCT, CSCCLCTDigi& secondCLCT,
-					 const RPCDigiIds& digis,
-					 CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2) const
+                                         CSCCLCTDigi& bestCLCT, CSCCLCTDigi& secondCLCT,
+                                         const RPCDigiIds& digis,
+                                         CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2) const
 {
   // assume that always anodeBestValid and cathodeBestValid
   if (secondALCT == bestALCT) secondALCT.clear();
   if (secondCLCT == bestCLCT) secondCLCT.clear();
-  
+
   if (digis.size()){
-    
+
     const RPCDigiId& bb_digi = bestMatchingDigi(bestALCT,   bestCLCT,   digis);
     const RPCDigiId& bs_digi = bestMatchingDigi(bestALCT,   secondCLCT, digis);
     const RPCDigiId& sb_digi = bestMatchingDigi(secondALCT, bestCLCT,   digis);
     const RPCDigiId& ss_digi = bestMatchingDigi(secondALCT, secondCLCT, digis);
-    
-    const bool ok_bb_digi = bestALCT.isValid() and bestCLCT.isValid() and isValid(bb_digi); 
+
+    const bool ok_bb_digi = bestALCT.isValid() and bestCLCT.isValid() and isValid(bb_digi);
     const bool ok_bs_digi = bestALCT.isValid() and secondCLCT.isValid() and isValid(bs_digi);
     const bool ok_sb_digi = secondALCT.isValid() and bestCLCT.isValid() and isValid(sb_digi);
     const bool ok_ss_digi = secondALCT.isValid() and secondCLCT.isValid() and isValid(ss_digi);
- 
+
     // possible cases with digi
     if (ok_bb_digi or ok_ss_digi){
       if (ok_bb_digi) lct1 = constructLCTsRPC(bestALCT, bestCLCT, bb_digi, 1);
@@ -502,15 +502,15 @@ void CSCRPCMotherboard::correlateLCTsRPC(CSCALCTDigi& bestALCT, CSCALCTDigi& sec
       if (ok_bs_digi) lct1 = constructLCTsRPC(bestALCT, secondCLCT, bs_digi, 1);
       if (ok_sb_digi) lct2 = constructLCTsRPC(secondALCT, bestCLCT, sb_digi, 2);
     }
-    
+
     // done processing?
     if (lct1.isValid() and lct2.isValid()) return;
-    
+
   } else {
-    lct1 = constructLCTs(bestALCT, bestCLCT); 
+    lct1 = constructLCTs(bestALCT, bestCLCT, CSCCorrelatedLCTDigi::ALCTCLCT);
     lct1.setTrknmb(1);
-    
-    lct2 = constructLCTs(secondALCT, secondCLCT); 
+
+    lct2 = constructLCTs(secondALCT, secondCLCT, CSCCorrelatedLCTDigi::ALCTCLCT);
     lct2.setTrknmb(2);
   }
 }
@@ -523,14 +523,14 @@ CSCCorrelatedLCTDigi CSCRPCMotherboard::constructLCTsRPC(const CSCCLCTDigi& clct
 }
 
 CSCCorrelatedLCTDigi CSCRPCMotherboard::constructLCTsRPC(const CSCALCTDigi& alct,
-							 const RPCDigiId& rpc, int iLCT) const 
-{    
+							 const RPCDigiId& rpc, int iLCT) const
+{
   CSCCLCTDigi emptyCLCT;
   return constructLCTsRPC(alct, emptyCLCT, rpc, iLCT);
 }
 
-CSCCorrelatedLCTDigi CSCRPCMotherboard::constructLCTsRPC(const CSCALCTDigi& aLCT, 
-							 const CSCCLCTDigi& cLCT, 
+CSCCorrelatedLCTDigi CSCRPCMotherboard::constructLCTsRPC(const CSCALCTDigi& aLCT,
+							 const CSCCLCTDigi& cLCT,
 							 const RPCDigiId& digi, int iLCT) const
 {
   // step 1: determine the case
@@ -577,10 +577,10 @@ CSCCorrelatedLCTDigi CSCRPCMotherboard::constructLCTsRPC(const CSCALCTDigi& aLCT
   // step 3: make new LCT with afore assigned properties}
   return CSCCorrelatedLCTDigi(iLCT, 1, quality, keyWG, keyStrip,
 			      pattern, 0, bx, 0, 0, 0, theTrigChamber);
-  
+
 }
 
-//readout LCTs 
+//readout LCTs
 std::vector<CSCCorrelatedLCTDigi> CSCRPCMotherboard::readoutLCTs() const
 {
   std::vector<CSCCorrelatedLCTDigi> result;
@@ -589,13 +589,13 @@ std::vector<CSCCorrelatedLCTDigi> CSCRPCMotherboard::readoutLCTs() const
   return result;
 }
 
-RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCALCTDigi& alct1, 
+RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCALCTDigi& alct1,
 					      const matches<RPCDigi>& digis) const
 {
   RPCDigiId result;
   // no matching digis for invalid stub
   if (not alct1.isValid()) return result;
-  
+
   // return the first one with the same roll number
   for (const auto& p: digis){
     if (getRoll(p) == getRoll(alct1)){
@@ -605,13 +605,13 @@ RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCALCTDigi& alct1,
   return result;
 }
 
-RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCCLCTDigi& clct, 
+RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCCLCTDigi& clct,
 					      const matches<RPCDigi>& strips) const
 {
   RPCDigiId result;
   // no matching digis for invalid stub
   if (not clct.isValid()) return result;
-  
+
   // return the strip with the smallest bending angle
   float averageStripNumberCSC = getStrip(clct);
   float minDeltaStrip = 999;
@@ -625,14 +625,14 @@ RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCCLCTDigi& clct,
   return result;
 }
 
-RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCALCTDigi& alct1, 
-					      const CSCCLCTDigi& clct1, 
+RPCDigiId CSCRPCMotherboard::bestMatchingDigi(const CSCALCTDigi& alct1,
+					      const CSCCLCTDigi& clct1,
 					      const matches<RPCDigi>& strips) const
 {
   RPCDigiId result;
   // no matching digis for invalid stub
   if (not alct1.isValid() or not clct1.isValid()) return result;
-  
+
   // return the strip with the smallest bending angle
   float averageStripNumberCSC = getStrip(clct1);
   float minDeltaStrip = 999;
@@ -685,11 +685,11 @@ void CSCRPCMotherboard::setupGeometry()
 }
 
 template<>
-void CSCRPCMotherboard::correlateLCTsRPC<CSCALCTDigi>(const CSCALCTDigi& bestLCT, 
-						      const CSCALCTDigi& secondLCT, 
-						      const RPCDigiId& bestDigi, 
+void CSCRPCMotherboard::correlateLCTsRPC<CSCALCTDigi>(const CSCALCTDigi& bestLCT,
+						      const CSCALCTDigi& secondLCT,
+						      const RPCDigiId& bestDigi,
 						      const RPCDigiId& secondDigi,
-						      CSCCorrelatedLCTDigi& lct1, 
+						      CSCCorrelatedLCTDigi& lct1,
 						      CSCCorrelatedLCTDigi& lct2) const
 {
   if ((alct_trig_enable  and bestLCT.isValid()) or
@@ -697,7 +697,7 @@ void CSCRPCMotherboard::correlateLCTsRPC<CSCALCTDigi>(const CSCALCTDigi& bestLCT
     {
       lct1 = constructLCTsRPC(bestLCT, bestDigi, 1);
     }
-  
+
   if ((alct_trig_enable  and secondLCT.isValid()) or
       (match_trig_enable and secondLCT.isValid() and secondLCT != bestLCT))
     {
@@ -707,11 +707,11 @@ void CSCRPCMotherboard::correlateLCTsRPC<CSCALCTDigi>(const CSCALCTDigi& bestLCT
 
 
 template<>
-void CSCRPCMotherboard::correlateLCTsRPC<CSCCLCTDigi>(const CSCCLCTDigi& bestLCT, 
+void CSCRPCMotherboard::correlateLCTsRPC<CSCCLCTDigi>(const CSCCLCTDigi& bestLCT,
 						      const CSCCLCTDigi& secondLCT,
-						      const RPCDigiId& bestDigi, 
+						      const RPCDigiId& bestDigi,
 						      const RPCDigiId& secondDigi,
-						      CSCCorrelatedLCTDigi& lct1, 
+						      CSCCorrelatedLCTDigi& lct1,
 						      CSCCorrelatedLCTDigi& lct2) const
 {
   if ((clct_trig_enable  and bestLCT.isValid()) or
@@ -719,7 +719,7 @@ void CSCRPCMotherboard::correlateLCTsRPC<CSCCLCTDigi>(const CSCCLCTDigi& bestLCT
     {
       lct1 = constructLCTsRPC(bestLCT, bestDigi, 1);
     }
-  
+
   if ((clct_trig_enable  and secondLCT.isValid()) or
       (match_trig_enable and secondLCT.isValid() and secondLCT != bestLCT))
     {

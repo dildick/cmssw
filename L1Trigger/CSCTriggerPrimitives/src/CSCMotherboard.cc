@@ -606,7 +606,7 @@ void CSCMotherboard::correlateLCTs(CSCALCTDigi bestALCT,
 // constructor of correlated LCTs.
 CSCCorrelatedLCTDigi CSCMotherboard::constructLCTs(const CSCALCTDigi& aLCT,
                                                    const CSCCLCTDigi& cLCT,
-                                                   int type) {
+                                                   int type) const {
   // CLCT pattern number
   unsigned int pattern = encodePattern(cLCT.getPattern(), cLCT.getStripType());
 

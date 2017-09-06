@@ -65,8 +65,8 @@ public:
 
   // standard constructor
   CSCUpgradeMotherboard(unsigned endcap, unsigned station, unsigned sector,
-			unsigned subsector, unsigned chamber,
-			const edm::ParameterSet& conf);
+                        unsigned subsector, unsigned chamber,
+                        const edm::ParameterSet& conf);
 
    //Default constructor for testing
   CSCUpgradeMotherboard();
@@ -84,11 +84,15 @@ public:
   void intersection(const S& d1, const S& d2, S& result) const;
 
   /** Methods to sort the LCTs */
-  static bool sortLCTsByQuality(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&);
-  static bool sortLCTsByGEMDphi(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&);
+  static bool sortLCTsByQuality(const CSCCorrelatedLCTDigi&,
+                                const CSCCorrelatedLCTDigi&);
+  static bool sortLCTsByGEMDphi(const CSCCorrelatedLCTDigi&,
+                                const CSCCorrelatedLCTDigi&);
   // generic sorting function
   // provide an LCT collection and a sorting function
-  void sortLCTs(std::vector<CSCCorrelatedLCTDigi>& lcts, bool (*sorter)(const CSCCorrelatedLCTDigi&,const CSCCorrelatedLCTDigi&));
+  void sortLCTs(std::vector<CSCCorrelatedLCTDigi>& lcts,
+                bool (*sorter)(const CSCCorrelatedLCTDigi&,
+                               const CSCCorrelatedLCTDigi&)) const;
 
   // functions to setup geometry and LUTs
   void setCSCGeometry(const CSCGeometry *g) { csc_g = g; }
