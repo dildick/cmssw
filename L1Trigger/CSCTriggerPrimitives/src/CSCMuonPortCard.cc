@@ -1,42 +1,18 @@
-//-----------------------------------------------------------------------------
-//
-//   Class: CSCMuonPortCard
-//
-//   Description:
-//    Simulates the functionality of the Muon Port Card (MPC).  Each MPC
-//    is responsible for 9 Trigger Mother Boards (TMBs).  It takes the up to
-//    18 LCTs (2/TMB) in each (sub)sector every bunch crossing, sorts them,
-//    selects up to three best, and puts them into an output collection.
-//
-//   Author List: Benn Tannenbaum 30 August 1999.
-//                Based on code by Nick Wisniewski.
-//
-//
-//   Modifications: Numerous later improvements by Jason Mumford and
-//                  Slava Valuev (see cvs in ORCA).
-//   Porting/reworking from ORCA by L. Gray (UF), June 2006.
-//
-//-----------------------------------------------------------------------------
-
 #include "L1Trigger/CSCTriggerPrimitives/src/CSCMuonPortCard.h"
 #include "L1Trigger/CSCCommonTrigger/interface/CSCConstants.h"
 #include <algorithm>
 
 CSCMuonPortCard::CSCMuonPortCard()
 {
+  // by default, send all 18 stubs downstream
   max_stubs_ = CSCConstants::maxStubs;
 }
 
 CSCMuonPortCard::CSCMuonPortCard(const edm::ParameterSet& conf)
 {
+  // by default, send all 18 stubs downstream
   max_stubs_ = CSCConstants::maxStubs;
 
-  edm::ParameterSet commonParams = conf.getParameter<edm::ParameterSet>("commonParam");
-  if (commonParams.getParameter<bool>("isSLHC"))
-  {
-    edm::ParameterSet mpcParams = conf.getParameter<edm::ParameterSet>("mpcSLHC");
-    max_stubs_ = mpcParams.getParameter<unsigned int>("mpcMaxStubs");
-  }
   edm::ParameterSet mpcRun2Params = conf.getParameter<edm::ParameterSet>("mpcRun2");
   sort_stubs_ = mpcRun2Params.getParameter<bool>("sortStubs");
   drop_invalid_stubs_ = mpcRun2Params.getParameter<bool>("dropInvalidStubs");
@@ -82,7 +58,6 @@ std::vector<csctf::TrackStub> CSCMuonPortCard::sort(const unsigned endcap, const
     // Can only return maxStubs or less LCTs per bunch crossing.
     if (result.size() > max_stubs_)
       result.erase(result.begin() + max_stubs_, result.end());
-
 
     // Go through the sorted list and label the LCTs with a sorting number.
     unsigned i = 0;
