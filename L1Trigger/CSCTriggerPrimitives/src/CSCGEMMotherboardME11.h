@@ -26,7 +26,7 @@ class CSCGEMMotherboardME11 : public CSCGEMMotherboard
   CSCGEMMotherboardME11();
 
   /** Default destructor. */
-  ~CSCGEMMotherboardME11();
+  ~CSCGEMMotherboardME11() override;
 
   /** Clears correlated LCT and passes clear signal on to cathode and anode
       LCT processors. */

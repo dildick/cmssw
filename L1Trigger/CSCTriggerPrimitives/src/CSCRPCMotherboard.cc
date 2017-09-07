@@ -85,7 +85,7 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
 
   retrieveRPCDigis(rpcDigis, rpc_id.rawId());
 
-  const bool hasRPCDigis(rpcDigis_.size()!=0);
+  const bool hasRPCDigis(!rpcDigis_.empty());
 
   // ALCT centric matching
   for (int bx_alct = 0; bx_alct < CSCAnodeLCTProcessor::MAX_ALCT_BINS; bx_alct++)
@@ -182,7 +182,7 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
 	  matchingRPCDigis(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], digis);
 
           if (debug_matching) LogTrace("CSCRPCMotherboard") << "\t++Number of matching RPC Digis in BX " << bx_alct << " : "<< digis.size() << std::endl;
-          if (digis.size()==0) continue;
+          if (digis.empty()) continue;
 
 	  correlateLCTsRPC(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], digis,
 			   allLCTs(bx_alct,0,0), allLCTs(bx_alct,0,1));
@@ -199,7 +199,7 @@ CSCRPCMotherboard::run(const CSCWireDigiCollection* wiredc,
     }
     else{
       auto digis(rpcDigis_[bx_alct]);
-      if (digis.size() and buildLCTfromCLCTandRPC_) {
+      if (!digis.empty() and buildLCTfromCLCTandRPC_) {
         //const int bx_clct_start(bx_alct - match_trig_window_size/2);
         //const int bx_clct_stop(bx_alct + match_trig_window_size/2);
         // RPC-to-CLCT
@@ -335,7 +335,7 @@ void CSCRPCMotherboard::printRPCTriggerDigis(int bx_start, int bx_stop)
     }
     first = false;
     LogTrace("CSCRPCMotherboard") << "N(digis) BX " << bx << " : " << in_strips.size() << std::endl;
-    if (rpcDigis_.size()!=0){
+    if (!rpcDigis_.empty()){
       for (const auto& digi : in_strips){
         auto roll_id(RPCDetId(digi.first));
         LogTrace("CSCRPCMotherboard") << "\tdetId " << digi.first << " " << roll_id << ", digi = " << digi.second.strip() << ", BX = " << digi.second.bx() + 6 << std::endl;
@@ -481,7 +481,7 @@ void CSCRPCMotherboard::correlateLCTsRPC(CSCALCTDigi& bestALCT, CSCALCTDigi& sec
   if (secondALCT == bestALCT) secondALCT.clear();
   if (secondCLCT == bestCLCT) secondCLCT.clear();
 
-  if (digis.size()){
+  if (!digis.empty()){
 
     const RPCDigiId& bb_digi = bestMatchingDigi(bestALCT,   bestCLCT,   digis);
     const RPCDigiId& bs_digi = bestMatchingDigi(bestALCT,   secondCLCT, digis);
@@ -544,7 +544,7 @@ CSCCorrelatedLCTDigi CSCRPCMotherboard::constructLCTsRPC(const CSCALCTDigi& aLCT
   switch(lctCase){
   case 1: {
     pattern = encodePattern(cLCT.getPattern(), cLCT.getStripType());
-    quality = findQualityRPC(aLCT, cLCT, 1);
+    quality = findQualityRPC(aLCT, cLCT, true);
     bx = aLCT.getBX();
     keyStrip = cLCT.getKeyStrip();
     keyWG = aLCT.getKeyWG();

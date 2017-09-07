@@ -113,7 +113,7 @@ void CSCTriggerPrimitivesProducer::produce(edm::StreamID, edm::Event& ev, const 
   if (!debugParameters_) {
     edm::ESHandle<CSCDBL1TPParameters> conf;
     setup.get<CSCDBL1TPParametersRcd>().get(conf);
-    if (conf.product() == 0) {
+    if (conf.product() == nullptr) {
       edm::LogError("L1CSCTPEmulatorConfigError")
         << "+++ Failed to find a CSCDBL1TPParametersRcd in EventSetup! +++\n"
         << "+++ Cannot continue emulation without these parameters +++\n";

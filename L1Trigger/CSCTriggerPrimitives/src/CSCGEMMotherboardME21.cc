@@ -82,7 +82,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
   clctV = clct->run(compdc); // run cathodeLCT
 
   // if there are no ALCTs and no CLCTs, it does not make sense to run this TMB
-  if (alctV.size()==0 and clctV.size()==0) return;
+  if (alctV.empty() and clctV.empty()) return;
 
   int used_clct_mask[20];
   for (int c=0;c<20;++c) used_clct_mask[c]=0;
@@ -92,8 +92,8 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
   retrieveGEMPads(gemPads, gemId);
   retrieveGEMCoPads();
 
-  const bool hasPads(pads_.size()!=0);
-  const bool hasCoPads(coPads_.size()!=0);
+  const bool hasPads(!pads_.empty());
+  const bool hasCoPads(!coPads_.empty());
 
   // ALCT centric matching
   for (int bx_alct = 0; bx_alct < CSCAnodeLCTProcessor::MAX_ALCT_BINS; bx_alct++)
@@ -200,7 +200,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 	  matchingPads<CSCALCTDigi, GEMCoPadDigi>(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME21, copads);
 
           if (debug_matching) LogTrace("CSCGEMCMotherboardME21") << "\t++Number of matching GEM CoPads in BX " << bx_alct << " : "<< copads.size() << std::endl;
-          if (copads.size()==0) {
+          if (copads.empty()) {
             continue;
           }
 
@@ -245,7 +245,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
     // at this point we have invalid ALCTs --> try GEM pad matching
     else{
       auto coPads(coPads_[bx_alct]);
-      if (coPads.size() and buildLCTfromCLCTandGEM_) {
+      if (!coPads.empty() and buildLCTfromCLCTandGEM_) {
         const int bx_clct_start(bx_alct - match_trig_window_size/2);
 	const int bx_clct_stop(bx_alct + match_trig_window_size/2);
 
@@ -375,7 +375,7 @@ void CSCGEMMotherboardME21::correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi&
   if (secondALCT == bestALCT) secondALCT.clear();
   if (secondCLCT == bestCLCT) secondCLCT.clear();
 
-  if (copads.size() or pads.size()){
+  if (!copads.empty() or !pads.empty()){
 
     // check matching copads
     const GEMCoPadDigi& bb_copad = bestMatchingPad<GEMCoPadDigi>(bestALCT,   bestCLCT,   copads, p);

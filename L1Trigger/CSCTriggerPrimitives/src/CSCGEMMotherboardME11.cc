@@ -109,7 +109,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   clctV1a = clct1a->run(compdc); // run cathodeLCT in ME1/a
 
   // if there are no ALCTs and no CLCTs, it does not make sense to run this TMB
-  if (alctV.size()==0 and clctV1b.size()==0 and clctV1a.size()) return;
+  if (alctV.empty() and clctV1b.empty() and !clctV1a.empty()) return;
 
   int used_clct_mask[20], used_clct_mask_1a[20];
   for (int b=0;b<20;b++)
@@ -122,8 +122,8 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
   retrieveGEMPads(gemPads, gemId);
   retrieveGEMCoPads();
   
-  const bool hasPads(pads_.size()!=0);
-  const bool hasCoPads(hasPads and coPads_.size()!=0);
+  const bool hasPads(!pads_.empty());
+  const bool hasCoPads(hasPads and !coPads_.empty());
 
   // ALCT-centric matching
   for (int bx_alct = 0; bx_alct < CSCAnodeLCTProcessor::MAX_ALCT_BINS; bx_alct++)
@@ -226,7 +226,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	  matchingPads<CSCALCTDigi, GEMCoPadDigi>(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME1B, copads);
  
           if (debug_matching) LogTrace("CSCGEMCMotherboardME11") << "\t++Number of matching GEM CoPads in BX " << bx_alct << " : "<< copads.size() << std::endl;
-          if (copads.size()==0) {
+          if (copads.empty()) {
             continue;
           }
           
@@ -342,7 +342,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	  matchingPads<CSCALCTDigi, GEMCoPadDigi>(alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME1A, copads);
 
           if (debug_matching) LogTrace("CSCGEMCMotherboardME11") << "\t++Number of matching GEM CoPads in BX " << bx_alct << " : "<< copads.size() << std::endl;
-          if (copads.size()==0) {
+          if (copads.empty()) {
             continue;
           }
 	  
@@ -387,7 +387,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     } // end of ALCT valid block 
     else {
       auto coPads(coPads_[bx_alct]);
-      if (coPads.size()!=0) {
+      if (!coPads.empty()) {
         // keep it simple for the time being, only consider the first copad
         const int bx_clct_start(bx_alct - match_trig_window_size/2);
         const int bx_clct_stop(bx_alct + match_trig_window_size/2);
@@ -695,13 +695,13 @@ std::vector<CSCCorrelatedLCTDigi> CSCGEMMotherboardME11::sortLCTsByQuality(enum 
             }
         }   
       else {
-        if (LCTs1a.size() and LCTs1b.size() and me==ME1A)
+        if (!LCTs1a.empty() and !LCTs1b.empty() and me==ME1A)
           LCTs_final.push_back(*LCTs1a.begin());
-        else if (LCTs1a.size() and LCTs1b.size() and me==ME1B)
+        else if (!LCTs1a.empty() and !LCTs1b.empty() and me==ME1B)
           LCTs_final.push_back(*LCTs1b.begin());
-        else if (LCTs1a.size() and LCTs1b.size()==0 and me==ME1A)
+        else if (!LCTs1a.empty() and LCTs1b.empty() and me==ME1A)
           LCTs_final.insert(LCTs_final.end(), LCTs1a.begin(), LCTs1a.end());
-        else if (LCTs1b.size() and LCTs1a.size()==0 and me==ME1B)
+        else if (!LCTs1b.empty() and LCTs1a.empty() and me==ME1B)
           LCTs_final.insert(LCTs_final.end(), LCTs1b.begin(), LCTs1b.end());
       }
     }
@@ -749,13 +749,13 @@ std::vector<CSCCorrelatedLCTDigi> CSCGEMMotherboardME11::sortLCTsByGEMDPhi(enum 
             }
         }
       else {
-        if (LCTs1a.size() and LCTs1b.size() and me==ME1A)
+        if (!LCTs1a.empty() and !LCTs1b.empty() and me==ME1A)
           LCTs_final.push_back(*LCTs1a.begin());
-        else if (LCTs1a.size() and LCTs1b.size() and me==ME1B)
+        else if (!LCTs1a.empty() and !LCTs1b.empty() and me==ME1B)
           LCTs_final.push_back(*LCTs1b.begin());
-        else if (LCTs1a.size() and LCTs1b.size()==0 and me==ME1A)
+        else if (!LCTs1a.empty() and LCTs1b.empty() and me==ME1A)
           LCTs_final.insert(LCTs_final.end(), LCTs1a.begin(), LCTs1a.end());
-        else if (LCTs1b.size() and LCTs1a.size()==0 and me==ME1B)
+        else if (!LCTs1b.empty() and LCTs1a.empty() and me==ME1B)
           LCTs_final.insert(LCTs_final.end(), LCTs1b.begin(), LCTs1b.end());
       }
     }

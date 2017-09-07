@@ -199,7 +199,7 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
             CSCDetId detid(endc, stat, ring, chid, 0);
 
             // Run processors only if chamber exists in geometry.
-	    if (tmb == 0 || csc_g->chamber(detid) == 0) continue;
+	    if (tmb == nullptr || csc_g->chamber(detid) == nullptr) continue;
 
             // Skip chambers marked as bad (usually includes most of ME4/2 chambers;
             // also, there's no ME1/a-1/b separation, it's whole ME1/1)

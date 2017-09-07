@@ -48,10 +48,10 @@ class CSCTriggerPrimitivesProducer : public edm::global::EDProducer<>
 {
  public:
   explicit CSCTriggerPrimitivesProducer(const edm::ParameterSet&);
-  ~CSCTriggerPrimitivesProducer();
+  ~CSCTriggerPrimitivesProducer() override;
 
   //virtual void beginRun(const edm::EventSetup& setup);
-  virtual void produce(edm::StreamID, edm::Event&, const edm::EventSetup&) const override;
+  void produce(edm::StreamID, edm::Event&, const edm::EventSetup&) const override;
 
  private:
 

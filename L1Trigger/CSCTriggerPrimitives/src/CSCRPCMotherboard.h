@@ -32,7 +32,7 @@ class CSCRPCMotherboard : public CSCUpgradeMotherboard
 		    const edm::ParameterSet& conf);
 
   /** Default destructor. */
-  ~CSCRPCMotherboard();
+  ~CSCRPCMotherboard() override;
 
   /** Run function for normal usage.  Runs cathode and anode LCT processors,
       takes results and correlates into CorrelatedLCT. */
