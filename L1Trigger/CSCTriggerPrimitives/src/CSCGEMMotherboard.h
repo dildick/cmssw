@@ -30,6 +30,8 @@ class CSCGEMMotherboard : public CSCUpgradeMotherboard
 {
 public:
 
+  enum Default_values{DEFAULT_MATCHING_VALUE = -99};
+
   // standard constructor
   CSCGEMMotherboard(unsigned endcap, unsigned station, unsigned sector,
                     unsigned subsector, unsigned chamber,
@@ -227,7 +229,19 @@ protected:
 
   // LCT ghostbusting
   bool doLCTGhostBustingWithGEMs_;
+
+ private:
+
+  template <class T>
+  const matchesBX<T>& getPads() const;
+
+  template <class T>
+  int getMaxDeltaBX() const;
+
+  template <class T>
+  int getLctTrigEnable() const;
 };
+
 
 
 template <class S>
@@ -324,6 +338,28 @@ void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT,
 }
 
 
+template<class T>
+void CSCGEMMotherboard::correlateLCTsGEM(const T& bestLCT,
+                                         const T& secondLCT,
+                                         const GEMCoPadDigi& bestCoPad,
+                                         const GEMCoPadDigi& secondCoPad,
+                                         CSCCorrelatedLCTDigi& lct1,
+                                         CSCCorrelatedLCTDigi& lct2, enum CSCPart p) const
+{
+  if ((getLctTrigEnable<T>()  and bestLCT.isValid()) or
+      (match_trig_enable and bestLCT.isValid()))
+    {
+      lct1 = constructLCTsGEM(bestLCT, bestCoPad, p, 1);
+    }
+
+  if ((getLctTrigEnable<T>()  and secondLCT.isValid()) or
+      (match_trig_enable and secondLCT.isValid() and secondLCT != bestLCT))
+    {
+      lct2 = constructLCTsGEM(secondLCT, secondCoPad, p, 2);
+    }
+}
+
+
 template <class S, class T>
 void CSCGEMMotherboard::matchingPads(const S& d1, const S& d2,
                                      enum CSCPart part, matches<T>& result) const
@@ -375,6 +411,62 @@ void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1, const CSCCLCTDigi
   result.reserve(padsClct.size() + padsAlct.size());
   result.insert(std::end(result), std::begin(padsClct), std::end(padsClct));
   result.insert(std::end(result), std::begin(padsAlct), std::end(padsAlct));
+}
+
+template<class T>
+void CSCGEMMotherboard::matchingPads(const CSCALCTDigi& alct,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  result.clear();
+  if (not alct.isValid()) return;
+
+  std::pair<int,int> alctRoll = (getLUT()->CSCGEMMotherboardLUT::get_csc_wg_to_gem_roll(par))[alct.getKeyWG()];
+
+  const matchesBX<T>& lut = getPads<T>();
+
+  for (const auto& p: lut.at(alct.getBX())){
+    auto padRoll(getRoll(p));
+
+    // only pads in overlap are good for ME1A
+    if (part==CSCPart::ME1A and !isPadInOverlap(padRoll)) continue;
+
+    int pad_bx = getBX(p.second)+lct_central_bx;
+    if (std::abs(alct.getBX()-pad_bx)>getMaxDeltaBX<T>()) continue;
+
+    if (alctRoll.first == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
+        alctRoll.second == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE) continue;  //invalid region
+    else if (alctRoll.first == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and !(padRoll <= alctRoll.second)) continue; // top of the chamber
+    else if (alctRoll.second == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and !(padRoll >= alctRoll.first)) continue; // bottom of the chamber
+    else if ((alctRoll.first != CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
+              alctRoll.second != CSCGEMMotherboard::DEFAULT_MATCHING_VALUE) and // center
+	     (alctRoll.first > padRoll or padRoll > alctRoll.second)) continue;
+    result.push_back(p);
+  }
+}
+
+template<class T>
+void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  result.clear();
+  if (not clct.isValid()) return;
+
+  const auto& mymap = (getLUT()->get_csc_hs_to_gem_pad(par, part));
+  const int lowPad(mymap[clct.getKeyStrip()].first);
+  const int highPad(mymap[clct.getKeyStrip()].second);
+
+  const matchesBX<T>& lut = getPads<T>();
+
+  for (const auto& p: lut.at(clct.getBX())){
+    auto padRoll(getPad(p.second));
+    int pad_bx = getBX(p.second)+lct_central_bx;
+    if (std::abs(clct.getBX()-pad_bx)>getMaxDeltaBX<T>()) continue;
+    if (std::abs(lowPad - padRoll) <= maxDeltaPadL1_ or std::abs(padRoll - highPad) <= maxDeltaPadL1_){
+      result.push_back(p);
+    }
+  }
 }
 
 #endif

@@ -16,9 +16,9 @@
 class CSCGEMMotherboardME11 : public CSCGEMMotherboard
 {
  public:
-    
+
   /** Normal constructor. */
-  CSCGEMMotherboardME11(unsigned endcap, unsigned station, unsigned sector, 
+  CSCGEMMotherboardME11(unsigned endcap, unsigned station, unsigned sector,
 			unsigned subsector, unsigned chamber,
 			const edm::ParameterSet& conf);
 
@@ -48,8 +48,8 @@ class CSCGEMMotherboardME11 : public CSCGEMMotherboard
  private:
 
   /* access to the LUTs needed for matching */
-  const CSCGEMMotherboardLUTME11* getLUT() const override {return tmbLUT_;}
-  const CSCGEMMotherboardLUTME11* tmbLUT_;
+  const CSCGEMMotherboardLUTME11* getLUT() const override {return tmbLUT_.get();}
+  std::unique_ptr<CSCGEMMotherboardLUTME11> tmbLUT_;
 
   /** Returns vectors of found ALCTs in ME1a and ME1b, if any. */
   std::vector<CSCALCTDigi> getALCTs1b() const {return alctV;}
@@ -62,18 +62,20 @@ class CSCGEMMotherboardME11 : public CSCGEMMotherboard
   std::vector<CSCCorrelatedLCTDigi> readoutLCTs(enum CSCPart me1ab) const;
 
   /** Methods to sort the LCTs */
-  std::vector<CSCCorrelatedLCTDigi> sortLCTsByQuality(enum CSCPart = ME1B) const;
-  std::vector<CSCCorrelatedLCTDigi> sortLCTsByGEMDPhi(enum CSCPart = ME1B) const;
-  
+  void sortLCTs(std::vector<CSCCorrelatedLCTDigi>&, int bx, enum CSCPart,
+                bool (*sorter)(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&)) const;
+  void sortLCTs(std::vector<CSCCorrelatedLCTDigi>&, enum CSCPart,
+                bool (*sorter)(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&)) const;
+
   /* check if an ALCT cross a CLCT in an ME11 sector */
   bool doesALCTCrossCLCT(const CSCALCTDigi &a, const CSCCLCTDigi &c, int me) const;
 
-  /* correlate a pair of ALCTs and a pair of CLCTs with matched pads or copads 
+  /* correlate a pair of ALCTs and a pair of CLCTs with matched pads or copads
      the output is up to two LCTs in a sector of ME11 */
   void correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi& secondALCT,
 			CSCCLCTDigi& bestCLCT, CSCCLCTDigi& secondCLCT,
 			const GEMPadDigiIds& pads, const GEMCoPadDigiIds& copads,
-			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, 
+			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2,
 			enum CSCPart p) const;
 
   /* store the LCTs found separately in ME1a and ME1b */

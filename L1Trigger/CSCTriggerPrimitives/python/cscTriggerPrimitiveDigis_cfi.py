@@ -328,7 +328,7 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         sortStubs = cms.bool(False),
         dropInvalidStubs = cms.bool(False),
         dropLowQualityStubs = cms.bool(False),
-    ) 
+    )
 )
 
 # Upgrade era customizations involving GEMs and RPCs
@@ -442,46 +442,6 @@ me21tmbSLHCGEM = cms.PSet(
     promoteCLCTGEMquality = cms.bool(True),
 )
 
-# to be used by ME31-ME41 chambers with RPC-CSC ILT
-me3141tmbSLHCRPC = cms.PSet(
-    mpcBlockMe1a    = cms.uint32(0),
-    alctTrigEnable  = cms.uint32(0),
-    clctTrigEnable  = cms.uint32(0),
-    matchTrigEnable = cms.uint32(1),
-    matchTrigWindowSize = cms.uint32(3),
-    tmbL1aWindowSize = cms.uint32(7),
-    verbosity = cms.int32(0),
-    tmbEarlyTbins = cms.int32(4),
-    tmbReadoutEarliest2 = cms.bool(False),
-    tmbDropUsedAlcts = cms.bool(False),
-    clctToAlct = cms.bool(False),
-    tmbDropUsedClcts = cms.bool(False),
-    matchEarliestClctME3141Only = cms.bool(False),
-    tmbCrossBxAlgorithm = cms.uint32(2),
-    maxLCTs = cms.uint32(2),
-
-    ## run in debug mode
-    debugLUTs = cms.bool(False),
-    debugMatching = cms.bool(False),
-
-    ## use old dataformat
-    useOldLCTDataFormat = cms.bool(True),
-
-    ## matching to digis in case LowQ CLCT
-    maxDeltaBXRPC = cms.int32(0),
-    maxDeltaStripRPCOdd = cms.int32(6),
-    maxDeltaStripRPCEven = cms.int32(4),
-
-    ## efficiency recovery switches
-    dropLowQualityCLCTsNoRPCs = cms.bool(True),
-    buildLCTfromALCTandRPC = cms.bool(True),
-    buildLCTfromCLCTandRPC = cms.bool(False),
-    buildLCTfromLowQstubandRPC = cms.bool(True),
-    promoteCLCTRPCquality = cms.bool(True),
-    promoteALCTRPCpattern = cms.bool(True),
-    promoteALCTRPCquality = cms.bool(True),
-)
-
 ## unganging in ME1/a
 from Configuration.Eras.Modifier_run2_common_cff import run2_common
 run2_common.toModify( cscTriggerPrimitiveDigis,
@@ -507,16 +467,10 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
 ## GEM-CSC ILT in ME2/1, CSC-RPC ILT in ME3/1 and ME4/1
 from Configuration.Eras.Modifier_phase2_muon_cff import phase2_muon
 phase2_muon.toModify( cscTriggerPrimitiveDigis,
-                      ## on rpc digis -> no integrated CSC-RCP stubs
-                      RPCDigiProducer = cms.InputTag(""),
-                      commonParam = dict(runME21ILT = cms.bool(True),
-                                         runME3141ILT = cms.bool(True)),
+                      commonParam = dict(runME21ILT = cms.bool(True)),
                       alctSLHCME21 = cscTriggerPrimitiveDigis.alctSLHC.clone(alctNplanesHitPattern = 3),
                       clctSLHCME21 = cscTriggerPrimitiveDigis.clctSLHC.clone(clctNplanesHitPattern = 3),
-                      alctSLHCME3141 = cscTriggerPrimitiveDigis.alctSLHC.clone(alctNplanesHitPattern = 4),
-                      clctSLHCME3141 = cscTriggerPrimitiveDigis.clctSLHC.clone(clctNplanesHitPattern = 4),
                       me21tmbSLHCGEM = me21tmbSLHCGEM,
-                      me3141tmbSLHCRPC = me3141tmbSLHCRPC,
                       copadParamGE11 = copadParamGE11,
                       copadParamGE21 = copadParamGE21
 )

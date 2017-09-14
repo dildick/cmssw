@@ -11,9 +11,9 @@
  *
  * author Slava Valuev, UCLA.
  *
- * The builder was expanded to use GEM pad or GEM pad clusters and RPC
- * digis. In addition the builder can produce GEM coincidence pads in
- * case an upgrade scenario with GEMs is run. 
+ * The builder was expanded to use GEM pad or GEM pad clusters
+ * In addition the builder can produce GEM coincidence pads in
+ * case an upgrade scenario with GEMs is run.
  *
  * authors: Sven Dildick (TAMU), Tao Huang (TAMU)
  */
@@ -28,7 +28,6 @@
 #include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMPadDigiClusterCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMCoPadDigiCollection.h"
-#include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 class CSCDBL1TPParameters;
@@ -36,7 +35,6 @@ class CSCMotherboard;
 class CSCMuonPortCard;
 class CSCGeometry;
 class GEMGeometry;
-class RPCGeometry;
 class CSCTriggerPrimitivesBuilder
 {
  public:
@@ -55,14 +53,13 @@ class CSCTriggerPrimitivesBuilder
   /// set CSC and GEM geometries for the matching needs
   void setCSCGeometry(const CSCGeometry *g) { csc_g = g; }
   void setGEMGeometry(const GEMGeometry *g) { gem_g = g; }
-  void setRPCGeometry(const RPCGeometry *g) { rpc_g = g; }
 
-  /* temporary function to check if running on data. 
+  /* temporary function to check if running on data.
    * Currently in simulation the central BX is BX6; in data
-   * it is BX8. This mismatch in conventions is expeced to 
-   * be resolved in the near future. The member runOnData_ 
-   * is used in the builder to shift the LCT BX readout 
-   * with +2 from [3,9] to [5,11].  
+   * it is BX8. This mismatch in conventions is expeced to
+   * be resolved in the near future. The member runOnData_
+   * is used in the builder to shift the LCT BX readout
+   * with +2 from [3,9] to [5,11].
    */
   void runOnData(bool runOnData) {runOnData_ = runOnData;}
 
@@ -74,7 +71,6 @@ class CSCTriggerPrimitivesBuilder
 	     const CSCComparatorDigiCollection* compdc,
 	     const GEMPadDigiCollection* gemPads,
 	     const GEMPadDigiClusterCollection* gemPadClusters,
-	     const RPCDigiCollection* rpcDigis,
 	     CSCALCTDigiCollection& oc_alct, CSCCLCTDigiCollection& oc_clct,
              CSCCLCTPreTriggerCollection & oc_pretrig,
 	     CSCCorrelatedLCTDigiCollection& oc_lct,
@@ -133,7 +129,6 @@ class CSCTriggerPrimitivesBuilder
   // pointers to the geometry
   const CSCGeometry* csc_g;
   const GEMGeometry* gem_g;
-  const RPCGeometry* rpc_g;
 
   /** Pointer to MPC processor. */
   std::unique_ptr<CSCMuonPortCard> m_muonportcard;

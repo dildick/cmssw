@@ -18,7 +18,7 @@ class CSCGEMMotherboardME21 : public CSCGEMMotherboard
  public:
 
   /** Normal constructor. */
-  CSCGEMMotherboardME21(unsigned endcap, unsigned station, unsigned sector, 
+  CSCGEMMotherboardME21(unsigned endcap, unsigned station, unsigned sector,
 		 unsigned subsector, unsigned chamber,
 		 const edm::ParameterSet& conf);
 
@@ -34,27 +34,27 @@ class CSCGEMMotherboardME21 : public CSCGEMMotherboard
 
   /** Run function for normal usage.  Runs cathode and anode LCT processors,
       takes results and correlates into CorrelatedLCT. */
-  void run(const CSCWireDigiCollection* wiredc, 
-           const CSCComparatorDigiCollection* compdc, 
+  void run(const CSCWireDigiCollection* wiredc,
+           const CSCComparatorDigiCollection* compdc,
            const GEMPadDigiCollection* gemPads) override;
 
   /* readout the two best LCTs in this CSC */
   std::vector<CSCCorrelatedLCTDigi> readoutLCTs() const;
 
- private: 
+ private:
 
   /* access to the LUTs needed for matching */
-  const CSCGEMMotherboardLUTME21* getLUT() const override {return tmbLUT_;}
-  const CSCGEMMotherboardLUTME21* tmbLUT_;
-  
-  /* correlate a pair of ALCTs and a pair of CLCTs with matched pads or copads 
-     the output is up to two LCTs in a sector of ME11 */
+  const CSCGEMMotherboardLUTME21* getLUT() const override {return tmbLUT_.get();}
+  std::unique_ptr<CSCGEMMotherboardLUTME21> tmbLUT_;
+
+  /* correlate a pair of ALCTs and a pair of CLCTs with matched pads or copads
+     the output is up to two LCTs in a sector of ME21 */
   void correlateLCTsGEM(CSCALCTDigi& bestALCT, CSCALCTDigi& secondALCT,
 			CSCCLCTDigi& bestCLCT, CSCCLCTDigi& secondCLCT,
 			const GEMPadDigiIds& pads, const GEMCoPadDigiIds& copads,
-			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2, 
+			CSCCorrelatedLCTDigi& lct1, CSCCorrelatedLCTDigi& lct2,
 			enum CSCPart p) const;
-  
+
   /** for the case when more than 2 LCTs/BX are allowed;
       maximum match window = 15 */
   LCTContainer allLCTs;
