@@ -26,8 +26,6 @@ typedef match<GEMCoPadDigi>   GEMCoPadDigiId;
 typedef matches<GEMCoPadDigi> GEMCoPadDigiIds;
 typedef matchesBX<GEMCoPadDigi> GEMCoPadDigiIdsBX;
 
-enum lctTypes{Invalid, ALCTCLCT, ALCTCLCTGEM, ALCTCLCT2GEM, ALCT2GEM, CLCT2GEM};
-
 class CSCGEMMotherboard : public CSCUpgradeMotherboard
 {
 public:
