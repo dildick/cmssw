@@ -55,7 +55,7 @@ class CSCTriggerPrimitivesProducer : public edm::global::EDProducer<edm::StreamC
   // master configuration
   edm::ParameterSet config_;
 
-  std::unique_ptr<CSCTriggerPrimitivesBuilder> beginStream(edm::StreamID) const {
+  std::unique_ptr<CSCTriggerPrimitivesBuilder> beginStream(edm::StreamID) const override {
     return std::unique_ptr<CSCTriggerPrimitivesBuilder>(new CSCTriggerPrimitivesBuilder(config_));
   }
 
