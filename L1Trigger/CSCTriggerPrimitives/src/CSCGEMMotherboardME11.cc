@@ -633,7 +633,7 @@ std::vector<CSCCorrelatedLCTDigi> CSCGEMMotherboardME11::readoutLCTs(enum CSCPar
 
 //sort LCTs in each BX
 void CSCGEMMotherboardME11::sortLCTs(std::vector<CSCCorrelatedLCTDigi>& LCTs, int bx, enum CSCPart me,
-              bool (*sorter)(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&)) const
+                                     bool (*sorter)(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&)) const
 {
   const auto& allLCTs(me==ME1A ? allLCTs1a : allLCTs1b);
 

@@ -47,13 +47,13 @@ public:
 
   // run TMB with GEM pads as input
   virtual void run(const CSCWireDigiCollection* wiredc,
-		   const CSCComparatorDigiCollection* compdc,
-		   const GEMPadDigiCollection* gemPads)=0;
+                   const CSCComparatorDigiCollection* compdc,
+                   const GEMPadDigiCollection* gemPads)=0;
 
   // run TMB with GEM pad clusters as input
   void run(const CSCWireDigiCollection* wiredc,
-	   const CSCComparatorDigiCollection* compdc,
-	   const GEMPadDigiClusterCollection* gemPads);
+           const CSCComparatorDigiCollection* compdc,
+           const GEMPadDigiClusterCollection* gemPads);
 
   /** additional processor for GEMs */
   std::unique_ptr<GEMCoPadProcessor> coPadProcessor;
@@ -64,6 +64,9 @@ public:
 protected:
 
   virtual const CSCGEMMotherboardLUT* getLUT() const=0;
+
+  // check if a GEMDetId is valid
+  bool isGEMDetId(unsigned int) const;
 
   // aux functions to get BX and position of a digi
   int getBX(const GEMPadDigi& p) const;
@@ -80,31 +83,34 @@ protected:
   // match ALCT to GEM Pad/CoPad
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T>
-  void matchingPads(const CSCALCTDigi& alct, enum CSCPart part, matches<T>&) const;
+  void matchingPads(const CSCALCTDigi& alct,
+                    enum CSCPart part, matches<T>&) const;
 
   // match CLCT to GEM Pad/CoPad
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T>
-  void matchingPads(const CSCCLCTDigi& alct, enum CSCPart part, matches<T>&) const;
+  void matchingPads(const CSCCLCTDigi& alct,
+                    enum CSCPart part, matches<T>&) const;
 
   // find the matching pads to a pair of ALCT/CLCT
   // the first template is ALCT or CLCT
   // the second template is GEMPadDigi or GEMCoPadDigi
   template <class S, class T>
-  void matchingPads(const S& d1, const S& d2, enum CSCPart part, matches<T>&) const;
+  void matchingPads(const S& d1, const S& d2,
+                    enum CSCPart part, matches<T>&) const;
 
   // find common matches between an ALCT and CLCT
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T>
   void matchingPads(const CSCCLCTDigi& clct1, const CSCALCTDigi& alct1,
-		    enum CSCPart part, matches<T>&) const;
+                    enum CSCPart part, matches<T>&) const;
 
   // find all matching pads to a pair of ALCT and a pair of CLCT
   // the template is GEMPadDigi or GEMCoPadDigi
   template <class T>
   void matchingPads(const CSCCLCTDigi& clct1, const CSCCLCTDigi& clct2,
-		    const CSCALCTDigi& alct1, const CSCALCTDigi& alct2,
-		    enum CSCPart part, matches<T>&) const;
+                    const CSCALCTDigi& alct1, const CSCALCTDigi& alct2,
+                    enum CSCPart part, matches<T>&) const;
 
   // find the best matching pad to an ALCT
   // the template is GEMPadDigi or GEMCoPadDigi
@@ -243,9 +249,152 @@ protected:
 };
 
 
+template<class T>
+void CSCGEMMotherboard::matchingPads(const CSCALCTDigi& alct,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  result.clear();
+  // Invalid ALCTs have no matching pads
+  if (not alct.isValid()) return;
+
+  // Get the corresponding roll numbers for a given ALCT
+  std::pair<int,int> alctRoll =
+    (getLUT()->get_csc_wg_to_gem_roll(par))[alct.getKeyWG()];
+
+  // Get the pads in the ALCT bx
+  const matchesBX<T>& lut = getPads<T>();
+
+  // If no pads in that bx...
+  if (lut.count(alct.getBX())==0) return;
+
+  for (const auto& p: lut.at(alct.getBX())){
+    auto padRoll(getRoll(p));
+
+    // only pads in overlap are good for ME1A
+    if (part==CSCPart::ME1A and !isPadInOverlap(padRoll)) continue;
+
+    // pad bx needs to match to ALCT bx
+    int pad_bx = getBX(p.second)+lct_central_bx;
+    if (std::abs(alct.getBX()-pad_bx)>getMaxDeltaBX<T>()) continue;
+
+    // gem roll number if invalid
+    if (alctRoll.first == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
+        alctRoll.second == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE) continue;
+    // ALCTs at the top of the chamber
+    else if (alctRoll.first == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
+             padRoll > alctRoll.second) continue;
+    // ALCTs at the bottom of the chamber
+    else if (alctRoll.second == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
+             padRoll < alctRoll.first) continue;
+    // ignore pads that are too far away in roll number
+    else if ((alctRoll.first != CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
+              alctRoll.second != CSCGEMMotherboard::DEFAULT_MATCHING_VALUE) and
+	     (alctRoll.first > padRoll or padRoll > alctRoll.second)) continue;
+    result.push_back(p);
+  }
+}
+
+template<class T>
+void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  result.clear();
+  // Invalid ALCTs have no matching pads
+  if (not clct.isValid()) return;
+
+  // Get the corresponding pad numbers for a given CLCT
+  const auto& mymap = (getLUT()->get_csc_hs_to_gem_pad(par, part));
+  const int lowPad(mymap[clct.getKeyStrip()].first);
+  const int highPad(mymap[clct.getKeyStrip()].second);
+
+  // Get the pads in the CLCT bx
+  const matchesBX<T>& lut = getPads<T>();
+
+  // If no pads in that bx...
+  if (lut.count(clct.getBX())==0) return;
+
+  for (const auto& p: lut.at(clct.getBX())){
+
+    // pad bx needs to match to CLCT bx
+    int pad_bx = getBX(p.second)+lct_central_bx;
+    if (std::abs(clct.getBX()-pad_bx)>getMaxDeltaBX<T>()) continue;
+
+    // pad number must match
+    int padNumber(getPad(p.second));
+    if (std::abs(lowPad - padNumber) <= maxDeltaPadL1_ or
+        std::abs(padNumber - highPad) <= maxDeltaPadL1_){
+      result.push_back(p);
+    }
+  }
+}
+
+
+template <class S, class T>
+void CSCGEMMotherboard::matchingPads(const S& d1, const S& d2,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  matches<T> p1, p2;
+
+  // pads matching to the CLCT/ALCT
+  matchingPads<T>(d1, part, p1);
+
+  // pads matching to the CLCT/ALCT
+  matchingPads<T>(d2, part, p2);
+
+  // collect *all* matching pads
+  result.reserve(p1.size() + p2.size());
+  result.insert(std::end(result), std::begin(p1), std::end(p1));
+  result.insert(std::end(result), std::begin(p2), std::end(p2));
+}
+
+template <class T>
+void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1,
+                                     const CSCALCTDigi& alct1,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  matches<T> padsClct, padsAlct;
+
+  // pads matching to the CLCT
+  matchingPads<T>(clct1, part, padsClct);
+
+  // pads matching to the ALCT
+  matchingPads<T>(alct1, part, padsAlct);
+
+  // collect all *common* pads
+  intersection(padsClct, padsAlct, result);
+}
+
+template <class T>
+void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1,
+                                     const CSCCLCTDigi& clct2,
+                                     const CSCALCTDigi& alct1,
+                                     const CSCALCTDigi& alct2,
+                                     enum CSCPart part,
+                                     matches<T>& result) const
+{
+  matches<T> padsClct, padsAlct;
+
+  // pads matching to CLCTs
+  matchingPads<CSCCLCTDigi, T>(clct1, clct2, part, padsClct);
+
+  // pads matching to ALCTs
+  matchingPads<CSCALCTDigi, T>(alct1, alct2, part, padsAlct);
+
+  // collect *all* matching pads
+  result.reserve(padsClct.size() + padsAlct.size());
+  result.insert(std::end(result), std::begin(padsClct), std::end(padsClct));
+  result.insert(std::end(result), std::begin(padsAlct), std::end(padsAlct));
+}
+
 
 template <class S>
-S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const matches<S>& pads, enum CSCPart) const
+S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1,
+                                     const matches<S>& pads,
+                                     enum CSCPart) const
 {
   S result;
   // no matching pads for invalid stub
@@ -253,10 +402,11 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const matches<S>&
 
   // return the first one with the same roll number
   for (const auto& p: pads){
+
     // protection against corrupted DetIds
-    if (DetId(p.first).subdetId() != MuonSubdetId::GEM or DetId(p.first).det() != DetId::Muon) {
-      continue;
-    }
+    if (not isGEMDetId(p.first)) continue;
+
+    // roll number of pad and ALCT must match
     if (getRoll(p) == getRoll(alct1)){
       return p.second;
     }
@@ -265,7 +415,9 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const matches<S>&
 }
 
 template <class S>
-S CSCGEMMotherboard::bestMatchingPad(const CSCCLCTDigi& clct, const matches<S>& pads, enum CSCPart part) const
+S CSCGEMMotherboard::bestMatchingPad(const CSCCLCTDigi& clct,
+                                     const matches<S>& pads,
+                                     enum CSCPart part) const
 {
   S result;
   // no matching pads for invalid stub
@@ -275,10 +427,11 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCCLCTDigi& clct, const matches<S>& 
   float averagePadNumberCSC = getPad(clct, part);
   float minDeltaPad = 999;
   for (const auto& p: pads){
+
     // protection against corrupted DetIds
-    if (DetId(p.first).subdetId() != MuonSubdetId::GEM or DetId(p.first).det() != DetId::Muon) {
-      continue;
-    }
+    if (not isGEMDetId(p.first)) continue;
+
+    // best pad is closest to CLCT in number of halfstrips
     float averagePadNumberGEM = getPad(p.second);
     if (std::abs(averagePadNumberCSC - averagePadNumberGEM) < minDeltaPad){
       minDeltaPad = std::abs(averagePadNumberCSC - averagePadNumberGEM);
@@ -289,8 +442,10 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCCLCTDigi& clct, const matches<S>& 
 }
 
 template <class S>
-S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const CSCCLCTDigi& clct1,
-                                     const matches<S>& pads, enum CSCPart part) const
+S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1,
+                                     const CSCCLCTDigi& clct1,
+                                     const matches<S>& pads,
+                                     enum CSCPart part) const
 {
   S result;
   // no matching pads for invalid stub
@@ -300,14 +455,14 @@ S CSCGEMMotherboard::bestMatchingPad(const CSCALCTDigi& alct1, const CSCCLCTDigi
   float averagePadNumberCSC = getPad(clct1, part);
   float minDeltaPad = 999;
   for (const auto& p: pads){
+
     // protection against corrupted DetIds
-    if (DetId(p.first).subdetId() != MuonSubdetId::GEM or DetId(p.first).det() != DetId::Muon) {
-      continue;
-    }
+    if (not isGEMDetId(p.first)) continue;
+
     float averagePadNumberGEM = getPad(p.second);
     // add another safety to make sure that the deltaPad is not larger than max value!!!
     if (std::abs(averagePadNumberCSC - averagePadNumberGEM) < minDeltaPad and
-	getRoll(p) == getRoll(alct1)){
+        getRoll(p) == getRoll(alct1)){
       minDeltaPad = std::abs(averagePadNumberCSC - averagePadNumberGEM);
       result = p.second;
     }
@@ -323,10 +478,12 @@ void CSCGEMMotherboard::correlateLCTsGEM(T& bestLCT,
                                          CSCCorrelatedLCTDigi& lct2,
                                          enum CSCPart p) const
 {
+  // Check which LCTs are valid
   bool bestValid     = bestLCT.isValid();
   bool secondValid   = secondLCT.isValid();
 
-  // determine best/second
+  // At this point, set both LCTs valid if they are invalid
+  // Duplicate LCTs are taken into account later
   if (bestValid and !secondValid) secondLCT = bestLCT;
   if (!bestValid and secondValid) bestLCT   = secondLCT;
 
@@ -344,129 +501,22 @@ void CSCGEMMotherboard::correlateLCTsGEM(const T& bestLCT,
                                          const GEMCoPadDigi& bestCoPad,
                                          const GEMCoPadDigi& secondCoPad,
                                          CSCCorrelatedLCTDigi& lct1,
-                                         CSCCorrelatedLCTDigi& lct2, enum CSCPart p) const
+                                         CSCCorrelatedLCTDigi& lct2,
+                                         enum CSCPart p) const
 {
+  // construct the first LCT from ALCT(CLCT) and a GEM Copad
   if ((getLctTrigEnable<T>()  and bestLCT.isValid()) or
       (match_trig_enable and bestLCT.isValid()))
     {
       lct1 = constructLCTsGEM(bestLCT, bestCoPad, p, 1);
     }
 
+  // construct the second LCT from ALCT(CLCT) and a GEM Copad
   if ((getLctTrigEnable<T>()  and secondLCT.isValid()) or
       (match_trig_enable and secondLCT.isValid() and secondLCT != bestLCT))
     {
       lct2 = constructLCTsGEM(secondLCT, secondCoPad, p, 2);
     }
-}
-
-
-template <class S, class T>
-void CSCGEMMotherboard::matchingPads(const S& d1, const S& d2,
-                                     enum CSCPart part, matches<T>& result) const
-{
-  matches<T> p1, p2;
-
-  // pads matching to the CLCT/ALCT
-  matchingPads<T>(d1, part, p1);
-
-  // pads matching to the CLCT/ALCT
-  matchingPads<T>(d2, part, p2);
-
-  // collect *all* matching pads
-  result.reserve(p1.size() + p2.size());
-  result.insert(std::end(result), std::begin(p1), std::end(p1));
-  result.insert(std::end(result), std::begin(p2), std::end(p2));
-}
-
-template <class T>
-void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1, const CSCALCTDigi& alct1,
-                                     enum CSCPart part, matches<T>& result) const
-{
-  matches<T> padsClct, padsAlct;
-
-  // pads matching to the CLCT
-  matchingPads<T>(clct1, part, padsClct);
-
-  // pads matching to the ALCT
-  matchingPads<T>(alct1, part, padsAlct);
-
-  // collect all *common* pads
-  intersection(padsClct, padsAlct, result);
-}
-
-template <class T>
-void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct1, const CSCCLCTDigi& clct2,
-                                     const CSCALCTDigi& alct1, const CSCALCTDigi& alct2,
-                                     enum CSCPart part, matches<T>& result) const
-{
-  matches<T> padsClct, padsAlct;
-
-  // pads matching to CLCTs
-  matchingPads<CSCCLCTDigi, T>(clct1, clct2, part, padsClct);
-
-  // pads matching to ALCTs
-  matchingPads<CSCALCTDigi, T>(alct1, alct2, part, padsAlct);
-
-  // collect *all* matching pads
-  result.reserve(padsClct.size() + padsAlct.size());
-  result.insert(std::end(result), std::begin(padsClct), std::end(padsClct));
-  result.insert(std::end(result), std::begin(padsAlct), std::end(padsAlct));
-}
-
-template<class T>
-void CSCGEMMotherboard::matchingPads(const CSCALCTDigi& alct,
-                                     enum CSCPart part,
-                                     matches<T>& result) const
-{
-  result.clear();
-  if (not alct.isValid()) return;
-
-  std::pair<int,int> alctRoll = (getLUT()->CSCGEMMotherboardLUT::get_csc_wg_to_gem_roll(par))[alct.getKeyWG()];
-
-  const matchesBX<T>& lut = getPads<T>();
-
-  for (const auto& p: lut.at(alct.getBX())){
-    auto padRoll(getRoll(p));
-
-    // only pads in overlap are good for ME1A
-    if (part==CSCPart::ME1A and !isPadInOverlap(padRoll)) continue;
-
-    int pad_bx = getBX(p.second)+lct_central_bx;
-    if (std::abs(alct.getBX()-pad_bx)>getMaxDeltaBX<T>()) continue;
-
-    if (alctRoll.first == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
-        alctRoll.second == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE) continue;  //invalid region
-    else if (alctRoll.first == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and !(padRoll <= alctRoll.second)) continue; // top of the chamber
-    else if (alctRoll.second == CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and !(padRoll >= alctRoll.first)) continue; // bottom of the chamber
-    else if ((alctRoll.first != CSCGEMMotherboard::DEFAULT_MATCHING_VALUE and
-              alctRoll.second != CSCGEMMotherboard::DEFAULT_MATCHING_VALUE) and // center
-	     (alctRoll.first > padRoll or padRoll > alctRoll.second)) continue;
-    result.push_back(p);
-  }
-}
-
-template<class T>
-void CSCGEMMotherboard::matchingPads(const CSCCLCTDigi& clct,
-                                     enum CSCPart part,
-                                     matches<T>& result) const
-{
-  result.clear();
-  if (not clct.isValid()) return;
-
-  const auto& mymap = (getLUT()->get_csc_hs_to_gem_pad(par, part));
-  const int lowPad(mymap[clct.getKeyStrip()].first);
-  const int highPad(mymap[clct.getKeyStrip()].second);
-
-  const matchesBX<T>& lut = getPads<T>();
-
-  for (const auto& p: lut.at(clct.getBX())){
-    auto padRoll(getPad(p.second));
-    int pad_bx = getBX(p.second)+lct_central_bx;
-    if (std::abs(clct.getBX()-pad_bx)>getMaxDeltaBX<T>()) continue;
-    if (std::abs(lowPad - padRoll) <= maxDeltaPadL1_ or std::abs(padRoll - highPad) <= maxDeltaPadL1_){
-      result.push_back(p);
-    }
-  }
 }
 
 #endif

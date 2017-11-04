@@ -153,6 +153,25 @@ class CSCMotherboard
   unsigned int encodePattern(const int ptn, const int highPt) const;
   unsigned int findQuality(const CSCALCTDigi& aLCT, const CSCCLCTDigi& cLCT) const;
 
+  enum LCT_Quality{
+    INVALID  = 0,
+    NO_CLCT = 1,
+    NO_ALCT = 2,
+    CLCT_LAYER_TRIGGER = 3,
+    LOW_QUALITY = 4,
+    MARGINAL_ANODE_CATHODE = 5,
+    HQ_ANODE_MARGINAL_CATHODE = 6,
+    HQ_CATHODE_MARGINAL_ANODE = 7,
+    HQ_ACCEL_ALCT = 8,
+    HQ_RESERVED_1 = 9,
+    HQ_RESERVED_2 = 10,
+    HQ_PATTERN_2_3 = 11,
+    HQ_PATTERN_4_5 = 12,
+    HQ_PATTERN_6_7 = 13,
+    HQ_PATTERN_8_9 = 14,
+    HQ_PATTERN_10 = 15
+  };
+
   /** Dump TMB/MPC configuration parameters. */
   void dumpConfigParams() const;
 
