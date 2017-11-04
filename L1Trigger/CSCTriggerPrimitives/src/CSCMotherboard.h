@@ -177,9 +177,5 @@ class CSCMotherboard
 
   // Method for tests
   void testLCT();
-
-  // utilities for sorting
-  static bool sortByQuality(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&);
-  static bool sortByGEMDphi(const CSCCorrelatedLCTDigi&, const CSCCorrelatedLCTDigi&);
 };
 #endif

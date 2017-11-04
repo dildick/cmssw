@@ -841,17 +841,3 @@ void CSCMotherboard::dumpConfigParams() const {
   strm << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n";
   LogDebug("CSCMotherboard") << strm.str();
 }
-
-
-// compare LCTs by quality
-bool CSCMotherboard::sortByQuality(const CSCCorrelatedLCTDigi& lct1, const CSCCorrelatedLCTDigi& lct2)
-{
-  return lct1.getQuality() > lct2.getQuality();
-}
-
-// compare LCTs by GEM bending angle
-bool CSCMotherboard::sortByGEMDphi(const CSCCorrelatedLCTDigi& lct1, const CSCCorrelatedLCTDigi& lct2)
-{
-  //  return lct1.getGEMDPhi() < lct2.getGEMDPhi();
-  return true;
-}
