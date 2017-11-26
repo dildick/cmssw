@@ -4,15 +4,10 @@
 
 CSCMuonPortCard::CSCMuonPortCard()
 {
-  // by default, send all 18 stubs downstream
-  max_stubs_ = CSCConstants::maxStubs;
 }
 
 CSCMuonPortCard::CSCMuonPortCard(const edm::ParameterSet& conf)
 {
-  // by default, send all 18 stubs downstream
-  max_stubs_ = CSCConstants::maxStubs;
-
   edm::ParameterSet mpcRun2Params = conf.getParameter<edm::ParameterSet>("mpcRun2");
   sort_stubs_ = mpcRun2Params.getParameter<bool>("sortStubs");
   drop_invalid_stubs_ = mpcRun2Params.getParameter<bool>("dropInvalidStubs");
@@ -49,15 +44,16 @@ std::vector<csctf::TrackStub> CSCMuonPortCard::sort(const unsigned endcap, const
   // Make sure no Quality 0 or non-valid LCTs come through the portcard.
   for (LCT = result.begin(); LCT != result.end(); LCT++) {
     if ( (drop_invalid_stubs_ && !LCT->isValid()) ||
-	 (drop_low_quality_stubs_ && LCT->getQuality()==0) )
+         (drop_low_quality_stubs_ && LCT->getQuality()==0) )
       result.erase(LCT, LCT);
   }
 
   if (!result.empty()) {
     if (sort_stubs_) std::sort(result.begin(), result.end(), std::greater<csctf::TrackStub>());
-    // Can only return maxStubs or less LCTs per bunch crossing.
-    if (result.size() > max_stubs_)
-      result.erase(result.begin() + max_stubs_, result.end());
+
+    // Can return up to MAX_LCTS_PER_MPC (default 18) per bunch crossing.
+    if (result.size() > CSCConstants::MAX_LCTS_PER_MPC)
+      result.erase(result.begin() + CSCConstants::MAX_LCTS_PER_MPC, result.end());
 
     // Go through the sorted list and label the LCTs with a sorting number.
     unsigned i = 0;

@@ -38,7 +38,7 @@ void CSCGEMMotherboardME21::clear()
 
   for (int bx = 0; bx < MAX_LCT_BINS; bx++) {
     for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++) {
-      for (int i=0;i<2;i++) {
+      for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++) {
 	allLCTs(bx,mbx,i).clear();
       }
     }
@@ -297,7 +297,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
       // counting
       unsigned int n=0;
       for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++)
-	for (int i=0;i<2;i++)
+	for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
 	  {
 	    int cbx = bx + mbx - match_trig_window_size/2;
 	    if (allLCTs(bx,mbx,i).isValid())
@@ -313,7 +313,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 	{
 	  n=0;
 	  for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++)
-	    for (int i=0;i<2;i++)
+	    for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
 	      {
 		if (allLCTs(bx,pref[mbx],i).isValid())
 		  {
@@ -324,7 +324,7 @@ CSCGEMMotherboardME21::run(const CSCWireDigiCollection* wiredc,
 
 	  n=0;
 	  for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++)
-	    for (int i=0;i<2;i++)
+	    for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
 	      {
 		int cbx = bx + mbx - match_trig_window_size/2;
 		if (allLCTs(bx,mbx,i).isValid())

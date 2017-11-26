@@ -62,7 +62,7 @@ void CSCGEMMotherboardME11::clear()
   if (clct1a) clct1a->clear();
   for (int bx = 0; bx < MAX_LCT_BINS; bx++) {
     for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++) {
-      for (int i=0;i<2;i++) {
+      for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++) {
         allLCTs1b(bx,mbx,i).clear();
         allLCTs1a(bx,mbx,i).clear();
       }
@@ -168,9 +168,11 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 	  matchingPads<GEMCoPadDigi>(clct->bestCLCT[bx_clct], clct->secondCLCT[bx_clct],
 				     alct->bestALCT[bx_alct], alct->secondALCT[bx_alct], ME1B, mCoPads);
 
-          if (dropLowQualityCLCTsNoGEMs_ME1b_ and quality < 4 and hasPads){
-            int nFound(mPads.size());
-            const bool clctInEdge(clct->bestCLCT[bx_clct].getKeyStrip() < 5 or clct->bestCLCT[bx_clct].getKeyStrip() > 124);
+    // Low quality LCTs have at most 3 layers. Check if there is a matching GEM pad to keep the CLCT
+    if (dropLowQualityCLCTsNoGEMs_ME1b_ and quality < 4 and hasPads){
+      int nFound(mPads.size());
+      // these halfstrips (1,2,3,4) and (125,126,127,128) do not have matching GEM pads because GEM chambers are slightly wider than CSCs
+      const bool clctInEdge(clct->bestCLCT[bx_clct].getKeyStrip() < 5 or clct->bestCLCT[bx_clct].getKeyStrip() > 124);
             if (clctInEdge){
               if (debug_matching) LogTrace("CSCGEMCMotherboardME11") << "\tInfo: low quality CLCT in CSC chamber edge, don't care about GEM pads" << std::endl;
             }
@@ -457,7 +459,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     // counting
     unsigned int n1a=0, n1b=0;
     for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++)
-      for (int i=0;i<2;i++)
+      for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
       {
         int cbx = bx + mbx - match_trig_window_size/2;
         if (allLCTs1b(bx,mbx,i).isValid())
@@ -481,7 +483,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
     {
       n1a=0, n1b=0;
       for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++)
-        for (int i=0;i<2;i++)
+        for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
         {
           if (allLCTs1b(bx,pref[mbx],i).isValid())
           {
@@ -497,7 +499,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
 
       n1a=0, n1b=0;
       for (unsigned int mbx = 0; mbx < match_trig_window_size; mbx++)
-        for (int i=0;i<2;i++)
+        for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
         {
           int cbx = bx + mbx - match_trig_window_size/2;
           if (allLCTs1b(bx,mbx,i).isValid())
@@ -526,7 +528,7 @@ void CSCGEMMotherboardME11::run(const CSCWireDigiCollection* wiredc,
       n1a=0;
       // right now nLCT<=2; cut 1a if necessary
       for (unsigned int mbx=0; mbx<match_trig_window_size; mbx++)
-        for (int i=0;i<2;i++)
+        for (int i=0;i<CSCConstants::MAX_LCTS_PER_CSC;i++)
           if (allLCTs1a(bx,mbx,i).isValid()) {
             nLCT++;
             if (nLCT>max_lcts) allLCTs1a(bx,mbx,i).clear();

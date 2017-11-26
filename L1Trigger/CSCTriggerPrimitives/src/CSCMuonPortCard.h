@@ -5,7 +5,7 @@
 //
 //   Class: CSCMuonPortCard
 //
-//   Description: 
+//   Description:
 //    Simulates the functionality of the Muon Port Card (MPC).  Each MPC
 //    is responsible for 9 Trigger Mother Boards (TMBs).  It takes the up to
 //    18 LCTs (2/TMB) in each (sub)sector every bunch crossing, sorts them,
@@ -19,7 +19,7 @@
 //                  Slava Valuev (see cvs in ORCA).
 //   Porting/reworking from ORCA by L. Gray (UF), June 2006.
 //
-//   Update for Run-II data taking by Sven Dildick (TAMU), May 2016. 
+//   Update for Run-II data taking by Sven Dildick (TAMU), May 2016.
 //   CSC MPC sends all 18 stubs from 9 TMBs. Stubs are no longer sorted by quality
 //   Invalid or low-quality stubs are not removed either.
 //
@@ -60,7 +60,6 @@ class CSCMuonPortCard
   CSCTriggerContainer<csctf::TrackStub> stubs_;
 
   // CSC expert options
-  unsigned int max_stubs_;
   bool sort_stubs_;
   bool drop_invalid_stubs_;
   bool drop_low_quality_stubs_;
