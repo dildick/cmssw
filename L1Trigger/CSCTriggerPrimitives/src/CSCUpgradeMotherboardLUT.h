@@ -15,15 +15,20 @@ class CSCGEMMotherboardLUT
   CSCGEMMotherboardLUT();
   virtual ~CSCGEMMotherboardLUT();
 
+  // map of GEM pad number to CSC halfstrip number
   virtual std::vector<int> get_gem_pad_to_csc_hs(Parity par, enum CSCPart) const=0;
+  // map of CSC halfstrip number to GEM pad number
   virtual std::vector<std::pair<int,int> > get_csc_hs_to_gem_pad(Parity par, enum CSCPart) const=0;
+  // map of CSC wiregroup to GEM rols
   std::vector<std::pair<int,int> > get_csc_wg_to_gem_roll(Parity par, int layer=1) const;
   // map the GEM roll to the wire-group in the middle of that roll
   std::vector<int> get_gem_roll_to_csc_wg(Parity par, int layer=1) const;
 
  protected:
 
+  // maps the edges of the CSC wire group to eta for odd numbered chambers
   std::vector<std::vector<double> > lut_wg_eta_odd;
+  // maps the edges of the CSC wire group to eta for even numbered chambers
   std::vector<std::vector<double> > lut_wg_eta_even;
   // LUT with bending angles of the GEM-CSC high efficiency patterns (98%)
   // 1st index: pt value = {3,5,7,10,15,20,30,40}
@@ -71,16 +76,19 @@ class CSCGEMMotherboardLUTME11 : public CSCGEMMotherboardLUT
   std::vector<std::vector<double> > lut_wg_vs_hs_me1ag;
   std::vector<std::vector<double> > lut_wg_vs_hs_me1b;
 
-  // map of pad to HS
+  // map of GEM pad to CSC HS for ME1a chambers
   std::vector<int> gem_pad_to_csc_hs_me1a_odd;
   std::vector<int> gem_pad_to_csc_hs_me1a_even;
 
+  // map of GEM pad to CSC HS for ME1b chambers
   std::vector<int> gem_pad_to_csc_hs_me1b_odd;
   std::vector<int> gem_pad_to_csc_hs_me1b_even;
 
+  // map of CSC HS to GEM pad for ME1a chambers
   std::vector<std::pair<int,int> > csc_hs_to_gem_pad_me1a_odd;
   std::vector<std::pair<int,int> > csc_hs_to_gem_pad_me1a_even;
 
+  // map of CSC HS to GEM pad for ME1b chambers
   std::vector<std::pair<int,int> > csc_hs_to_gem_pad_me1b_odd;
   std::vector<std::pair<int,int> > csc_hs_to_gem_pad_me1b_even;
 };
@@ -95,10 +103,11 @@ class CSCGEMMotherboardLUTME21 : public CSCGEMMotherboardLUT
   std::vector<int> get_gem_pad_to_csc_hs(Parity par, enum CSCPart) const override;
   std::vector<std::pair<int,int> > get_csc_hs_to_gem_pad(Parity par, enum CSCPart) const override;
 
-  // map of pad to HS
+  // map of GEM pad to CSC HS
   std::vector<int> gem_pad_to_csc_hs_odd;
   std::vector<int> gem_pad_to_csc_hs_even;
 
+  // map of CSC HS to GEM pad
   std::vector<std::pair<int,int> > csc_hs_to_gem_pad_odd;
   std::vector<std::pair<int,int> > csc_hs_to_gem_pad_even;
 };
