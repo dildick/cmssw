@@ -127,6 +127,27 @@ namespace edm{
   WorkerT<T>::~WorkerT() {
   }
 
+  
+  template<typename T>
+  bool WorkerT<T>::wantsGlobalRuns() const {
+    return module_->wantsGlobalRuns();
+  }
+  
+  template<typename T>
+  bool WorkerT<T>::wantsGlobalLuminosityBlocks() const {
+    return module_->wantsGlobalLuminosityBlocks();
+  }
+
+  template<typename T>
+  bool WorkerT<T>::wantsStreamRuns() const {
+    return module_->wantsStreamRuns();
+  }
+  
+  template<typename T>
+  bool WorkerT<T>::wantsStreamLuminosityBlocks() const {
+    return module_->wantsStreamLuminosityBlocks();
+  }
+
   template<typename T>
   inline
   bool
@@ -138,12 +159,26 @@ namespace edm{
   template<typename T>
   inline
   bool
+  WorkerT<T>::implNeedToRunSelection() const { return false;}
+
+  template<typename T>
+  inline
+  bool
   WorkerT<T>::implDoPrePrefetchSelection(StreamID id,
                                          EventPrincipal const& ep,
                                          ModuleCallingContext const* mcc) {
     return true;
   }
+  template<typename T>
+  inline
+  void
+  WorkerT<T>::itemsToGetForSelection(std::vector<ProductResolverIndexAndSkipBit>&) const {}
 
+
+  template<>
+  inline
+  bool
+  WorkerT<OutputModule>::implNeedToRunSelection() const { return true;}
   template<>
   inline
   bool
@@ -152,6 +187,17 @@ namespace edm{
                                                     ModuleCallingContext const* mcc) {
     return module_->prePrefetchSelection(id,ep,mcc);
   }
+  template<>
+  inline
+  void
+  WorkerT<OutputModule>::itemsToGetForSelection(std::vector<ProductResolverIndexAndSkipBit>& iItems) const {
+    iItems = module_->productsUsedBySelection();
+  }
+
+  template<>
+  inline
+  bool
+  WorkerT<edm::one::OutputModuleBase>::implNeedToRunSelection() const { return true;}
 
   template<>
   inline
@@ -161,7 +207,17 @@ namespace edm{
                                                                   ModuleCallingContext const* mcc) {
     return module_->prePrefetchSelection(id,ep,mcc);
   }
+  template<>
+  inline
+  void
+  WorkerT<edm::one::OutputModuleBase>::itemsToGetForSelection(std::vector<ProductResolverIndexAndSkipBit>& iItems) const {
+    iItems = module_->productsUsedBySelection();
+  }
 
+  template<>
+  inline
+  bool
+  WorkerT<edm::global::OutputModuleBase>::implNeedToRunSelection() const { return true;}
   template<>
   inline
   bool
@@ -170,7 +226,17 @@ namespace edm{
                                                                      ModuleCallingContext const* mcc) {
     return module_->prePrefetchSelection(id,ep,mcc);
   }
+  template<>
+  inline
+  void
+  WorkerT<edm::global::OutputModuleBase>::itemsToGetForSelection(std::vector<ProductResolverIndexAndSkipBit>& iItems) const {
+    iItems = module_->productsUsedBySelection();
+  }
 
+  template<>
+  inline
+  bool
+  WorkerT<edm::limited::OutputModuleBase>::implNeedToRunSelection() const { return true;}
   template<>
   inline
   bool
@@ -178,6 +244,12 @@ namespace edm{
                                                                      EventPrincipal const& ep,
                                                                      ModuleCallingContext const* mcc) {
     return module_->prePrefetchSelection(id,ep,mcc);
+  }
+  template<>
+  inline
+  void
+  WorkerT<edm::limited::OutputModuleBase>::itemsToGetForSelection(std::vector<ProductResolverIndexAndSkipBit>& iItems) const {
+    iItems = module_->productsUsedBySelection();
   }
 
   template<typename T>
@@ -457,29 +529,31 @@ namespace edm{
   }
 
   namespace {
+    using ModuleToResolverIndicies = std::unordered_multimap<std::string,
+    std::tuple<edm::TypeID const*, const char*, edm::ProductResolverIndex>>;
     void resolvePutIndiciesImpl(void*,
                                 BranchType iBranchType,
-                                std::unordered_multimap<std::string, edm::ProductResolverIndex> const& iIndicies,
+                                ModuleToResolverIndicies const& iIndicies,
                                 std::string const& iModuleLabel) {
       //Do nothing
     }
 
     void resolvePutIndiciesImpl(ProducerBase* iProd,
                                 BranchType iBranchType,
-                                std::unordered_multimap<std::string, edm::ProductResolverIndex> const& iIndicies,
+                                ModuleToResolverIndicies const& iIndicies,
                                 std::string const& iModuleLabel) {
       iProd->resolvePutIndicies(iBranchType, iIndicies, iModuleLabel);
     }
 
     void resolvePutIndiciesImpl(edm::stream::EDProducerAdaptorBase* iProd,
                                 BranchType iBranchType,
-                                std::unordered_multimap<std::string, edm::ProductResolverIndex> const& iIndicies,
+                                ModuleToResolverIndicies const& iIndicies,
                                 std::string const& iModuleLabel) {
       iProd->resolvePutIndicies(iBranchType, iIndicies, iModuleLabel);
     }
     void resolvePutIndiciesImpl(edm::stream::EDFilterAdaptorBase* iProd,
                                 BranchType iBranchType,
-                                std::unordered_multimap<std::string, edm::ProductResolverIndex> const& iIndicies,
+                                ModuleToResolverIndicies const& iIndicies,
                                 std::string const& iModuleLabel) {
       iProd->resolvePutIndicies(iBranchType, iIndicies, iModuleLabel);
     }
@@ -506,7 +580,8 @@ namespace edm{
 
   template<typename T>
   void WorkerT<T>::resolvePutIndicies(BranchType iBranchType,
-                                      std::unordered_multimap<std::string, edm::ProductResolverIndex> const& iIndicies) {
+                                      std::unordered_multimap<std::string,
+                                      std::tuple<TypeID const*, const char*, edm::ProductResolverIndex>> const& iIndicies) {
     resolvePutIndiciesImpl(&module(), iBranchType,iIndicies, description().moduleLabel());
   }
 

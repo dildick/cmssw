@@ -34,10 +34,11 @@ struct MEPSet {
 class FastTimerServiceClient : public DQMEDHarvester {
 public:
   explicit FastTimerServiceClient(edm::ParameterSet const &);
-  ~FastTimerServiceClient();
+  ~FastTimerServiceClient() override;
 
   static void fillDescriptions(edm::ConfigurationDescriptions & descriptions);
   static void fillLumiMePSetDescription(edm::ParameterSetDescription & pset);
+  static void fillPUMePSetDescription(edm::ParameterSetDescription & pset);
 
 private:
   std::string m_dqm_path;
@@ -50,13 +51,15 @@ private:
   void fillPathSummaryPlots(    DQMStore::IBooker & booker, DQMStore::IGetter & getter, double events, std::string const & path);
   void fillPlotsVsLumi(DQMStore::IBooker & booker, DQMStore::IGetter & getter, std::string const & current_path, std::string const & suffix, MEPSet pset);
 
-  static MEPSet getHistoPSet  (edm::ParameterSet pset);
+  static MEPSet getHistoPSet(const edm::ParameterSet& pset);
 
   bool doPlotsVsScalLumi_;
   bool doPlotsVsPixelLumi_;
+  bool doPlotsVsPU_;
 
   MEPSet scalLumiMEPSet_;
   MEPSet pixelLumiMEPSet_;
+  MEPSet puMEPSet_;
 
 };
 
@@ -65,14 +68,14 @@ FastTimerServiceClient::FastTimerServiceClient(edm::ParameterSet const & config)
   m_dqm_path( config.getUntrackedParameter<std::string>( "dqmPath" ) )
   , doPlotsVsScalLumi_ ( config.getParameter<bool>( "doPlotsVsScalLumi" )  )
   , doPlotsVsPixelLumi_( config.getParameter<bool>( "doPlotsVsPixelLumi" ) )
-  , scalLumiMEPSet_ ( doPlotsVsScalLumi_ ? getHistoPSet(config.getParameter<edm::ParameterSet>("scalLumiME")) : MEPSet{}  )
+  , doPlotsVsPU_       ( config.getParameter<bool>( "doPlotsVsPU" )        )
+  , scalLumiMEPSet_ ( doPlotsVsScalLumi_  ? getHistoPSet(config.getParameter<edm::ParameterSet>("scalLumiME") ) : MEPSet{} )
   , pixelLumiMEPSet_( doPlotsVsPixelLumi_ ? getHistoPSet(config.getParameter<edm::ParameterSet>("pixelLumiME")) : MEPSet{} )
+  , puMEPSet_       ( doPlotsVsPU_        ? getHistoPSet(config.getParameter<edm::ParameterSet>("puME")   ) : MEPSet{} )
 {
 }
 
-FastTimerServiceClient::~FastTimerServiceClient()
-{
-}
+FastTimerServiceClient::~FastTimerServiceClient() = default;
 
 void
 FastTimerServiceClient::dqmEndJob(DQMStore::IBooker & booker, DQMStore::IGetter & getter)
@@ -123,7 +126,7 @@ void
 FastTimerServiceClient::fillProcessSummaryPlots(DQMStore::IBooker & booker, DQMStore::IGetter & getter, std::string const & current_path) {
 
   MonitorElement * me = getter.get(current_path + "/event time_real");
-  if (me == 0)
+  if (me == nullptr)
     // no FastTimerService DQM information
     return;
 
@@ -131,6 +134,8 @@ FastTimerServiceClient::fillProcessSummaryPlots(DQMStore::IBooker & booker, DQMS
     fillPlotsVsLumi( booker,getter, current_path, "VsScalLumi", scalLumiMEPSet_ );
   if ( doPlotsVsPixelLumi_ )
     fillPlotsVsLumi( booker,getter, current_path, "VsPixelLumi", pixelLumiMEPSet_ );
+  if ( doPlotsVsPU_ )
+    fillPlotsVsLumi( booker,getter, current_path, "VsPU", puMEPSet_ );
 
   //  getter.setCurrentFolder(current_path);
 
@@ -222,13 +227,13 @@ FastTimerServiceClient::fillPathSummaryPlots(DQMStore::IBooker & booker, DQMStor
 
     getter.setCurrentFolder(subsubdir);
     std::vector<std::string> allmenames = getter.getMEs();
-    if ( allmenames.size() == 0 ) continue;
+    if ( allmenames.empty() ) continue;
 
     MonitorElement * me_counter      = getter.get( subsubdir + "/module_counter" );
     MonitorElement * me_real_total   = getter.get( subsubdir + "/module_time_real_total" );
     MonitorElement * me_thread_total = getter.get( subsubdir + "/module_time_thread_total" );
 
-    if (me_counter == 0 or me_real_total == 0)
+    if (me_counter == nullptr or me_real_total == nullptr)
       continue;
 
     TH1D * counter      = me_counter   ->getTH1D();
@@ -347,6 +352,8 @@ FastTimerServiceClient::fillPathSummaryPlots(DQMStore::IBooker & booker, DQMStor
       fillPlotsVsLumi( booker,getter, subsubdir, "VsScalLumi", scalLumiMEPSet_ );
     if ( doPlotsVsPixelLumi_ )
       fillPlotsVsLumi( booker,getter, subsubdir, "VsPixelLumi", pixelLumiMEPSet_ );
+    if ( doPlotsVsPU_ )
+      fillPlotsVsLumi( booker,getter, subsubdir, "VsPU", puMEPSet_ );
 
   }
 
@@ -363,13 +370,13 @@ FastTimerServiceClient::fillPlotsVsLumi(DQMStore::IBooker & booker, DQMStore::IG
   // get all MEs in the current_path
   getter.setCurrentFolder(current_path);
   std::vector<std::string> allmenames = getter.getMEs();
-  for ( const auto & m : allmenames ) {
+  for (auto const & m : allmenames) {
     // get only MEs vs LS
     if (boost::regex_match(m, byls))
       menames.push_back(m);
   }
   // if no MEs available, return
-  if ( menames.size() == 0 )
+  if ( menames.empty() )
     return;
 
   // get info for getting the lumi VS LS histogram
@@ -379,7 +386,7 @@ FastTimerServiceClient::fillPlotsVsLumi(DQMStore::IBooker & booker, DQMStore::IG
   double      xmin   = pset.xmin;
   double      xmax   = pset.xmax;
 
-  // get lumi VS LS ME
+  // get lumi/PU VS LS ME
   getter.setCurrentFolder(folder);
   MonitorElement* lumiVsLS = getter.get(folder+"/"+name);
   // if no ME available, return
@@ -404,13 +411,13 @@ FastTimerServiceClient::fillPlotsVsLumi(DQMStore::IBooker & booker, DQMStore::IG
 
   booker.setCurrentFolder(current_path);
   getter.setCurrentFolder(current_path);
-  for ( auto m : menames ) {
+  for (auto const& m : menames) {
     std::string label = m;
     label.erase(label.find("_byls"));
 
     MonitorElement* me = getter.get(current_path + "/" + m);
-    double ymin        = me->getTProfile()->GetMinimum();
-    double ymax        = me->getTProfile()->GetMaximum();
+    float ymin        = 0.;
+    float ymax        = std::numeric_limits<float>::max();
     std::string ytitle = me->getTProfile()->GetYaxis()->GetTitle();
 
     MonitorElement* meVsLumi = getter.get( current_path + "/" + label + "_" + suffix );
@@ -439,13 +446,23 @@ void
 FastTimerServiceClient::fillLumiMePSetDescription(edm::ParameterSetDescription & pset) {
   pset.add<std::string>("folder", "HLT/LumiMonitoring");
   pset.add<std::string>("name"  , "lumiVsLS");
-  pset.add<int>   ("nbins",  6500 );
+  pset.add<int>   ("nbins",   440 );
   pset.add<double>("xmin",      0.);
-  pset.add<double>("xmax",  13000.);
+  pset.add<double>("xmax",  22000.);
 }
 
 
-MEPSet FastTimerServiceClient::getHistoPSet(edm::ParameterSet pset)
+void 
+FastTimerServiceClient::fillPUMePSetDescription(edm::ParameterSetDescription & pset) {
+  pset.add<std::string>("folder", "HLT/LumiMonitoring");
+  pset.add<std::string>("name"  , "puVsLS");
+  pset.add<int>   ("nbins", 260 );
+  pset.add<double>("xmin",    0.);
+  pset.add<double>("xmax",  130.);
+}
+
+
+MEPSet FastTimerServiceClient::getHistoPSet(const edm::ParameterSet& pset)
 {
   return MEPSet{
     pset.getParameter<std::string>("folder"),
@@ -464,6 +481,7 @@ FastTimerServiceClient::fillDescriptions(edm::ConfigurationDescriptions & descri
   desc.addUntracked<std::string>( "dqmPath", "HLT/TimerService");
   desc.add<bool>( "doPlotsVsScalLumi",  true  );
   desc.add<bool>( "doPlotsVsPixelLumi", false );
+  desc.add<bool>( "doPlotsVsPU",        true  );
 
   edm::ParameterSetDescription scalLumiMEPSet;
   fillLumiMePSetDescription(scalLumiMEPSet);
@@ -473,9 +491,13 @@ FastTimerServiceClient::fillDescriptions(edm::ConfigurationDescriptions & descri
   fillLumiMePSetDescription(pixelLumiMEPSet);
   desc.add<edm::ParameterSetDescription>("pixelLumiME", pixelLumiMEPSet);
 
+  edm::ParameterSetDescription puMEPSet;
+  fillPUMePSetDescription(puMEPSet);
+  desc.add<edm::ParameterSetDescription>("puME", puMEPSet);
+  
   descriptions.add("fastTimerServiceClient", desc);
 }
 
-//define this as a plug-in
+// declare this class as a framework plugin
 #include "FWCore/Framework/interface/MakerMacros.h"
 DEFINE_FWK_MODULE(FastTimerServiceClient);

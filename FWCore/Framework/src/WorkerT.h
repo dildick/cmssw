@@ -43,11 +43,17 @@ namespace edm {
     }
     
     Types moduleType() const override;
+    
+    bool wantsGlobalRuns() const final;
+    bool wantsGlobalLuminosityBlocks() const final;
+    bool wantsStreamRuns() const final;
+    bool wantsStreamLuminosityBlocks() const final;
+
 
     void updateLookup(BranchType iBranchType,
                               ProductResolverIndexHelper const&) override;
     void resolvePutIndicies(BranchType iBranchType,
-                                    std::unordered_multimap<std::string, edm::ProductResolverIndex> const& iIndicies) override;
+                                    std::unordered_multimap<std::string, std::tuple<TypeID const*, const char*, edm::ProductResolverIndex>> const& iIndicies) override;
 
     template<typename D>
     void callWorkerBeginStream(D, StreamID);
@@ -77,6 +83,8 @@ namespace edm {
   private:
     bool implDo(EventPrincipal const& ep, EventSetup const& c,
                         ModuleCallingContext const* mcc) override;
+    void itemsToGetForSelection(std::vector<ProductResolverIndexAndSkipBit>&) const final;
+    bool implNeedToRunSelection() const final;
     bool implDoPrePrefetchSelection(StreamID id,
                                             EventPrincipal const& ep,
                                             ModuleCallingContext const* mcc) override;

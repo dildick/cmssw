@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.Eras.Modifier_tracker_apv_vfp30_2016_cff import tracker_apv_vfp30_2016 as _tracker_apv_vfp30_2016
+from Configuration.Eras.Modifier_fastSim_cff import fastSim
 
 ### STEP 0 ###
 
@@ -124,6 +125,15 @@ trackingPhase1.toReplaceWith(initialStepSeeds, _initialStepSeedsConsecutiveHitsT
 trackingPhase2PU140.toReplaceWith(initialStepSeeds, _initialStepSeedsConsecutiveHitsTripletOnly.clone(
         seedingHitSets = "initialStepHitQuadruplets"
 ))
+import FastSimulation.Tracking.TrajectorySeedProducer_cfi
+from FastSimulation.Tracking.SeedingMigration import _hitSetProducerToFactoryPSet
+_fastSim_initialStepSeeds = FastSimulation.Tracking.TrajectorySeedProducer_cfi.trajectorySeedProducer.clone(
+    layerList = initialStepSeedLayers.layerList.value(),
+    trackingRegions = "initialStepTrackingRegions",
+    seedFinderSelector = dict( pixelTripletGeneratorFactory = _hitSetProducerToFactoryPSet(initialStepHitTriplets))
+)
+_fastSim_initialStepSeeds.seedFinderSelector.pixelTripletGeneratorFactory.SeedComparitorPSet.ComponentName = "none"
+fastSim.toReplaceWith(initialStepSeeds,_fastSim_initialStepSeeds)
 
 
 # building
@@ -138,6 +148,10 @@ initialStepTrajectoryFilterBase = _initialStepTrajectoryFilterBase.clone(
 )
 from Configuration.Eras.Modifier_tracker_apv_vfp30_2016_cff import tracker_apv_vfp30_2016
 _tracker_apv_vfp30_2016.toModify(initialStepTrajectoryFilterBase, maxCCCLostHits = 2)
+
+from Configuration.Eras.Modifier_pp_on_XeXe_2017_cff import pp_on_XeXe_2017
+pp_on_XeXe_2017.toModify(initialStepTrajectoryFilterBase, minPt=0.6)
+
 initialStepTrajectoryFilterInOut = initialStepTrajectoryFilterBase.clone(
     minimumNumberOfHits = 4,
     seedExtension = 1,
@@ -216,6 +230,14 @@ initialStepTrackCandidates = RecoTracker.CkfPattern.CkfTrackCandidates_cfi.ckfTr
     useHitsSplitting = True
     )
 
+import FastSimulation.Tracking.TrackCandidateProducer_cfi
+fastSim.toReplaceWith(initialStepTrackCandidates,
+                      FastSimulation.Tracking.TrackCandidateProducer_cfi.trackCandidateProducer.clone(
+        src = cms.InputTag("initialStepSeeds"),
+        MinNumberOfCrossedLayers = 3
+    ))
+
+
 # fitting
 import RecoTracker.TrackProducer.TrackProducer_cfi
 initialStepTracks = RecoTracker.TrackProducer.TrackProducer_cfi.TrackProducer.clone(
@@ -223,16 +245,24 @@ initialStepTracks = RecoTracker.TrackProducer.TrackProducer_cfi.TrackProducer.cl
     AlgorithmName = cms.string('initialStep'),
     Fitter = cms.string('FlexibleKFFittingSmoother')
     )
-
+fastSim.toModify(initialStepTracks, TTRHBuilder = 'WithoutRefit')
 
 #vertices
 from RecoVertex.PrimaryVertexProducer.OfflinePrimaryVertices_cfi import offlinePrimaryVertices as _offlinePrimaryVertices
 firstStepPrimaryVerticesUnsorted = _offlinePrimaryVertices.clone()
 firstStepPrimaryVerticesUnsorted.TrackLabel = cms.InputTag("initialStepTracks")
 firstStepPrimaryVerticesUnsorted.vertexCollections = [_offlinePrimaryVertices.vertexCollections[0].clone()]
+# we need a replacment for the firstStepPrimaryVerticesUnsorted
+# that includes tracker information of signal and pile up
+# after mixing there is no such thing as initialStepTracks,
+# so we replace the input collection for firstStepPrimaryVerticesUnsorted with generalTracks
+firstStepPrimaryVerticesBeforeMixing =  firstStepPrimaryVerticesUnsorted.clone()
+fastSim.toModify(firstStepPrimaryVerticesUnsorted, TrackLabel = "generalTracks")
+
 
 from RecoJets.JetProducers.TracksForJets_cff import trackRefsForJets
 initialStepTrackRefsForJets = trackRefsForJets.clone(src = cms.InputTag('initialStepTracks'))
+fastSim.toModify(initialStepTrackRefsForJets, src = "generalTracks")
 from RecoJets.JetProducers.caloJetsForTrk_cff import *
 from CommonTools.RecoAlgos.sortedPrimaryVertices_cfi import sortedPrimaryVertices as _sortedPrimaryVertices
 firstStepPrimaryVertices = _sortedPrimaryVertices.clone(
@@ -248,26 +278,29 @@ from RecoTracker.FinalTrackSelectors.TrackMVAClassifierDetached_cfi import *
 
 initialStepClassifier1 = TrackMVAClassifierPrompt.clone()
 initialStepClassifier1.src = 'initialStepTracks'
-initialStepClassifier1.GBRForestLabel = 'MVASelectorIter0_13TeV'
+initialStepClassifier1.mva.GBRForestLabel = 'MVASelectorIter0_13TeV'
 initialStepClassifier1.qualityCuts = [-0.9,-0.8,-0.7]
+fastSim.toModify(initialStepClassifier1,vertices = "firstStepPrimaryVerticesBeforeMixing")
 
 from RecoTracker.IterativeTracking.DetachedTripletStep_cff import detachedTripletStepClassifier1
 from RecoTracker.IterativeTracking.LowPtTripletStep_cff import lowPtTripletStep
 initialStepClassifier2 = detachedTripletStepClassifier1.clone()
 initialStepClassifier2.src = 'initialStepTracks'
+fastSim.toModify(initialStepClassifier2,vertices = "firstStepPrimaryVerticesBeforeMixing")
 initialStepClassifier3 = lowPtTripletStep.clone()
 initialStepClassifier3.src = 'initialStepTracks'
+fastSim.toModify(initialStepClassifier3,vertices = "firstStepPrimaryVerticesBeforeMixing")
 
 from RecoTracker.FinalTrackSelectors.ClassifierMerger_cfi import *
 initialStep = ClassifierMerger.clone()
 initialStep.inputClassifiers=['initialStepClassifier1','initialStepClassifier2','initialStepClassifier3']
 
 trackingPhase1.toReplaceWith(initialStep, initialStepClassifier1.clone(
-        GBRForestLabel = 'MVASelectorInitialStep_Phase1',
+        mva = dict(GBRForestLabel = 'MVASelectorInitialStep_Phase1'),
         qualityCuts = [-0.95,-0.85,-0.75],
 ))
 trackingPhase1QuadProp.toReplaceWith(initialStep, initialStepClassifier1.clone(
-        GBRForestLabel = 'MVASelectorInitialStep_Phase1',
+        mva = dict(GBRForestLabel = 'MVASelectorInitialStep_Phase1'),
         qualityCuts = [-0.95,-0.85,-0.75],
 ))
 
@@ -364,3 +397,14 @@ _InitialStep_trackingPhase2 = InitialStep.copyAndExclude([initialStepClassifier1
 _InitialStep_trackingPhase2.replace(initialStepHitTriplets, initialStepHitQuadruplets)
 _InitialStep_trackingPhase2.replace(initialStep, initialStepSelector)
 trackingPhase2PU140.toReplaceWith(InitialStep, _InitialStep_trackingPhase2)
+
+from Configuration.Eras.Modifier_fastSim_cff import fastSim
+_InitialStep_fastSim = cms.Sequence(initialStepTrackingRegions
+                           +initialStepSeeds
+                           +initialStepTrackCandidates
+                           +initialStepTracks                                    
+                           +firstStepPrimaryVerticesBeforeMixing
+                           +initialStepClassifier1*initialStepClassifier2*initialStepClassifier3
+                           +initialStep
+                           )
+fastSim.toReplaceWith(InitialStep, _InitialStep_fastSim)

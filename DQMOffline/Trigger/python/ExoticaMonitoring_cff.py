@@ -11,7 +11,11 @@ from DQMOffline.Trigger.DisplacedJet_Monitor_cff import *
 exoticaMonitorHLT = cms.Sequence(
     exoHLTMETmonitoring
   + exoHLTNoBPTXmonitoring
-  + exoHLTPhotonmonitoring
+)
+
+
+exoHLTDQMSourceExtra = cms.Sequence(
+  exoHLTPhotonmonitoring
   + exoHLTHTmonitoring
 # + exoHLTMETplusTrackMonitoring    # disabled pending the review of METplusTrackMonitor.cc
   + exoHLTMuonmonitoring

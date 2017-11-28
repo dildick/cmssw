@@ -201,11 +201,11 @@ namespace edm {
 
     void doErrorStuff();
 
-    void beginRun(ProcessHistoryID const& phid, RunNumber_t run);
-    void endRun(ProcessHistoryID const& phid, RunNumber_t run, bool cleaningUpAfterException);
+    void beginRun(ProcessHistoryID const& phid, RunNumber_t run, bool& globalBeginSucceeded);
+    void endRun(ProcessHistoryID const& phid, RunNumber_t run, bool globalBeginSucceeded, bool cleaningUpAfterException);
 
-    void beginLumi(ProcessHistoryID const& phid, RunNumber_t run, LuminosityBlockNumber_t lumi);
-    void endLumi(ProcessHistoryID const& phid, RunNumber_t run, LuminosityBlockNumber_t lumi, bool cleaningUpAfterException);
+    void beginLumi(ProcessHistoryID const& phid, RunNumber_t run, LuminosityBlockNumber_t lumi, bool& globalBeginSucceeded);
+    void endLumi(ProcessHistoryID const& phid, RunNumber_t run, LuminosityBlockNumber_t lumi, bool globalBeginSucceeded, bool cleaningUpAfterException);
 
     std::pair<ProcessHistoryID,RunNumber_t> readRun();
     std::pair<ProcessHistoryID,RunNumber_t> readAndMergeRun();
@@ -312,7 +312,7 @@ namespace edm {
     PreallocationConfiguration                    preallocations_;
     
     bool                                          asyncStopRequestedWhileProcessingEvents_;
-    InputSource::ItemType                         nextItemTypeFromProcessingEvents_;
+    std::atomic<InputSource::ItemType>            nextItemTypeFromProcessingEvents_;
     StatusCode                                    asyncStopStatusCodeFromProcessingEvents_;
     bool firstEventInBlock_=true;
     

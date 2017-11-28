@@ -73,14 +73,22 @@ class CondXmlProcessor(object):
         libDir = os.path.join( os.environ["CMSSW_BASE"], 'lib', os.environ["SCRAM_ARCH"] )
         devLibDir = libDir
         libPath = os.path.join( devLibDir, libName )
-        devCheckout = ("CMSSW_RELEASE_BASE" in os.environ)
+        releaseBase = os.environ["CMSSW_RELEASE_BASE"]
+        devCheckout = (releaseBase != '')
+        if not devCheckout:
+           logging.debug('Looks like the current working environment is a read-only release')
         if not os.path.exists( libPath ) and devCheckout:
            # main release ( for dev checkouts )
-           libDir = os.path.join( os.environ["CMSSW_RELEASE_BASE"], 'lib', os.environ["SCRAM_ARCH"] )
+           libDir = os.path.join( releaseBase, 'lib', os.environ["SCRAM_ARCH"] )
            libPath = os.path.join( libDir, libName )
+           if not os.path.exists( libPath ):
+              if "CMSSW_FULL_RELEASE_BASE" in os.environ:
+                 libDir = os.path.join( os.environ["CMSSW_FULL_RELEASE_BASE"], 'lib', os.environ["SCRAM_ARCH"] )
+                 libPath = os.path.join( libDir, libName )
         if not os.path.exists( libPath ):
            # it should never happen!
-           raise Exception('No built-in library found with XML converters.')
+           raise Exception('No built-in library %s found with XML converters.' %libPath)
+        logging.debug("Importing built-in library %s" %libPath)
         module = importlib.import_module( libName.replace('.so', '') )
         functors = dir(module)
         funcName = payloadType+'2xml'
@@ -135,7 +143,7 @@ class CondXmlProcessor(object):
         	 codeFile.write(code)
     	 	 codeFile.close()
     
-    	cmd = "source /afs/cern.ch/cms/cmsset_default.sh;"
+    	cmd = "source $CMS_PATH/cmsset_default.sh;"
     	cmd += "(cd %s ; scram b 2>&1 >build.log)" %tmpDir
         pipe = subprocess.Popen( cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT )
         out, err = pipe.communicate()
@@ -145,6 +153,7 @@ class CondXmlProcessor(object):
         logging.info("Building done in %s sec., return code from build: %s" %(buildTime,ret) )
 
 	if (ret != 0):
+           logging.error("Local build for xml dump failed.")
            return None
 
         libFile = os.path.join(libDir,pluginName + '.so')
@@ -167,11 +176,12 @@ class CondXmlProcessor(object):
         convFuncName = sanitize(plType)+'2xml'
         xmlConverter = self.prepPayload2xml(plType)
 
-        obj = xmlConverter()
-        resultXML = obj.write( str(data) )
-        if destFile is None:
-           print resultXML    
-        else:
-           with open(destFile, 'w') as outFile:
-              outFile.write(resultXML)
-              outFile.close()
+        if xmlConverter is not None:
+           obj = xmlConverter()
+           resultXML = obj.write( str(data) )
+           if destFile is None:
+              print resultXML    
+           else:
+              with open(destFile, 'w') as outFile:
+                 outFile.write(resultXML)
+                 outFile.close()

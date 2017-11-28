@@ -43,7 +43,7 @@ class ZCounting: public DQMEDAnalyzer{
 public:
 
   ZCounting(const edm::ParameterSet& ps);
-  virtual ~ZCounting();
+  ~ZCounting() override;
 
   enum MuonIDTypes  { NoneID, LooseID, MediumID, TightID };
   enum MuonIsoTypes { NoneIso, TrackerIso, PFIso };
@@ -131,6 +131,8 @@ private:
 
   MonitorElement* h_npv;
   MonitorElement* h_yield_Z;
+  MonitorElement* h_yieldBB_Z;
+  MonitorElement* h_yieldEE_Z;
 };
 
 
