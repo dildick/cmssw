@@ -25,8 +25,7 @@ class CSCConstants
 
   // Each CSC can send up to 2 LCTs to the MPC.
   // An MPC receives up to 18 LCTs from 9 CSCs in the trigger sector
-  enum LCT_stubs{ MAX_LCTS_PER_CSC = 2, MAX_LCTS_PER_MPC = 18 };
-
+  enum LCT_stubs{ LCT_CENTRAL_BX = 8, MAX_LCTS_PER_CSC = 2, MAX_LCTS_PER_MPC = 18 };
 };
 
 #endif

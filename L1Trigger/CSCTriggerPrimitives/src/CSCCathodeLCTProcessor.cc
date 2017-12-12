@@ -673,6 +673,12 @@ CSCCathodeLCTProcessor::run(const CSCComparatorDigiCollection* compdc) {
 
   // Return vector of CLCTs.
   std::vector<CSCCLCTDigi> tmpV = getCLCTs();
+
+  // shift the BX from 7 to 8
+  for (auto& p : tmpV){
+    p.setBX(p.getBX() + 1);
+  }
+
   return tmpV;
 }
 

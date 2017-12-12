@@ -1686,6 +1686,11 @@ std::vector<CSCALCTDigi> CSCAnodeLCTProcessor::readoutALCTs() {
 
     tmpV.push_back(*plct);
   }
+
+  // shift the BX from 8 to 3
+  for (auto& p : tmpV){
+    p.setBX(p.getBX() - (CSCConstants::LCT_CENTRAL_BX - l1a_window_width/2));
+  }
   return tmpV;
 }
 
