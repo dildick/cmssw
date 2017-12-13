@@ -677,6 +677,12 @@ CSCCathodeLCTProcessor::run(const CSCComparatorDigiCollection* compdc) {
   std::vector<CSCCLCTDigi> tmpV = getCLCTs();
 
   // shift the BX from 7 to 8
+  // the unpacked real data CLCTs have central BX at bin 7
+  // however in simulation the central BX  is bin 8
+  // to make a proper comparison with ALCTs we need
+  // CLCT and ALCT to have the central BX in the same bin
+  // this shift does not affect the readout of the CLCTs
+  // emulated CLCTs put in the event should be centered at bin 7 (as in data)
   for (auto& p : tmpV){
     p.setBX(p.getBX() + alctClctOffset);
   }
