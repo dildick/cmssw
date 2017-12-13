@@ -267,6 +267,8 @@ CSCCathodeLCTProcessor::CSCCathodeLCTProcessor(unsigned endcap,
 
   // Flag for SLHC studies
   isSLHC       = comm.getParameter<bool>("isSLHC");
+			     
+  alctClctOffset = comm.getParameter<bool>("alctClctOffset");
 
   // special configuration parameters for ME11 treatment
   smartME1aME1b = comm.getParameter<bool>("smartME1aME1b");
@@ -676,7 +678,7 @@ CSCCathodeLCTProcessor::run(const CSCComparatorDigiCollection* compdc) {
 
   // shift the BX from 7 to 8
   for (auto& p : tmpV){
-    p.setBX(p.getBX() + 1);
+    p.setBX(p.getBX() + alctClctOffset);
   }
 
   return tmpV;
