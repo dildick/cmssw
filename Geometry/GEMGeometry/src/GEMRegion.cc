@@ -2,7 +2,7 @@
 #include "Geometry/GEMGeometry/interface/GEMStation.h"
 #include "Geometry/GEMGeometry/interface/GEMSuperChamber.h"
 
-GEMRegion::GEMRegion(int region) : 
+GEMRegion::GEMRegion(int region) :
   region_(region)
 {
 }
@@ -11,7 +11,7 @@ GEMRegion::~GEMRegion(){}
 
 std::vector<GEMDetId> GEMRegion::ids() const {
   std::vector<GEMDetId> result;
-  for (auto st : stations_ ){
+  for (const auto& st : stations_ ){
     std::vector<GEMDetId> newIds(st->ids());
     result.insert(result.end(), newIds.begin(), newIds.end());
   }
@@ -25,18 +25,18 @@ bool GEMRegion::operator==(const GEMRegion& re) const {
 void GEMRegion::add(GEMStation* st) {
   stations_.emplace_back(st);
 }
-  
+
 std::vector<const GeomDet*> GEMRegion::components() const {
   std::vector<const GeomDet*> result;
-  for (auto st : stations_) {
-    auto newSch(st->components());
+  for (const auto& st : stations_) {
+    const auto& newSch(st->components());
     result.insert(result.end(), newSch.begin(), newSch.end());
   }
   return result;
 }
 
 const GeomDet* GEMRegion::component(DetId id) const {
-  auto detId(GEMDetId(id.rawId()));
+  const auto& detId(GEMDetId(id.rawId()));
   return station(detId.station())->component(id);
 }
 
@@ -47,7 +47,7 @@ const GEMSuperChamber* GEMRegion::superChamber(GEMDetId id) const {
 
 std::vector<const GEMSuperChamber*> GEMRegion::superChambers() const {
   std::vector<const GEMSuperChamber*> result;
-  for (auto st : stations_) {
+  for (const auto& st : stations_) {
     std::vector<const GEMSuperChamber*> newSch(st->superChambers());
     result.insert(result.end(), newSch.begin(), newSch.end());
   }
@@ -55,7 +55,7 @@ std::vector<const GEMSuperChamber*> GEMRegion::superChambers() const {
 }
 
 const GEMStation* GEMRegion::station(int st) const {
-  for (auto stat : stations_) {
+  for (const auto& stat : stations_) {
     if (st == stat->station()) {
       return stat;
     }

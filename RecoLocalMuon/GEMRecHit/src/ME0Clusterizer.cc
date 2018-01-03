@@ -1,6 +1,4 @@
 #include "RecoLocalMuon/GEMRecHit/src/ME0Clusterizer.h"
-#include "RecoLocalMuon/GEMRecHit/src/ME0Cluster.h"
-
 
 ME0Clusterizer::ME0Clusterizer()
 {
@@ -23,7 +21,7 @@ ME0Clusterizer::doAction(const ME0DigiCollection::Range& digiRange)
 }
 
 ME0ClusterContainer
-ME0Clusterizer::doActualAction(ME0ClusterContainer& initialclusters)
+ME0Clusterizer::doActualAction(const ME0ClusterContainer& initialclusters) const
 {
   ME0ClusterContainer finalCluster;
   ME0Cluster prev;

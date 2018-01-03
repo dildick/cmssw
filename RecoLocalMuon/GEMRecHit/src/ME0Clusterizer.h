@@ -17,6 +17,6 @@ class ME0Clusterizer
   ME0ClusterContainer doAction(const ME0DigiCollection::Range& digiRange);
 
  private:
-  ME0ClusterContainer doActualAction(ME0ClusterContainer& initialclusters);
+  ME0ClusterContainer doActualAction(const ME0ClusterContainer& initialclusters) const;
 };
 #endif
