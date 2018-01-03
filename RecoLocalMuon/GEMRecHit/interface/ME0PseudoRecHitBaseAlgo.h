@@ -1,12 +1,10 @@
-#ifndef RecoLocalMuon_ME0RecHitBaseAlgo_H
-#define RecoLocalMuon_ME0RecHitBaseAlgo_H
+#ifndef RecoLocalMuon_GEMRecHit_ME0PseudoRecHitBaseAlgo_H
+#define RecoLocalMuon_GEMRecHit_ME0PseudoRecHitBaseAlgo_H
 
-/** \class ME0RecHitBaseAlgo
+/** \class ME0PseudoRecHitBaseAlgo
  *  Abstract algorithmic class to compute Rec Hit
  *  form a ME0 digi
  *
- *  $Date: 2014/02/04 10:16:32 $
- *  $Revision: 1.1 $
  *  \author M. Maggi -- INFN Bari
  */
 
@@ -26,19 +24,19 @@ namespace edm {
 }
 
 
-class ME0RecHitBaseAlgo {
-
+class ME0PseudoRecHitBaseAlgo
+{
  public:
 
   /// Constructor
-  ME0RecHitBaseAlgo(const edm::ParameterSet& config);
+  ME0PseudoRecHitBaseAlgo(const edm::ParameterSet& config);
 
  /// Destructor
-  virtual ~ME0RecHitBaseAlgo();
+  virtual ~ME0PseudoRecHitBaseAlgo();
 
  /// Pass the Event Setup to the algo at each event
  virtual void setES(const edm::EventSetup& setup) = 0;
- 
+
  /// Build all hits in the range associated to the me0Id, at the 1st step.
  virtual edm::OwnVector<ME0RecHit> reconstruct(const ME0DetId& me0Id,
                                                   const ME0DigiPreRecoCollection::Range& digiRange);
@@ -48,5 +46,6 @@ class ME0RecHitBaseAlgo {
                              LocalPoint& Point,
                              LocalError& error) const = 0;
 };
+
 #endif
 
