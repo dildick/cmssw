@@ -11,7 +11,8 @@
 
 
 
-class GEMRecHitStandardAlgo : public GEMRecHitBaseAlgo {
+class GEMRecHitStandardAlgo : public GEMRecHitBaseAlgo
+{
  public:
   /// Constructor
   GEMRecHitStandardAlgo(const edm::ParameterSet& config);
@@ -26,17 +27,17 @@ class GEMRecHitStandardAlgo : public GEMRecHitBaseAlgo {
 
 
   bool compute(const GEMEtaPartition& roll,
-                       const GEMCluster& cluster,
-                       LocalPoint& point,
-                       LocalError& error) const override;
+               const GEMCluster& cluster,
+               LocalPoint& point,
+               LocalError& error) const override;
 
 
   bool compute(const GEMEtaPartition& roll,
-                       const GEMCluster& cluster,
-                       const float& angle,
-                       const GlobalPoint& globPos, 
-                       LocalPoint& point,
-                       LocalError& error) const override;
+               const GEMCluster& cluster,
+               const float& angle,
+               const GlobalPoint& globPos,
+               LocalPoint& point,
+               LocalError& error) const override;
 };
 #endif
 

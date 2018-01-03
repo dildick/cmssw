@@ -1,10 +1,6 @@
 #ifndef RecoLocalMuon_GEMRecHit_ME0Clusterizer_h
 #define RecoLocalMuon_GEMRecHit_ME0Clusterizer_h
 
-/** \class ME0Clusterizer
- *  \author M. Maggi -- INFN Bari
- */
-
 #include "RecoLocalMuon/GEMRecHit/src/ME0Cluster.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiCollection.h"
 

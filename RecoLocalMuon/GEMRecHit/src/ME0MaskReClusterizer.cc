@@ -1,8 +1,3 @@
-
-/** \Class ME0MaskReClusterizer
- *  \author J.C. Sanabria -- UniAndes, Bogota
- */
-
 #include "RecoLocalMuon/GEMRecHit/src/ME0MaskReClusterizer.h"
 
 ME0MaskReClusterizer::ME0MaskReClusterizer()
@@ -19,7 +14,7 @@ ME0MaskReClusterizer::~ME0MaskReClusterizer()
 
 ME0ClusterContainer ME0MaskReClusterizer::doAction(const ME0DetId& id,
                                                    ME0ClusterContainer& initClusters,
-                                                   const EtaPartitionMask& mask)
+                                                   const ME0EtaPartitionMask& mask)
 {
 
   ME0ClusterContainer finClusters;
@@ -76,7 +71,7 @@ ME0ClusterContainer ME0MaskReClusterizer::doAction(const ME0DetId& id,
 
 
 
-int ME0MaskReClusterizer::get(const EtaPartitionMask& mask, int strip)
+int ME0MaskReClusterizer::get(const ME0EtaPartitionMask& mask, int strip)
 {
 
   if ( mask.test(strip-1) ) return 1;

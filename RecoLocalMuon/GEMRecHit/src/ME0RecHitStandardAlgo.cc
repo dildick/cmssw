@@ -1,12 +1,4 @@
-/*
- *  See header file for a description of this class.
- *
- *  \author M. Maggi -- INFN
- */
-
-#include "RecoLocalMuon/GEMRecHit/src/ME0Cluster.h"
 #include "RecoLocalMuon/GEMRecHit/src/ME0RecHitStandardAlgo.h"
-#include "DataFormats/MuonDetId/interface/ME0DetId.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/EventSetup.h"

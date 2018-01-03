@@ -5,12 +5,10 @@
  */
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitBaseAlgo.h"
-#include "RecoLocalMuon/GEMRecHit/src/GEMCluster.h"
 #include "RecoLocalMuon/GEMRecHit/src/GEMClusterizer.h"
 #include "RecoLocalMuon/GEMRecHit/src/GEMMaskReClusterizer.h"
 
 #include "Geometry/GEMGeometry/interface/GEMEtaPartition.h"
-#include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 

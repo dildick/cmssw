@@ -16,7 +16,7 @@ ME0PseudoRecHitBaseAlgo::~ME0PseudoRecHitBaseAlgo(){}
 
 // Build all hits in the range associated to the layerId, at the 1st step.
 edm::OwnVector<ME0RecHit> ME0PseudoRecHitBaseAlgo::reconstruct(const ME0DetId& me0Id,
-const ME0DigiPreRecoCollection::Range& digiRange)
+                                                               const ME0DigiPreRecoCollection::Range& digiRange)
 {
   edm::OwnVector<ME0RecHit> result;
 

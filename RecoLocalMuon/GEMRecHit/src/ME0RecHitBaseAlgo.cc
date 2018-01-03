@@ -10,7 +10,7 @@ ME0RecHitBaseAlgo::~ME0RecHitBaseAlgo(){}
 
 // Build all hits in the range associated to the layerId, at the 1st step.
 edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0EtaPartition& roll,
-                                                         const ME0DetId& gemId,
+                                                         const ME0DetId& me0Id,
                                                          const ME0DigiCollection::Range& digiRange,
                                                          const ME0EtaPartitionMask& mask)
 {
@@ -19,7 +19,7 @@ edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0EtaPartition& 
   ME0Clusterizer clizer;
   ME0ClusterContainer tcls = clizer.doAction(digiRange);
   ME0MaskReClusterizer mrclizer;
-  const ME0ClusterContainer& cls = mrclizer.doAction(gemId,tcls,mask);
+  ME0ClusterContainer cls = mrclizer.doAction(me0Id,tcls,mask);
 
   for (ME0ClusterContainer::const_iterator cl = cls.begin();
        cl != cls.end(); cl++){
@@ -31,11 +31,10 @@ edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0EtaPartition& 
     if (!OK) continue;
 
     // Build a new pair of 1D rechit
-    int firstClustStrip= cl->firstStrip();
-    int clusterSize=cl->clusterSize();
-    ME0RecHit*  recHit = new ME0RecHit(gemId,cl->bx(),firstClustStrip,clusterSize,point,tmpErr);
+    int firstClustStrip = cl->firstStrip();
+    int clusterSize = cl->clusterSize();
 
-    result.push_back(recHit);
+    result.push_back(ME0RecHit(me0Id,cl->bx(),firstClustStrip,clusterSize,point,tmpErr));
   }
   return result;
 }
