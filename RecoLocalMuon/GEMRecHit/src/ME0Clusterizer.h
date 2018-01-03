@@ -18,7 +18,5 @@ class ME0Clusterizer
 
  private:
   ME0ClusterContainer doActualAction(ME0ClusterContainer& initialclusters);
-
-  ME0ClusterContainer cls;
 };
 #endif

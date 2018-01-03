@@ -1,7 +1,11 @@
-#ifndef RecoLocalMuon_GEMCluster_h
-#define RecoLocalMuon_GEMCluster_h
-#include <boost/cstdint.hpp>
-class GEMCluster{
+#ifndef RecoLocalMuon_GEMRecHit_GEMCluster_h
+#define RecoLocalMuon_GEMRecHit_GEMCluster_h
+
+#include <stdint.h>
+#include <set>
+
+class GEMCluster
+{
  public:
   GEMCluster();
   GEMCluster(int fs,int ls, int bx);
@@ -23,4 +27,7 @@ class GEMCluster{
   uint16_t lstrip;
   int16_t bunchx;
 };
+
+typedef std::set<GEMCluster> GEMClusterContainer;
+
 #endif

@@ -1,28 +1,21 @@
-#ifndef RecoLocalMuon_GEMMaskReClusterizer_h
-#define RecoLocalMuon_GEMMaskReClusterizer_h
+#ifndef RecoLocalMuon_GEMRecHit_GEMMaskReClusterizer_h
+#define RecoLocalMuon_GEMRecHit_GEMMaskReClusterizer_h
 
 /** \Class GEMMaskReClusterizer
  *  \author J.C. Sanabria -- UniAndes, Bogota
  */
 
-#include "GEMEtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/src/GEMEtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/src/GEMClusterizer.h"
 
-#include "GEMCluster.h"
-#include "GEMClusterizer.h"
-#include "GEMClusterContainer.h"
-
-#include "DataFormats/MuonDetId/interface/GEMDetId.h"
-
-
-class GEMMaskReClusterizer 
+class GEMMaskReClusterizer
 {
- public :
+ public:
 
    GEMMaskReClusterizer();
    ~GEMMaskReClusterizer();
-   GEMClusterContainer doAction(const GEMDetId& ,GEMClusterContainer& , const EtaPartitionMask& );
-   int get(const EtaPartitionMask& ,int );
-
+   GEMClusterContainer doAction(const GEMDetId&, GEMClusterContainer&, const GEMEtaPartitionMask& );
+   int get(const GEMEtaPartitionMask&, int );
 };
 
 #endif

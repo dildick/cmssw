@@ -18,13 +18,11 @@
 
 class ME0Cluster;
 class ME0EtaPartition;
-class ME0DetId;
 
 namespace edm {
   class ParameterSet;
   class EventSetup;
 }
-
 
 class ME0RecHitBaseAlgo
 {
@@ -43,7 +41,7 @@ class ME0RecHitBaseAlgo
   virtual edm::OwnVector<ME0RecHit> reconstruct(const ME0EtaPartition& roll,
                                                 const ME0DetId& gemId,
                                                 const ME0DigiCollection::Range& digiRange,
-                                                const EtaPartitionMask& mask);
+                                                const ME0EtaPartitionMask& mask);
 
   /// standard local recHit computation
   virtual bool compute(const ME0EtaPartition& roll,
@@ -60,4 +58,5 @@ class ME0RecHitBaseAlgo
                        LocalPoint& Point,
                        LocalError& error) const = 0;
 };
+
 #endif

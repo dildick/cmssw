@@ -2,9 +2,8 @@
 #define RecoLocalMuon_GEMRecHit_GEMEtaPartitionMask_h
 
 #include <bitset>
-#include <vector>
 
-const int maskSIZE=768;
-typedef std::bitset<maskSIZE> EtaPartitionMask;
+const int ME0maskSIZE=384;
+typedef std::bitset<ME0maskSIZE> ME0EtaPartitionMask;
 
 #endif

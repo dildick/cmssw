@@ -1,14 +1,15 @@
 #ifndef RecoLocalMuon_GEMClusterizer_h
 #define RecoLocalMuon_GEMClusterizer_h
+
 /** \class GEMClusterizer
  *  \author M. Maggi -- INFN Bari
  */
 
-#include "GEMClusterContainer.h"
+#include "RecoLocalMuon/GEMRecHit/src/GEMCluster.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 
-class GEMCluster;
-class GEMClusterizer{
+class GEMClusterizer
+{
  public:
   GEMClusterizer();
   ~GEMClusterizer();
@@ -16,8 +17,6 @@ class GEMClusterizer{
 
  private:
   GEMClusterContainer doActualAction(GEMClusterContainer& initialclusters);
-
- private:
-  GEMClusterContainer cls;
 };
+
 #endif
