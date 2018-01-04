@@ -1,52 +1,62 @@
-#ifndef RecoLocalMuon_ME0RecHitBaseAlgo_H
-#define RecoLocalMuon_ME0RecHitBaseAlgo_H
+#ifndef RecoLocalMuon_GEMRecHit_GEMRecHitBaseAlgo_H
+#define RecoLocalMuon_GEMRecHit_GEMRecHitBaseAlgo_H
 
-/** \class ME0RecHitBaseAlgo
+/** \class GEMRecHitBaseAlgo
  *  Abstract algorithmic class to compute Rec Hit
- *  form a ME0 digi
+ *  form a GEM digi
  *
- *  $Date: 2014/02/04 10:16:32 $
- *  $Revision: 1.1 $
  *  \author M. Maggi -- INFN Bari
  */
 
 
-#include "DataFormats/GeometryVector/interface/LocalPoint.h"
-#include "DataFormats/GeometrySurface/interface/LocalError.h"
-#include "DataFormats/GeometryVector/interface/GlobalPoint.h"
-#include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
+#include "DataFormats/GEMDigi/interface/ME0DigiCollection.h"
 #include "DataFormats/GEMRecHit/interface/ME0RecHit.h"
 #include "DataFormats/Common/interface/OwnVector.h"
 
-class ME0DetId;
+#include "RecoLocalMuon/GEMRecHit/interface/ME0EtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0MaskReClusterizer.h"
+
+class ME0Cluster;
+class ME0EtaPartition;
 
 namespace edm {
   class ParameterSet;
   class EventSetup;
 }
 
-
-class ME0RecHitBaseAlgo {
-
+class ME0RecHitBaseAlgo
+{
  public:
 
   /// Constructor
   ME0RecHitBaseAlgo(const edm::ParameterSet& config);
 
- /// Destructor
+  /// Destructor
   virtual ~ME0RecHitBaseAlgo();
 
- /// Pass the Event Setup to the algo at each event
- virtual void setES(const edm::EventSetup& setup) = 0;
- 
- /// Build all hits in the range associated to the me0Id, at the 1st step.
- virtual edm::OwnVector<ME0RecHit> reconstruct(const ME0DetId& me0Id,
-                                                  const ME0DigiPreRecoCollection::Range& digiRange);
+  /// Pass the Event Setup to the algo at each event
+  virtual void setES(const edm::EventSetup& setup) = 0;
 
- /// standard local recHit computation
-  virtual bool compute(const ME0DigiPreReco& digi,
-                             LocalPoint& Point,
-                             LocalError& error) const = 0;
+  /// Build all hits in the range associated to the gemId, at the 1st step.
+  virtual edm::OwnVector<ME0RecHit> reconstruct(const ME0EtaPartition& roll,
+                                                const ME0DetId& gemId,
+                                                const ME0DigiCollection::Range& digiRange,
+                                                const ME0EtaPartitionMask& mask);
+
+  /// standard local recHit computation
+  virtual bool compute(const ME0EtaPartition& roll,
+                       const ME0Cluster& cl,
+                       LocalPoint& Point,
+                       LocalError& error) const = 0;
+
+  /// local recHit computation accounting for track direction and
+  /// absolute position
+  virtual bool compute(const ME0EtaPartition& roll,
+                       const ME0Cluster& cl,
+                       const float& angle,
+                       const GlobalPoint& globPos,
+                       LocalPoint& Point,
+                       LocalError& error) const = 0;
 };
-#endif
 
+#endif

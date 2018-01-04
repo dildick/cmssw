@@ -2,19 +2,15 @@
 #define RecoLocalMuon_GEMRecHit_GEMRecHitProducer_h
 
 /** \class GEMRecHitProducer
- *  Module for GEMRecHit production. 
- *  
+ *  Module for GEMRecHit production.
+ *
  *  \author M. Maggim -- INFN Bari
  */
 
 
 #include <memory>
-#include <fstream>
-#include <iostream>
-#include <cstdint>
-#include <cstdlib>
-#include <bitset>
-#include <map>
+#include <stdint.h>
+#include <stdlib.h>
 
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"

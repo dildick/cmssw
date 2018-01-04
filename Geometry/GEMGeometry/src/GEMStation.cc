@@ -14,7 +14,7 @@ GEMStation::~GEMStation() {}
 
 std::vector<GEMDetId> GEMStation::ids() const {
   std::vector<GEMDetId> result;
-  for (auto& ri : rings_){
+  for (const auto& ri : rings_){
     std::vector<GEMDetId> newIds(ri->ids());
     result.insert(result.end(), newIds.begin(), newIds.end());
   }
@@ -31,15 +31,15 @@ void GEMStation::add(GEMRing* ring) {
 
 std::vector<const GeomDet*> GEMStation::components() const {
   std::vector<const GeomDet*> result;
-  for (auto ri : rings_) {
-    auto newSch(ri->components());
+  for (const auto& ri : rings_) {
+    const auto& newSch(ri->components());
     result.insert(result.end(), newSch.begin(), newSch.end());
   }
   return result;
 }
 
 const GeomDet* GEMStation::component(DetId id) const {
- auto detId(GEMDetId(id.rawId()));
+ const auto& detId(GEMDetId(id.rawId()));
  return ring(detId.ring())->component(id);
 }
 
@@ -50,7 +50,7 @@ const GEMSuperChamber* GEMStation::superChamber(GEMDetId id) const {
 
 std::vector<const GEMSuperChamber*> GEMStation::superChambers() const {
   std::vector<const GEMSuperChamber*> result;
-  for (auto ri : rings_ ){
+  for (const auto& ri : rings_ ){
     std::vector<const GEMSuperChamber*> newSch(ri->superChambers());
     result.insert(result.end(), newSch.begin(), newSch.end());
   }
@@ -58,7 +58,7 @@ std::vector<const GEMSuperChamber*> GEMStation::superChambers() const {
 }
 
 const GEMRing* GEMStation::ring(int ring) const {
-  for (auto ri : rings_) {
+  for (const auto& ri : rings_) {
     if (ring == ri->ring()) {
       return ri;
     }
