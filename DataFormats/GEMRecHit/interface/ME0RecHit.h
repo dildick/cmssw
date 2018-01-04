@@ -27,17 +27,24 @@ float tof);
   ME0RecHit(const ME0DetId& me0Id,
 float tof,
 const LocalPoint& pos);
-  
+
 
   /// Constructor from a local position and error, ME0Id and tof.
   /// The 3-dimensional local error is defined as
   /// resolution (the cell resolution) for the coordinate being measured
   /// and 0 for the two other coordinates
   ME0RecHit(const ME0DetId& me0Id,
-float tof,
-const LocalPoint& pos,
-const LocalError& err);
-  
+            float tof,
+            const LocalPoint& pos,
+            const LocalError& err);
+
+  /// Constructor from a local position and error, gemId, bx, frist strip of cluster and cluster size.
+  ME0RecHit(const ME0DetId& gemId,
+            int bx,
+            int firstStrip,
+            int clustSize,
+            const LocalPoint& pos,
+            const LocalError& err);
 
   /// Destructor
   ~ME0RecHit() override;
@@ -57,7 +64,7 @@ const LocalError& err);
 
   ME0RecHit* clone() const override;
 
-  
+
   /// Access to component RecHits.
   /// No components rechits: it returns a null vector
   std::vector<const TrackingRecHit*> recHits() const override;
@@ -73,7 +80,7 @@ const LocalError& err);
     theLocalPosition = pos;
   }
 
-  
+
   /// Set local position error
   void setError(LocalError err) {
     theLocalError = err;
@@ -85,13 +92,13 @@ const LocalError& err);
     theLocalPosition = pos;
     theLocalError = err;
   }
-  
+
 
   /// Return the gemId
   ME0DetId me0Id() const {
     return theME0Id;
   }
- 
+
   float tof() const {
     return theTOF;
   }
@@ -102,6 +109,8 @@ const LocalError& err);
  private:
   ME0DetId theME0Id;
   float theTOF;
+  int theFirstStrip;
+  int theClusterSize;
   // Position and error in the Local Ref. Frame of the ME0Layer
   LocalPoint theLocalPosition;
   LocalError theLocalError;

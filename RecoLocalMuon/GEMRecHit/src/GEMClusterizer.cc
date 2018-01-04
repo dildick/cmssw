@@ -1,7 +1,4 @@
-#include "GEMClusterizer.h"
-#include "GEMCluster.h"
-#include "GEMClusterContainer.h"
-
+#include "RecoLocalMuon/GEMRecHit/interface/GEMClusterizer.h"
 
 GEMClusterizer::GEMClusterizer()
 {
@@ -10,7 +7,7 @@ GEMClusterizer::GEMClusterizer()
 GEMClusterizer::~GEMClusterizer()
 {
 }
- 
+
 GEMClusterContainer
 GEMClusterizer::doAction(const GEMDigiCollection::Range& digiRange){
   GEMClusterContainer cls;
@@ -26,7 +23,7 @@ GEMClusterizer::doAction(const GEMDigiCollection::Range& digiRange){
 
 GEMClusterContainer
 GEMClusterizer::doActualAction(GEMClusterContainer& initialclusters){
-  
+
   GEMClusterContainer finalCluster;
   GEMCluster prev;
 
@@ -67,6 +64,6 @@ GEMClusterizer::doActualAction(GEMClusterContainer& initialclusters){
   }
 
   return finalCluster;
-} 
- 
+}
+
 
