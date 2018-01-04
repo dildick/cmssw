@@ -1,10 +1,10 @@
-#ifndef CondFormats_GEMObjects_GEMDeadStrips_h
-#define CondFormats_GEMObjects_GEMDeadStrips_h
+#ifndef CondFormats_ME0Objects_ME0DeadStrips_h
+#define CondFormats_ME0Objects_ME0DeadStrips_h
 
 #include "CondFormats/Serialization/interface/Serializable.h"
 #include <vector>
 
-class GEMDeadStrips
+class ME0DeadStrips
 {
  public:
   struct DeadItem {
@@ -13,8 +13,8 @@ class GEMDeadStrips
     COND_SERIALIZABLE;
   };
 
-  GEMDeadStrips(){}
-  ~GEMDeadStrips(){}
+  ME0DeadStrips(){}
+  ~ME0DeadStrips(){}
 
   std::vector<DeadItem> const & getDeadVec() const {return deadVec_;}
 

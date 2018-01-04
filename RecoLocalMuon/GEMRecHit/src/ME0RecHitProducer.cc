@@ -27,8 +27,8 @@ ME0RecHitProducer::ME0RecHitProducer(const ParameterSet& config)
 
   // Get the concrete reconstruction algo from the factory
   string theAlgoName = config.getParameter<string>("recAlgo");
-  theAlgo = ME0RecHitAlgoFactory::get()->create(theAlgoName,
-						config.getParameter<ParameterSet>("recAlgoConfig"));
+  theAlgo.reset(ME0RecHitAlgoFactory::get()->create(theAlgoName,
+                config.getParameter<ParameterSet>("recAlgoConfig")));
 
   // Get masked- and dead-strip information
   ME0MaskedStripsObj = std::make_unique<ME0MaskedStrips>();
@@ -45,14 +45,14 @@ void ME0RecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup
   if ( maskSource == "EventSetup" ) {
     edm::ESHandle<ME0MaskedStrips> readoutMaskedStrips;
     setup.get<ME0MaskedStripsRcd>().get(readoutMaskedStrips);
-    ME0MaskedStripsObj.reset(new ME0MaskedStrips(readoutMaskedStrips.product()));
+    ME0MaskedStripsObj.reset(*readoutMaskedStrips.product());
   }
 
   // Getting the dead-strip information
   if ( deadSource == "EventSetup" ) {
     edm::ESHandle<ME0DeadStrips> readoutDeadStrips;
     setup.get<ME0DeadStripsRcd>().get(readoutDeadStrips);
-    ME0DeadStripsObj.reset(new ME0DeadStrips(readoutDeadStrips.product()));
+    ME0DeadStripsObj.reset(*readoutDeadStrips.product());
   }
 }
 

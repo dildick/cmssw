@@ -63,14 +63,14 @@ void GEMRecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup
   if ( maskSource == "EventSetup" ) {
     edm::ESHandle<GEMMaskedStrips> readoutMaskedStrips;
     setup.get<GEMMaskedStripsRcd>().get(readoutMaskedStrips);
-    GEMMaskedStripsObj = std::make_unique<GEMMaskedStrips>(readoutMaskedStrips.product());
+    GEMMaskedStripsObj.reset(*readoutMaskedStrips.product());
   }
 
   // Getting the dead-strip information
   if ( deadSource == "EventSetup" ) {
     edm::ESHandle<GEMDeadStrips> readoutDeadStrips;
     setup.get<GEMDeadStripsRcd>().get(readoutDeadStrips);
-    GEMDeadStripsObj = std::make_unique<GEMDeadStrips>(readoutDeadStrips.product());
+    GEMDeadStripsObj.reset(*readoutDeadStrips.product());
   }
 }
 
