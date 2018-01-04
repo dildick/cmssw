@@ -7,7 +7,3 @@
 typedef edmplugin::PluginFactory<ME0RecHitBaseAlgo *(const edm::ParameterSet &)> ME0RecHitAlgoFactory;
 
 #endif
-
-
-
-

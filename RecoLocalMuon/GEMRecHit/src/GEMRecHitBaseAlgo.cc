@@ -33,20 +33,19 @@ edm::OwnVector<GEMRecHit> GEMRecHitBaseAlgo::reconstruct(const GEMEtaPartition& 
   GEMMaskReClusterizer mrclizer;
   RecHitClusterContainer cls = mrclizer.doAction(gemId,tcls,mask);
 
-  for (RecHitClusterContainer::const_iterator cl = cls.begin();
-       cl != cls.end(); cl++){
+  for (const auto& cl : cls) {
 
     LocalError tmpErr;
     LocalPoint point;
+
     // Call the compute method
-    bool OK = this->compute(roll, *cl, point, tmpErr);
-    if (!OK) continue;
+    if (!compute(roll, cl, point, tmpErr)) continue;
 
     // Build a new pair of 1D rechit
-    int firstClustStrip= cl->firstStrip();
-    int clusterSize=cl->clusterSize();
+    int firstClustStrip = cl.firstStrip();
+    int clusterSize = cl.clusterSize();
 
-    result.push_back(GEMRecHit(gemId,cl->bx(),firstClustStrip,clusterSize,point,tmpErr));
+    result.push_back(GEMRecHit(gemId,cl.bx(),firstClustStrip,clusterSize,point,tmpErr));
   }
   return result;
 }

@@ -17,12 +17,12 @@
 #include "DataFormats/MuonDetId/interface/GEMDetId.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 
-// #include "CondFormats/GEMObjects/interface/GEMMaskedStrips.h"
-// #include "CondFormats/DataRecord/interface/GEMMaskedStripsRcd.h"
-// #include "CondFormats/GEMObjects/interface/GEMDeadStrips.h"
-// #include "CondFormats/DataRecord/interface/GEMDeadStripsRcd.h"
+#include "CondFormats/GEMObjects/interface/GEMMaskedStrips.h"
+#include "CondFormats/DataRecord/interface/GEMMaskedStripsRcd.h"
+#include "CondFormats/GEMObjects/interface/GEMDeadStrips.h"
+#include "CondFormats/DataRecord/interface/GEMDeadStripsRcd.h"
 
-#include "GEMEtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMEtaPartitionMask.h"
 
 
 namespace edm {
@@ -40,7 +40,7 @@ public:
   GEMRecHitProducer(const edm::ParameterSet& config);
 
   /// Destructor
-  ~GEMRecHitProducer() override;
+  ~GEMRecHitProducer() {} override;
 
   // Method that access the EventSetup for each run
   void beginRun(const edm::Run&, const edm::EventSetup& ) override;
@@ -54,21 +54,19 @@ private:
   edm::EDGetTokenT<GEMDigiCollection> theGEMDigiToken;
 
   // The reconstruction algorithm
-  GEMRecHitBaseAlgo *theAlgo;
-  //   static std::string theAlgoName;
+  std::unique_ptr<GEMRecHitBaseAlgo> theAlgo;
 
-  // GEMMaskedStrips* GEMMaskedStripsObj;
   // Object with mask-strips-vector for all the GEM Detectors
+  std::unique_ptr<GEMMaskedStrips> GEMMaskedStripsObj;
 
-  // GEMDeadStrips* GEMDeadStripsObj;
   // Object with dead-strips-vector for all the GEM Detectors
+  std::unique_ptr<GEMDeadStrips> GEMDeadStripsObj;
 
-  // std::string maskSource;
-  // std::string deadSource;
+  std::string maskSource;
+  std::string deadSource;
 
-  // std::vector<GEMMaskedStrips::MaskItem> MaskVec;
-  // std::vector<GEMDeadStrips::DeadItem> DeadVec;
-
+  std::vector<GEMMaskedStrips::MaskItem> MaskVec;
+  std::vector<GEMDeadStrips::DeadItem> DeadVec;
 };
 
 #endif

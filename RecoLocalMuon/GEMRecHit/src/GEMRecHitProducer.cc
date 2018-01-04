@@ -22,10 +22,10 @@
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitAlgoFactory.h"
 #include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
 
-// #include "CondFormats/GEMObjects/interface/GEMMaskedStrips.h"
-// #include "CondFormats/DataRecord/interface/GEMMaskedStripsRcd.h"
-// #include "CondFormats/GEMObjects/interface/GEMDeadStrips.h"
-// #include "CondFormats/DataRecord/interface/GEMDeadStripsRcd.h"
+#include "CondFormats/GEMObjects/interface/GEMMaskedStrips.h"
+#include "CondFormats/DataRecord/interface/GEMMaskedStripsRcd.h"
+#include "CondFormats/GEMObjects/interface/GEMDeadStrips.h"
+#include "CondFormats/DataRecord/interface/GEMDeadStripsRcd.h"
 
 #include <string>
 
@@ -45,102 +45,38 @@ GEMRecHitProducer::GEMRecHitProducer(const ParameterSet& config){
   // Get the concrete reconstruction algo from the factory
 
   string theAlgoName = config.getParameter<string>("recAlgo");
-  theAlgo = GEMRecHitAlgoFactory::get()->create(theAlgoName,
-						config.getParameter<ParameterSet>("recAlgoConfig"));
+  theAlgo.reset(GEMRecHitAlgoFactory::get()->create(theAlgoName,
+                config.getParameter<ParameterSet>("recAlgoConfig")));
 
   // Get masked- and dead-strip information
-
-  /* GEMMaskedStripsObj = new GEMMaskedStrips();
-
-  GEMDeadStripsObj = new GEMDeadStrips();
+  GEMMaskedStripsObj = std::make_unique<GEMMaskedStrips>();
+  GEMDeadStripsObj = std::make_unique<GEMDeadStrips>();
 
   maskSource = config.getParameter<std::string>("maskSource");
-
-  if (maskSource == "File") {
-    edm::FileInPath fp = config.getParameter<edm::FileInPath>("maskvecfile");
-    std::ifstream inputFile(fp.fullPath().c_str(), std::ios::in);
-    if ( !inputFile ) {
-      std::cerr << "Masked Strips File cannot not be opened" << std::endl;
-      exit(1);
-    }
-    while ( inputFile.good() ) {
-      GEMMaskedStrips::MaskItem Item;
-      inputFile >> Item.rawId >> Item.strip;
-      if ( inputFile.good() ) MaskVec.push_back(Item);
-    }
-    inputFile.close();
-  }
-
   deadSource = config.getParameter<std::string>("deadSource");
-
-  if (deadSource == "File") {
-    edm::FileInPath fp = config.getParameter<edm::FileInPath>("deadvecfile");
-    std::ifstream inputFile(fp.fullPath().c_str(), std::ios::in);
-    if ( !inputFile ) {
-      std::cerr << "Dead Strips File cannot not be opened" << std::endl;
-      exit(1);
-    }
-    while ( inputFile.good() ) {
-      GEMDeadStrips::DeadItem Item;
-      inputFile >> Item.rawId >> Item.strip;
-      if ( inputFile.good() ) DeadVec.push_back(Item);
-    }
-    inputFile.close();
-  }
-  */
 }
 
 
-GEMRecHitProducer::~GEMRecHitProducer(){
-
-  delete theAlgo;
-  // delete GEMMaskedStripsObj;
-  // delete GEMDeadStripsObj;
-
-}
-
-
-
-void GEMRecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup){
-
+void GEMRecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup)
+{
   // Getting the masked-strip information
-  /*
   if ( maskSource == "EventSetup" ) {
     edm::ESHandle<GEMMaskedStrips> readoutMaskedStrips;
     setup.get<GEMMaskedStripsRcd>().get(readoutMaskedStrips);
+    GEMMaskedStripsObj = readoutMaskedStrips.product()
     const GEMMaskedStrips* tmp_obj = readoutMaskedStrips.product();
-    GEMMaskedStripsObj->MaskVec = tmp_obj->MaskVec;
+    GEMMaskedStripsObj->MaskVec = tmp_obj->getMaskVec();
     delete tmp_obj;
   }
-  else if ( maskSource == "File" ) {
-    std::vector<GEMMaskedStrips::MaskItem>::iterator posVec;
-    for ( posVec = MaskVec.begin(); posVec != MaskVec.end(); ++posVec ) {
-      GEMMaskedStrips::MaskItem Item;
-      Item.rawId = (*posVec).rawId;
-      Item.strip = (*posVec).strip;
-      GEMMaskedStripsObj->MaskVec.push_back(Item);
-    }
-  }
-  */
+
   // Getting the dead-strip information
-  /*
   if ( deadSource == "EventSetup" ) {
     edm::ESHandle<GEMDeadStrips> readoutDeadStrips;
     setup.get<GEMDeadStripsRcd>().get(readoutDeadStrips);
     const GEMDeadStrips* tmp_obj = readoutDeadStrips.product();
-    GEMDeadStripsObj->DeadVec = tmp_obj->DeadVec;
+    GEMDeadStripsObj->DeadVec = tmp_obj->getDeadVec();
     delete tmp_obj;
   }
-  else if ( deadSource == "File" ) {
-    std::vector<GEMDeadStrips::DeadItem>::iterator posVec;
-    for ( posVec = DeadVec.begin(); posVec != DeadVec.end(); ++posVec ) {
-      GEMDeadStrips::DeadItem Item;
-      Item.rawId = (*posVec).rawId;
-      Item.strip = (*posVec).strip;
-      GEMDeadStripsObj->DeadVec.push_back(Item);
-    }
-  }
-  */
 }
 
 
@@ -187,10 +123,10 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
     int rawId = gemId.rawId();
     int Size = GEMMaskedStripsObj->MaskVec.size();
     for (int i = 0; i < Size; i++ ) {
-      if ( GEMMaskedStripsObj->MaskVec[i].rawId == rawId ) {
-	int bit = GEMMaskedStripsObj->MaskVec[i].strip;
-	mask.set(bit-1);
-      }
+    if ( GEMMaskedStripsObj->MaskVec[i].rawId == rawId ) {
+    int bit = GEMMaskedStripsObj->MaskVec[i].strip;
+    mask.set(bit-1);
+    }
     }
 
     Size = GEMDeadStripsObj->DeadVec.size();
@@ -206,7 +142,7 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
     OwnVector<GEMRecHit> recHits =
       theAlgo->reconstruct(*roll, gemId, range, mask);
 
-    if(!recHits.empty()) //FIXME: is it really needed?
+    if(!recHits.empty())
       recHitCollection->put(gemId, recHits.begin(), recHits.end());
   }
 

@@ -21,7 +21,7 @@ edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0EtaPartition& 
   ME0MaskReClusterizer mrclizer;
   RecHitClusterContainer cls = mrclizer.doAction(me0Id,tcls,mask);
 
-  for (const auto& cl : cls){
+  for (const auto& cl : cls) {
 
     LocalError tmpErr;
     LocalPoint point;
