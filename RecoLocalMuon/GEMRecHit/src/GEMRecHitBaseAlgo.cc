@@ -29,11 +29,11 @@ edm::OwnVector<GEMRecHit> GEMRecHitBaseAlgo::reconstruct(const GEMEtaPartition& 
   edm::OwnVector<GEMRecHit> result;
 
   GEMClusterizer clizer;
-  GEMClusterContainer tcls = clizer.doAction(digiRange);
+  RecHitClusterContainer tcls = clizer.doAction(digiRange);
   GEMMaskReClusterizer mrclizer;
-  GEMClusterContainer cls = mrclizer.doAction(gemId,tcls,mask);
+  RecHitClusterContainer cls = mrclizer.doAction(gemId,tcls,mask);
 
-  for (GEMClusterContainer::const_iterator cl = cls.begin();
+  for (RecHitClusterContainer::const_iterator cl = cls.begin();
        cl != cls.end(); cl++){
 
     LocalError tmpErr;

@@ -12,20 +12,20 @@ ME0MaskReClusterizer::~ME0MaskReClusterizer()
 }
 
 
-ME0ClusterContainer ME0MaskReClusterizer::doAction(const ME0DetId& id,
-                                                   ME0ClusterContainer& initClusters,
+RecHitClusterContainer ME0MaskReClusterizer::doAction(const ME0DetId& id,
+                                                   RecHitClusterContainer& initClusters,
                                                    const ME0EtaPartitionMask& mask)
 {
 
-  ME0ClusterContainer finClusters;
-  ME0Cluster prev;
+  RecHitClusterContainer finClusters;
+  RecHitCluster prev;
 
   unsigned int j = 0;
 
 
-  for (ME0ClusterContainer::const_iterator i = initClusters.begin(); i != initClusters.end(); i++ ) {
+  for (RecHitClusterContainer::const_iterator i = initClusters.begin(); i != initClusters.end(); i++ ) {
 
-    ME0Cluster cl = *i;
+    RecHitCluster cl = *i;
 
     if ( i == initClusters.begin() ) {
       prev = cl;
@@ -42,7 +42,7 @@ ME0ClusterContainer ME0MaskReClusterizer::doAction(const ME0DetId& id,
     if ( ((prev.firstStrip()-cl.lastStrip()) == 2 && this->get(mask,(cl.lastStrip()+1)))
 	 && (cl.bx() == prev.bx()) ) {
 
-      ME0Cluster merged(cl.firstStrip(),prev.lastStrip(),cl.bx());
+      RecHitCluster merged(cl.firstStrip(),prev.lastStrip(),cl.bx());
       prev = merged;
       j++;
       if ( j == initClusters.size() ) {

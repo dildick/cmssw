@@ -1,5 +1,5 @@
-#ifndef RecoLocalMuon_GEMRecHitBaseAlgo_H
-#define RecoLocalMuon_GEMRecHitBaseAlgo_H
+#ifndef RecoLocalMuon_GEMRecHit_GEMRecHitBaseAlgo_H
+#define RecoLocalMuon_GEMRecHit_GEMRecHitBaseAlgo_H
 
 /** \class GEMRecHitBaseAlgo
  *  Abstract algorithmic class to compute Rec Hit
@@ -8,15 +8,13 @@
  *  \author M. Maggi -- INFN Bari
  */
 
-
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
-#include "DataFormats/GEMRecHit/interface/GEMRecHit.h"
-#include "DataFormats/Common/interface/OwnVector.h"
+#include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMEtaPartitionMask.h"
 #include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
 
-class GEMCluster;
+class RecHitCluster;
 class GEMEtaPartition;
 
 namespace edm {
@@ -24,9 +22,8 @@ namespace edm {
   class EventSetup;
 }
 
-
-class GEMRecHitBaseAlgo {
-
+class GEMRecHitBaseAlgo
+{
  public:
 
   /// Constructor
@@ -46,7 +43,7 @@ class GEMRecHitBaseAlgo {
 
   /// standard local recHit computation
   virtual bool compute(const GEMEtaPartition& roll,
-                       const GEMCluster& cl,
+                       const RecHitCluster& cl,
                        LocalPoint& Point,
                        LocalError& error) const = 0;
 
@@ -54,7 +51,7 @@ class GEMRecHitBaseAlgo {
   /// local recHit computation accounting for track direction and
   /// absolute position
   virtual bool compute(const GEMEtaPartition& roll,
-		       const GEMCluster& cl,
+                       const RecHitCluster& cl,
                        const float& angle,
                        const GlobalPoint& globPos,
                        LocalPoint& Point,

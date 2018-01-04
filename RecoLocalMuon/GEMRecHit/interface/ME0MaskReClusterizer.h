@@ -10,7 +10,7 @@ class ME0MaskReClusterizer
    ME0MaskReClusterizer();
    ~ME0MaskReClusterizer();
 
-   ME0ClusterContainer doAction(const ME0DetId&, ME0ClusterContainer&, const ME0EtaPartitionMask&);
+   RecHitClusterContainer doAction(const ME0DetId&, RecHitClusterContainer&, const ME0EtaPartitionMask&);
    int get(const ME0EtaPartitionMask&, int);
 };
 

@@ -8,28 +8,28 @@ ME0Clusterizer::~ME0Clusterizer()
 {
 }
 
-ME0ClusterContainer
+RecHitClusterContainer
 ME0Clusterizer::doAction(const ME0DigiCollection::Range& digiRange)
 {
-  ME0ClusterContainer cls;
+  RecHitClusterContainer cls;
   for (auto digi = digiRange.first; digi != digiRange.second; digi++) {
-    ME0Cluster cl(digi->strip(),digi->strip(),digi->bx());
+    RecHitCluster cl(digi->strip(),digi->strip(),digi->bx());
     cls.insert(cl);
   }
-  ME0ClusterContainer clsNew =this->doActualAction(cls);
+  RecHitClusterContainer clsNew =this->doActualAction(cls);
   return clsNew;
 }
 
-ME0ClusterContainer
-ME0Clusterizer::doActualAction(const ME0ClusterContainer& initialclusters) const
+RecHitClusterContainer
+ME0Clusterizer::doActualAction(const RecHitClusterContainer& initialclusters) const
 {
-  ME0ClusterContainer finalCluster;
-  ME0Cluster prev;
+  RecHitClusterContainer finalCluster;
+  RecHitCluster prev;
 
   unsigned int j = 0;
-  for(ME0ClusterContainer::const_iterator i=initialclusters.begin();
+  for(RecHitClusterContainer::const_iterator i=initialclusters.begin();
       i != initialclusters.end(); i++){
-    ME0Cluster cl = *i;
+    RecHitCluster cl = *i;
 
     if(i==initialclusters.begin()){
       prev = cl;

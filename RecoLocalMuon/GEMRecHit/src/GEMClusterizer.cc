@@ -8,38 +8,37 @@ GEMClusterizer::~GEMClusterizer()
 {
 }
 
-GEMClusterContainer
-GEMClusterizer::doAction(const GEMDigiCollection::Range& digiRange){
-  GEMClusterContainer cls;
-  for (GEMDigiCollection::const_iterator digi = digiRange.first;
-       digi != digiRange.second;
-       digi++) {
-    GEMCluster cl(digi->strip(),digi->strip(),digi->bx());
+RecHitClusterContainer
+GEMClusterizer::doAction(const GEMDigiCollection::Range& digiRange)
+{
+  RecHitClusterContainer cls;
+  for (auto digi = digiRange.first; digi != digiRange.second; digi++) {
+    RecHitCluster cl(digi->strip(),digi->strip(),digi->bx());
     cls.insert(cl);
   }
-  GEMClusterContainer clsNew =this->doActualAction(cls);
+  RecHitClusterContainer clsNew = doActualAction(cls);
   return clsNew;
 }
 
-GEMClusterContainer
-GEMClusterizer::doActualAction(GEMClusterContainer& initialclusters){
-
-  GEMClusterContainer finalCluster;
-  GEMCluster prev;
+RecHitClusterContainer
+GEMClusterizer::doActualAction(const RecHitClusterContainer& initialclusters)
+{
+  RecHitClusterContainer finalCluster;
+  RecHitCluster prev;
 
   unsigned int j = 0;
-  for(GEMClusterContainer::const_iterator i=initialclusters.begin();
+  for(RecHitClusterContainer::const_iterator i=initialclusters.begin();
       i != initialclusters.end(); i++){
-    GEMCluster cl = *i;
+    RecHitCluster cl = *i;
 
     if(i==initialclusters.begin()){
       prev = cl;
       j++;
       if(j == initialclusters.size()){
-	finalCluster.insert(prev);
+        finalCluster.insert(prev);
       }
       else if(j < initialclusters.size()){
-	continue;
+        continue;
       }
     }
 
@@ -47,18 +46,18 @@ GEMClusterizer::doActualAction(GEMClusterContainer& initialclusters){
       prev.merge(cl);
       j++;
       if(j == initialclusters.size()){
-	finalCluster.insert(prev);
+        finalCluster.insert(prev);
       }
     }
     else {
       j++;
       if(j < initialclusters.size()){
-	finalCluster.insert(prev);
-	prev = cl;
+        finalCluster.insert(prev);
+        prev = cl;
       }
       if(j == initialclusters.size()){
-	finalCluster.insert(prev);
-	finalCluster.insert(cl);
+        finalCluster.insert(prev);
+        finalCluster.insert(cl);
       }
     }
   }

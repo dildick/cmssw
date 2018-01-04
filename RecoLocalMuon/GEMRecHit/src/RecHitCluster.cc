@@ -1,49 +1,49 @@
-#include "RecoLocalMuon/GEMRecHit/interface/GEMCluster.h"
+#include "RecoLocalMuon/GEMRecHit/interface/RecHitCluster.h"
 
-GEMCluster::GEMCluster() : fstrip(0), lstrip(0), bunchx(0)
+RecHitCluster::RecHitCluster() : fstrip(0), lstrip(0), bunchx(0)
 {
 }
 
-GEMCluster::GEMCluster(int fs, int ls, int bx) :
+RecHitCluster::RecHitCluster(int fs, int ls, int bx) :
   fstrip(fs), lstrip(ls), bunchx(bx)
 {
 }
 
-GEMCluster::~GEMCluster()
+RecHitCluster::~RecHitCluster()
 {
 }
 
 int
-GEMCluster::firstStrip() const
+RecHitCluster::firstStrip() const
 {
   return fstrip;
 }
 
 int
-GEMCluster::lastStrip() const
+RecHitCluster::lastStrip() const
 {
   return lstrip;
 }
 
 int
-GEMCluster::clusterSize() const
+RecHitCluster::clusterSize() const
 {
   return -(fstrip-lstrip)+1;
 }
 
 int
-GEMCluster::bx() const
+RecHitCluster::bx() const
 {
   return bunchx;
 }
 
-bool GEMCluster::isAdjacent(const GEMCluster& cl) const{
+bool RecHitCluster::isAdjacent(const RecHitCluster& cl) const{
 
     return ((cl.firstStrip() == this->firstStrip()-1) &&
 	    (cl.bx() == this->bx()));
 }
 
-void GEMCluster::merge(const GEMCluster& cl){
+void RecHitCluster::merge(const RecHitCluster& cl){
 
    if(this->isAdjacent(cl))
      {
@@ -51,7 +51,7 @@ void GEMCluster::merge(const GEMCluster& cl){
      }
 }
 
-bool GEMCluster::operator<(const GEMCluster& cl) const{
+bool RecHitCluster::operator<(const RecHitCluster& cl) const{
 
 if(cl.bx() == this->bx())
  return cl.firstStrip()<this->firstStrip();
@@ -60,7 +60,7 @@ else
 }
 
 bool
-GEMCluster::operator==(const GEMCluster& cl) const {
+RecHitCluster::operator==(const RecHitCluster& cl) const {
   return ( (this->clusterSize() == cl.clusterSize()) &&
 	   (this->bx()          == cl.bx())          &&
 	   (this->firstStrip()  == cl.firstStrip()) );

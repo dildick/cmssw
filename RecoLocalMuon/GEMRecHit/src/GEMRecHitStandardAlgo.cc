@@ -31,7 +31,7 @@ void GEMRecHitStandardAlgo::setES(const edm::EventSetup& setup) {
 
 // First Step
 bool GEMRecHitStandardAlgo::compute(const GEMEtaPartition& roll,
-                                    const GEMCluster& cluster,
+                                    const RecHitCluster& cluster,
                                     LocalPoint& Point,
                                     LocalError& error)  const
 {
@@ -49,7 +49,7 @@ bool GEMRecHitStandardAlgo::compute(const GEMEtaPartition& roll,
 
 
 bool GEMRecHitStandardAlgo::compute(const GEMEtaPartition& roll,
-                                    const GEMCluster& cl,
+                                    const RecHitCluster& cl,
                                     const float& angle,
                                     const GlobalPoint& globPos,
                                     LocalPoint& Point,

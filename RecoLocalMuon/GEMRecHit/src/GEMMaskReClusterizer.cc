@@ -1,10 +1,8 @@
-
 /** \Class GEMMaskReClusterizer
  *  \author J.C. Sanabria -- UniAndes, Bogota
  */
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
-
 
 GEMMaskReClusterizer::GEMMaskReClusterizer()
 {
@@ -18,20 +16,20 @@ GEMMaskReClusterizer::~GEMMaskReClusterizer()
 }
 
 
-GEMClusterContainer GEMMaskReClusterizer::doAction(const GEMDetId& id,
-                                                    GEMClusterContainer& initClusters,
+RecHitClusterContainer GEMMaskReClusterizer::doAction(const GEMDetId& id,
+                                                    RecHitClusterContainer& initClusters,
                                                     const GEMEtaPartitionMask& mask)
 {
 
-  GEMClusterContainer finClusters;
-  GEMCluster prev;
+  RecHitClusterContainer finClusters;
+  RecHitCluster prev;
 
   unsigned int j = 0;
 
 
-  for (GEMClusterContainer::const_iterator i = initClusters.begin(); i != initClusters.end(); i++ ) {
+  for (RecHitClusterContainer::const_iterator i = initClusters.begin(); i != initClusters.end(); i++ ) {
 
-    GEMCluster cl = *i;
+    RecHitCluster cl = *i;
 
     if ( i == initClusters.begin() ) {
       prev = cl;
@@ -48,7 +46,7 @@ GEMClusterContainer GEMMaskReClusterizer::doAction(const GEMDetId& id,
     if ( ((prev.firstStrip()-cl.lastStrip()) == 2 && this->get(mask,(cl.lastStrip()+1)))
 	 && (cl.bx() == prev.bx()) ) {
 
-      GEMCluster merged(cl.firstStrip(),prev.lastStrip(),cl.bx());
+      RecHitCluster merged(cl.firstStrip(),prev.lastStrip(),cl.bx());
       prev = merged;
       j++;
       if ( j == initClusters.size() ) {

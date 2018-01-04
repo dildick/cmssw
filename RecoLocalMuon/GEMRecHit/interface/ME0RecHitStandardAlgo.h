@@ -8,6 +8,7 @@
  */
 
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitBaseAlgo.h"
+#include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 
 class ME0RecHitStandardAlgo : public ME0RecHitBaseAlgo
 {
@@ -25,13 +26,13 @@ class ME0RecHitStandardAlgo : public ME0RecHitBaseAlgo
 
 
   bool compute(const ME0EtaPartition& roll,
-               const ME0Cluster& cluster,
+               const RecHitCluster& cluster,
                LocalPoint& point,
                LocalError& error) const override;
 
 
   bool compute(const ME0EtaPartition& roll,
-               const ME0Cluster& cluster,
+               const RecHitCluster& cluster,
                const float& angle,
                const GlobalPoint& globPos,
                LocalPoint& point,

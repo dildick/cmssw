@@ -22,7 +22,7 @@ void ME0RecHitStandardAlgo::setES(const edm::EventSetup& setup) {
 
 // First Step
 bool ME0RecHitStandardAlgo::compute(const ME0EtaPartition& roll,
-                                    const ME0Cluster& cluster,
+                                    const RecHitCluster& cluster,
                                     LocalPoint& Point,
                                     LocalError& error)  const
 {
@@ -31,16 +31,14 @@ bool ME0RecHitStandardAlgo::compute(const ME0EtaPartition& roll,
   float lstrip = (roll.centreOfStrip(cluster.lastStrip())).x();
   float centreOfCluster = (fstrip + lstrip)/2;
 
-  LocalPoint loctemp2(centreOfCluster,0.,0.);
-
-  Point = loctemp2;
+  Point = LocalPoint(centreOfCluster,0.,0.);
   error = roll.localError((cluster.firstStrip()+cluster.lastStrip())/2., cluster.clusterSize());
   return true;
 }
 
 
 bool ME0RecHitStandardAlgo::compute(const ME0EtaPartition& roll,
-                                    const ME0Cluster& cl,
+                                    const RecHitCluster& cl,
                                     const float& angle,
                                     const GlobalPoint& globPos,
                                     LocalPoint& Point,

@@ -25,13 +25,13 @@ class GEMRecHitStandardAlgo : public GEMRecHitBaseAlgo
 
 
   bool compute(const GEMEtaPartition& roll,
-               const GEMCluster& cluster,
+               const RecHitCluster& cluster,
                LocalPoint& point,
                LocalError& error) const override;
 
 
   bool compute(const GEMEtaPartition& roll,
-               const GEMCluster& cluster,
+               const RecHitCluster& cluster,
                const float& angle,
                const GlobalPoint& globPos,
                LocalPoint& point,

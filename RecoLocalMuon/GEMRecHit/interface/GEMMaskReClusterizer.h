@@ -14,7 +14,7 @@ class GEMMaskReClusterizer
 
    GEMMaskReClusterizer();
    ~GEMMaskReClusterizer();
-   GEMClusterContainer doAction(const GEMDetId&, GEMClusterContainer&, const GEMEtaPartitionMask& );
+   RecHitClusterContainer doAction(const GEMDetId&, RecHitClusterContainer&, const GEMEtaPartitionMask& );
    int get(const GEMEtaPartitionMask&, int );
 };
 

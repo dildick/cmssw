@@ -17,24 +17,23 @@ edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0EtaPartition& 
   edm::OwnVector<ME0RecHit> result;
 
   ME0Clusterizer clizer;
-  ME0ClusterContainer tcls = clizer.doAction(digiRange);
+  RecHitClusterContainer tcls = clizer.doAction(digiRange);
   ME0MaskReClusterizer mrclizer;
-  ME0ClusterContainer cls = mrclizer.doAction(me0Id,tcls,mask);
+  RecHitClusterContainer cls = mrclizer.doAction(me0Id,tcls,mask);
 
-  for (ME0ClusterContainer::const_iterator cl = cls.begin();
-       cl != cls.end(); cl++){
+  for (const auto& cl : cls){
 
     LocalError tmpErr;
     LocalPoint point;
+
     // Call the compute method
-    bool OK = this->compute(roll, *cl, point, tmpErr);
-    if (!OK) continue;
+    if (!compute(roll, cl, point, tmpErr)) continue;
 
     // Build a new pair of 1D rechit
-    int firstClustStrip = cl->firstStrip();
-    int clusterSize = cl->clusterSize();
+    int firstClustStrip = cl.firstStrip();
+    int clusterSize = cl.clusterSize();
 
-    result.push_back(ME0RecHit(me0Id,cl->bx(),firstClustStrip,clusterSize,point,tmpErr));
+    result.push_back(ME0RecHit(me0Id,cl.bx(),firstClustStrip,clusterSize,point,tmpErr));
   }
   return result;
 }
