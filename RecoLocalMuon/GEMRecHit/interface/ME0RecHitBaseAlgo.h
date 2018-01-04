@@ -13,8 +13,8 @@
 #include "DataFormats/GEMRecHit/interface/ME0RecHit.h"
 #include "DataFormats/Common/interface/OwnVector.h"
 
-#include "RecoLocalMuon/GEMRecHit/src/ME0EtaPartitionMask.h"
-#include "RecoLocalMuon/GEMRecHit/src/ME0MaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0EtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0MaskReClusterizer.h"
 
 class ME0Cluster;
 class ME0EtaPartition;

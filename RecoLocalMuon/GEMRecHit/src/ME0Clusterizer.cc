@@ -1,4 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/ME0Clusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0Clusterizer.h"
 
 ME0Clusterizer::ME0Clusterizer()
 {

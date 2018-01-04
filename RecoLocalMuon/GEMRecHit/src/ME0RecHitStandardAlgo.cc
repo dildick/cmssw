@@ -1,4 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/ME0RecHitStandardAlgo.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitStandardAlgo.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/EventSetup.h"

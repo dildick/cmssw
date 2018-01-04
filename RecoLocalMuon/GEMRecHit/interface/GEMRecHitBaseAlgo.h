@@ -13,8 +13,8 @@
 #include "DataFormats/GEMRecHit/interface/GEMRecHit.h"
 #include "DataFormats/Common/interface/OwnVector.h"
 
-#include "RecoLocalMuon/GEMRecHit/src/GEMEtaPartitionMask.h"
-#include "RecoLocalMuon/GEMRecHit/src/GEMMaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMEtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
 
 class GEMCluster;
 class GEMEtaPartition;

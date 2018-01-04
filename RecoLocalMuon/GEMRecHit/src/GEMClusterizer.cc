@@ -1,4 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/GEMClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMClusterizer.h"
 
 GEMClusterizer::GEMClusterizer()
 {

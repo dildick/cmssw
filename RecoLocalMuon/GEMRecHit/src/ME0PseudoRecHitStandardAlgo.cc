@@ -1,4 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/ME0PseudoRecHitStandardAlgo.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0PseudoRecHitStandardAlgo.h"
 #include "DataFormats/MuonDetId/interface/ME0DetId.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/EventSetup.h"

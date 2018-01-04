@@ -9,8 +9,6 @@
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitBaseAlgo.h"
 
-
-
 class GEMRecHitStandardAlgo : public GEMRecHitBaseAlgo
 {
  public:

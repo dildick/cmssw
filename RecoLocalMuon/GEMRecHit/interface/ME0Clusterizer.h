@@ -1,7 +1,7 @@
 #ifndef RecoLocalMuon_GEMRecHit_ME0Clusterizer_h
 #define RecoLocalMuon_GEMRecHit_ME0Clusterizer_h
 
-#include "RecoLocalMuon/GEMRecHit/src/ME0Cluster.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0Cluster.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiCollection.h"
 
 class ME0Clusterizer

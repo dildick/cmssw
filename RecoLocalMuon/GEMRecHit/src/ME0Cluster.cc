@@ -1,8 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/ME0Cluster.h"
-#include <iostream>
-#include <fstream>
-
-using namespace std;
+#include "RecoLocalMuon/GEMRecHit/interface/ME0Cluster.h"
 
 ME0Cluster::ME0Cluster() : fstrip(0), lstrip(0), bunchx(0)
 {

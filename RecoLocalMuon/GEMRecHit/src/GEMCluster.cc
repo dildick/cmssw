@@ -1,14 +1,10 @@
-#include "GEMCluster.h"
-#include <iostream>
-#include <fstream>
-
-using namespace std;
+#include "RecoLocalMuon/GEMRecHit/interface/GEMCluster.h"
 
 GEMCluster::GEMCluster() : fstrip(0), lstrip(0), bunchx(0)
 {
 }
 
-GEMCluster::GEMCluster(int fs, int ls, int bx) : 
+GEMCluster::GEMCluster(int fs, int ls, int bx) :
   fstrip(fs), lstrip(ls), bunchx(bx)
 {
 }
@@ -42,30 +38,30 @@ GEMCluster::bx() const
 }
 
 bool GEMCluster::isAdjacent(const GEMCluster& cl) const{
-  
+
     return ((cl.firstStrip() == this->firstStrip()-1) &&
 	    (cl.bx() == this->bx()));
 }
 
 void GEMCluster::merge(const GEMCluster& cl){
-  
+
    if(this->isAdjacent(cl))
-     { 
-       fstrip = cl.firstStrip();  
+     {
+       fstrip = cl.firstStrip();
      }
 }
 
 bool GEMCluster::operator<(const GEMCluster& cl) const{
-  
+
 if(cl.bx() == this->bx())
  return cl.firstStrip()<this->firstStrip();
-else 
+else
  return cl.bx()<this->bx();
 }
 
-bool 
+bool
 GEMCluster::operator==(const GEMCluster& cl) const {
   return ( (this->clusterSize() == cl.clusterSize()) &&
-	   (this->bx()          == cl.bx())          && 
+	   (this->bx()          == cl.bx())          &&
 	   (this->firstStrip()  == cl.firstStrip()) );
 }

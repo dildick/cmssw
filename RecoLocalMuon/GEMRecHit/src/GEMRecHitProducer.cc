@@ -3,7 +3,7 @@
  *  \author M. Maggi -- INFN Bari
 */
 
-#include "GEMRecHitProducer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitProducer.h"
 
 
 #include "FWCore/Framework/interface/Event.h"
@@ -40,7 +40,7 @@ GEMRecHitProducer::GEMRecHitProducer(const ParameterSet& config){
 
   produces<GEMRecHitCollection>();
 
-  theGEMDigiToken = consumes<GEMDigiCollection>(config.getParameter<edm::InputTag>("gemDigiLabel"));  
+  theGEMDigiToken = consumes<GEMDigiCollection>(config.getParameter<edm::InputTag>("gemDigiLabel"));
 
   // Get the concrete reconstruction algo from the factory
 
@@ -115,7 +115,7 @@ void GEMRecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup
   else if ( maskSource == "File" ) {
     std::vector<GEMMaskedStrips::MaskItem>::iterator posVec;
     for ( posVec = MaskVec.begin(); posVec != MaskVec.end(); ++posVec ) {
-      GEMMaskedStrips::MaskItem Item; 
+      GEMMaskedStrips::MaskItem Item;
       Item.rawId = (*posVec).rawId;
       Item.strip = (*posVec).strip;
       GEMMaskedStripsObj->MaskVec.push_back(Item);
@@ -154,7 +154,7 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
 
   // Get the digis from the event
 
-  Handle<GEMDigiCollection> digis; 
+  Handle<GEMDigiCollection> digis;
   event.getByToken(theGEMDigiToken,digis);
 
   // Pass the EventSetup to the algo
@@ -165,12 +165,12 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
 
   auto recHitCollection = std::make_unique<GEMRecHitCollection>();
 
-  // Iterate through all digi collections ordered by LayerId   
+  // Iterate through all digi collections ordered by LayerId
 
   GEMDigiCollection::DigiRangeIterator gemdgIt;
   for (gemdgIt = digis->begin(); gemdgIt != digis->end();
        ++gemdgIt){
-       
+
     // The layerId
     const GEMDetId& gemId = (*gemdgIt).first;
 
@@ -182,7 +182,7 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
 
 
     // Getting the roll mask, that includes dead strips, for the given GEMDet
-    EtaPartitionMask mask;
+    GEMEtaPartitionMask mask;
     /*
     int rawId = gemId.rawId();
     int Size = GEMMaskedStripsObj->MaskVec.size();
@@ -201,11 +201,11 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
       }
     }
     */
-    // Call the reconstruction algorithm    
+    // Call the reconstruction algorithm
 
     OwnVector<GEMRecHit> recHits =
       theAlgo->reconstruct(*roll, gemId, range, mask);
-    
+
     if(!recHits.empty()) //FIXME: is it really needed?
       recHitCollection->put(gemId, recHits.begin(), recHits.end());
   }

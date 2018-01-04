@@ -1,4 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/ME0MaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0MaskReClusterizer.h"
 
 ME0MaskReClusterizer::ME0MaskReClusterizer()
 {

@@ -3,7 +3,7 @@
  *  \author J.C. Sanabria -- UniAndes, Bogota
  */
 
-#include "RecoLocalMuon/GEMRecHit/src/GEMMaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
 
 
 GEMMaskReClusterizer::GEMMaskReClusterizer()

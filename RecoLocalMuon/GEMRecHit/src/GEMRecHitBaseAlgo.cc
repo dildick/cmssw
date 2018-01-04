@@ -5,8 +5,8 @@
  */
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitBaseAlgo.h"
-#include "RecoLocalMuon/GEMRecHit/src/GEMClusterizer.h"
-#include "RecoLocalMuon/GEMRecHit/src/GEMMaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
 
 #include "Geometry/GEMGeometry/interface/GEMEtaPartition.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"

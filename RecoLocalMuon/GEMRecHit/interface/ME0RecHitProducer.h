@@ -9,19 +9,15 @@
 
 
 #include <memory>
-#include <fstream>
-#include <iostream>
 #include <cstdint>
 #include <cstdlib>
-#include <bitset>
-#include <map>
 
 #include "FWCore/Framework/interface/stream/EDProducer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "DataFormats/MuonDetId/interface/ME0DetId.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiCollection.h"
 
-#include "RecoLocalMuon/GEMRecHit/src/ME0EtaPartitionMask.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0EtaPartitionMask.h"
 
 namespace edm {
   class ParameterSet;

@@ -5,14 +5,12 @@
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
-#include "DataFormats/MuonDetId/interface/ME0DetId.h"
-#include "DataFormats/GEMRecHit/interface/ME0RecHit.h"
 #include "DataFormats/GEMRecHit/interface/ME0RecHitCollection.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiCollection.h"
 
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitBaseAlgo.h"
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitAlgoFactory.h"
-#include "RecoLocalMuon/GEMRecHit/src/ME0RecHitProducer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitProducer.h"
 
 #include <string>
 
@@ -76,7 +74,7 @@ void ME0RecHitProducer::produce(Event& event, const EventSetup& setup)
     const ME0DigiCollection::Range& range = (*gemdgIt).second;
 
     // Getting the roll mask, that includes dead strips, for the given ME0Det
-    EtaPartitionMask mask;
+    ME0EtaPartitionMask mask;
 
     // Call the reconstruction algorithm
     OwnVector<ME0RecHit> recHits = theAlgo->reconstruct(*roll, gemId, range, mask);

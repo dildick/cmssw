@@ -1,4 +1,4 @@
-#include "RecoLocalMuon/GEMRecHit/src/ME0PseudoRecHitProducer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0PseudoRecHitProducer.h"
 
 ME0PseudoRecHitProducer::ME0PseudoRecHitProducer(const edm::ParameterSet& config)
 {
