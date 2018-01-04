@@ -1,2 +1,2 @@
-#include "CondFormats/GEMObjects/interface/GEMMaskStrips.h"
+#include "CondFormats/GEMObjects/interface/GEMMaskedStrips.h"
 #include "FWCore/Utilities/interface/Exception.h"

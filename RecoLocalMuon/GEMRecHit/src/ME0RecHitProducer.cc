@@ -29,17 +29,31 @@ ME0RecHitProducer::ME0RecHitProducer(const ParameterSet& config)
   string theAlgoName = config.getParameter<string>("recAlgo");
   theAlgo = ME0RecHitAlgoFactory::get()->create(theAlgoName,
 						config.getParameter<ParameterSet>("recAlgoConfig"));
-}
 
+  // Get masked- and dead-strip information
+  ME0MaskedStripsObj = std::make_unique<ME0MaskedStrips>();
+  ME0DeadStripsObj = std::make_unique<ME0DeadStrips>();
 
-ME0RecHitProducer::~ME0RecHitProducer()
-{
-  delete theAlgo;
+  maskSource = config.getParameter<std::string>("maskSource");
+  deadSource = config.getParameter<std::string>("deadSource");
 }
 
 
 void ME0RecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup)
 {
+  // Getting the masked-strip information
+  if ( maskSource == "EventSetup" ) {
+    edm::ESHandle<ME0MaskedStrips> readoutMaskedStrips;
+    setup.get<ME0MaskedStripsRcd>().get(readoutMaskedStrips);
+    ME0MaskedStripsObj.reset(new ME0MaskedStrips(readoutMaskedStrips.product()));
+  }
+
+  // Getting the dead-strip information
+  if ( deadSource == "EventSetup" ) {
+    edm::ESHandle<ME0DeadStrips> readoutDeadStrips;
+    setup.get<ME0DeadStripsRcd>().get(readoutDeadStrips);
+    ME0DeadStripsObj.reset(new ME0DeadStrips(readoutDeadStrips.product()));
+  }
 }
 
 
@@ -60,9 +74,7 @@ void ME0RecHitProducer::produce(Event& event, const EventSetup& setup)
   auto recHitCollection = std::make_unique<ME0RecHitCollection>();
 
   // Iterate through all digi collections ordered by LayerId
-  ME0DigiCollection::DigiRangeIterator me0dgIt;
-  for (me0dgIt = digis->begin(); me0dgIt != digis->end();
-       ++me0dgIt){
+  for (auto me0dgIt = digis->begin(); me0dgIt != digis->end(); ++me0dgIt){
 
     // The layerId
     const ME0DetId& me0Id = (*me0dgIt).first;
@@ -75,6 +87,23 @@ void ME0RecHitProducer::produce(Event& event, const EventSetup& setup)
 
     // Getting the roll mask, that includes dead strips, for the given ME0Det
     ME0EtaPartitionMask mask;
+
+    const int rawId = me0Id.rawId();
+    int Size = ME0MaskedStripsObj->getMaskVec().size();
+    for (int i = 0; i < Size; i++ ) {
+      if ( ME0MaskedStripsObj->getMaskVec()[i].rawId == rawId ) {
+        const int bit = ME0MaskedStripsObj->getMaskVec()[i].strip;
+        mask.set(bit-1);
+      }
+    }
+
+    Size = ME0DeadStripsObj->getDeadVec().size();
+    for (int i = 0; i < Size; i++ ) {
+      if ( ME0DeadStripsObj->getDeadVec()[i].rawId == rawId ) {
+        const int bit = ME0DeadStripsObj->getDeadVec()[i].strip;
+        mask.set(bit-1);
+      }
+    }
 
     // Call the reconstruction algorithm
     OwnVector<ME0RecHit> recHits = theAlgo->reconstruct(*roll, me0Id, range, mask);

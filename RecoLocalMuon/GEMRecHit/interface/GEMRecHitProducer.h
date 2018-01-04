@@ -40,7 +40,7 @@ public:
   GEMRecHitProducer(const edm::ParameterSet& config);
 
   /// Destructor
-  ~GEMRecHitProducer() {} override;
+  ~GEMRecHitProducer() override {};
 
   // Method that access the EventSetup for each run
   void beginRun(const edm::Run&, const edm::EventSetup& ) override;

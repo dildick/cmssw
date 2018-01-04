@@ -39,7 +39,7 @@ public:
   ME0RecHitProducer(const edm::ParameterSet& config);
 
   /// Destructor
-  ~ME0RecHitProducer() override;
+  ~ME0RecHitProducer() override {};
 
   // Method that access the EventSetup for each run
   void beginRun(const edm::Run&, const edm::EventSetup& ) override;
@@ -53,13 +53,13 @@ private:
   edm::EDGetTokenT<ME0DigiCollection> theME0DigiToken;
 
   // The reconstruction algorithm
-  ME0RecHitBaseAlgo *theAlgo;
+  std::unique_ptr<ME0RecHitBaseAlgo> theAlgo;
 
   // Object with mask-strips-vector for all the ME0 Detectors
-  ME0MaskedStrips* ME0MaskedStripsObj;
+  std::unique_ptr<ME0MaskedStrips> ME0MaskedStripsObj;
 
   // Object with dead-strips-vector for all the ME0 Detectors
-  ME0DeadStrips* ME0DeadStripsObj;
+  std::unique_ptr<ME0DeadStrips> ME0DeadStripsObj;
 
   std::string maskSource;
   std::string deadSource;

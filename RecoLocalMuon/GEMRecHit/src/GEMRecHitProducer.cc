@@ -63,49 +63,36 @@ void GEMRecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup
   if ( maskSource == "EventSetup" ) {
     edm::ESHandle<GEMMaskedStrips> readoutMaskedStrips;
     setup.get<GEMMaskedStripsRcd>().get(readoutMaskedStrips);
-    GEMMaskedStripsObj = readoutMaskedStrips.product()
-    const GEMMaskedStrips* tmp_obj = readoutMaskedStrips.product();
-    GEMMaskedStripsObj->MaskVec = tmp_obj->getMaskVec();
-    delete tmp_obj;
+    GEMMaskedStripsObj = std::make_unique<GEMMaskedStrips>(readoutMaskedStrips.product());
   }
 
   // Getting the dead-strip information
   if ( deadSource == "EventSetup" ) {
     edm::ESHandle<GEMDeadStrips> readoutDeadStrips;
     setup.get<GEMDeadStripsRcd>().get(readoutDeadStrips);
-    const GEMDeadStrips* tmp_obj = readoutDeadStrips.product();
-    GEMDeadStripsObj->DeadVec = tmp_obj->getDeadVec();
-    delete tmp_obj;
+    GEMDeadStripsObj = std::make_unique<GEMDeadStrips>(readoutDeadStrips.product());
   }
 }
 
 
-
-void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
-
+void GEMRecHitProducer::produce(Event& event, const EventSetup& setup)
+{
   // Get the GEM Geometry
-
   ESHandle<GEMGeometry> gemGeom;
   setup.get<MuonGeometryRecord>().get(gemGeom);
 
   // Get the digis from the event
-
   Handle<GEMDigiCollection> digis;
   event.getByToken(theGEMDigiToken,digis);
 
   // Pass the EventSetup to the algo
-
   theAlgo->setES(setup);
 
   // Create the pointer to the collection which will store the rechits
-
   auto recHitCollection = std::make_unique<GEMRecHitCollection>();
 
   // Iterate through all digi collections ordered by LayerId
-
-  GEMDigiCollection::DigiRangeIterator gemdgIt;
-  for (gemdgIt = digis->begin(); gemdgIt != digis->end();
-       ++gemdgIt){
+  for (auto gemdgIt = digis->begin(); gemdgIt != digis->end(); ++gemdgIt){
 
     // The layerId
     const GEMDetId& gemId = (*gemdgIt).first;
@@ -116,29 +103,27 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
     // Get the iterators over the digis associated with this LayerId
     const GEMDigiCollection::Range& range = (*gemdgIt).second;
 
-
     // Getting the roll mask, that includes dead strips, for the given GEMDet
     GEMEtaPartitionMask mask;
-    /*
-    int rawId = gemId.rawId();
-    int Size = GEMMaskedStripsObj->MaskVec.size();
-    for (int i = 0; i < Size; i++ ) {
-    if ( GEMMaskedStripsObj->MaskVec[i].rawId == rawId ) {
-    int bit = GEMMaskedStripsObj->MaskVec[i].strip;
-    mask.set(bit-1);
-    }
-    }
 
-    Size = GEMDeadStripsObj->DeadVec.size();
+    const int rawId = gemId.rawId();
+    int Size = GEMMaskedStripsObj->getMaskVec().size();
     for (int i = 0; i < Size; i++ ) {
-      if ( GEMDeadStripsObj->DeadVec[i].rawId == rawId ) {
-	int bit = GEMDeadStripsObj->DeadVec[i].strip;
-	mask.set(bit-1);
+      if ( GEMMaskedStripsObj->getMaskVec()[i].rawId == rawId ) {
+        const int bit = GEMMaskedStripsObj->getMaskVec()[i].strip;
+        mask.set(bit-1);
       }
     }
-    */
-    // Call the reconstruction algorithm
 
+    Size = GEMDeadStripsObj->getDeadVec().size();
+    for (int i = 0; i < Size; i++ ) {
+      if ( GEMDeadStripsObj->getDeadVec()[i].rawId == rawId ) {
+        const int bit = GEMDeadStripsObj->getDeadVec()[i].strip;
+        mask.set(bit-1);
+      }
+    }
+
+    // Call the reconstruction algorithm
     OwnVector<GEMRecHit> recHits =
       theAlgo->reconstruct(*roll, gemId, range, mask);
 
@@ -147,6 +132,5 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup) {
   }
 
   event.put(std::move(recHitCollection));
-
 }
 
