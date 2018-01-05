@@ -30,10 +30,6 @@ ME0RecHitProducer::ME0RecHitProducer(const ParameterSet& config)
   theAlgo.reset(ME0RecHitAlgoFactory::get()->create(theAlgoName,
                 config.getParameter<ParameterSet>("recAlgoConfig")));
 
-  // Get masked- and dead-strip information
-  ME0MaskedStripsObj = std::make_unique<ME0MaskedStrips>();
-  ME0DeadStripsObj = std::make_unique<ME0DeadStrips>();
-
   maskSource = config.getParameter<std::string>("maskSource");
   deadSource = config.getParameter<std::string>("deadSource");
 }
@@ -45,14 +41,14 @@ void ME0RecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup
   if ( maskSource == "EventSetup" ) {
     edm::ESHandle<ME0MaskedStrips> readoutMaskedStrips;
     setup.get<ME0MaskedStripsRcd>().get(readoutMaskedStrips);
-    ME0MaskedStripsObj.reset(*readoutMaskedStrips.product());
+    ME0MaskedStripsObj = readoutMaskedStrips.product();
   }
 
   // Getting the dead-strip information
   if ( deadSource == "EventSetup" ) {
     edm::ESHandle<ME0DeadStrips> readoutDeadStrips;
     setup.get<ME0DeadStripsRcd>().get(readoutDeadStrips);
-    ME0DeadStripsObj.reset(*readoutDeadStrips.product());
+    ME0DeadStripsObj = readoutDeadStrips.product();
   }
 }
 

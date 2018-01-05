@@ -48,10 +48,6 @@ GEMRecHitProducer::GEMRecHitProducer(const ParameterSet& config){
   theAlgo.reset(GEMRecHitAlgoFactory::get()->create(theAlgoName,
                 config.getParameter<ParameterSet>("recAlgoConfig")));
 
-  // Get masked- and dead-strip information
-  GEMMaskedStripsObj = std::make_unique<GEMMaskedStrips>();
-  GEMDeadStripsObj = std::make_unique<GEMDeadStrips>();
-
   maskSource = config.getParameter<std::string>("maskSource");
   deadSource = config.getParameter<std::string>("deadSource");
 }
@@ -63,14 +59,14 @@ void GEMRecHitProducer::beginRun(const edm::Run& r, const edm::EventSetup& setup
   if ( maskSource == "EventSetup" ) {
     edm::ESHandle<GEMMaskedStrips> readoutMaskedStrips;
     setup.get<GEMMaskedStripsRcd>().get(readoutMaskedStrips);
-    GEMMaskedStripsObj.reset(*readoutMaskedStrips.product());
+    GEMMaskedStripsObj = readoutMaskedStrips.product();
   }
 
   // Getting the dead-strip information
   if ( deadSource == "EventSetup" ) {
     edm::ESHandle<GEMDeadStrips> readoutDeadStrips;
     setup.get<GEMDeadStripsRcd>().get(readoutDeadStrips);
-    GEMDeadStripsObj.reset(*readoutDeadStrips.product());
+    GEMDeadStripsObj = readoutDeadStrips.product();
   }
 }
 

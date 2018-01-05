@@ -57,10 +57,10 @@ private:
   std::unique_ptr<GEMRecHitBaseAlgo> theAlgo;
 
   // Object with mask-strips-vector for all the GEM Detectors
-  std::unique_ptr<GEMMaskedStrips> GEMMaskedStripsObj;
+  const GEMMaskedStrips* GEMMaskedStripsObj;
 
   // Object with dead-strips-vector for all the GEM Detectors
-  std::unique_ptr<GEMDeadStrips> GEMDeadStripsObj;
+  const GEMDeadStrips* GEMDeadStripsObj;
 
   std::string maskSource;
   std::string deadSource;

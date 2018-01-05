@@ -56,10 +56,10 @@ private:
   std::unique_ptr<ME0RecHitBaseAlgo> theAlgo;
 
   // Object with mask-strips-vector for all the ME0 Detectors
-  std::unique_ptr<ME0MaskedStrips> ME0MaskedStripsObj;
+  const ME0MaskedStrips* ME0MaskedStripsObj;
 
   // Object with dead-strips-vector for all the ME0 Detectors
-  std::unique_ptr<ME0DeadStrips> ME0DeadStripsObj;
+  const ME0DeadStrips* ME0DeadStripsObj;
 
   std::string maskSource;
   std::string deadSource;
