@@ -1,24 +1,20 @@
-/** \Class GEMMaskReClusterizer
- *  \author J.C. Sanabria -- UniAndes, Bogota
- */
+#include "RecoLocalMuon/GEMRecHit/interface/ME0MaskReClusterizer.h"
 
-#include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
-
-GEMMaskReClusterizer::GEMMaskReClusterizer()
+ME0MaskReClusterizer::ME0MaskReClusterizer()
 {
 
 }
 
 
-GEMMaskReClusterizer::~GEMMaskReClusterizer()
+ME0MaskReClusterizer::~ME0MaskReClusterizer()
 {
 
 }
 
 
-RecHitClusterContainer GEMMaskReClusterizer::doAction(const GEMDetId& id,
-                                                    RecHitClusterContainer& initClusters,
-                                                    const GEMEtaPartitionMask& mask)
+RecHitClusterContainer ME0MaskReClusterizer::doAction(const ME0DetId& id,
+                                                   RecHitClusterContainer& initClusters,
+                                                   const ME0EtaPartitionMask& mask)
 {
 
   RecHitClusterContainer finClusters;
@@ -75,7 +71,7 @@ RecHitClusterContainer GEMMaskReClusterizer::doAction(const GEMDetId& id,
 
 
 
-int GEMMaskReClusterizer::get(const GEMEtaPartitionMask& mask, int strip)
+int ME0MaskReClusterizer::get(const ME0EtaPartitionMask& mask, int strip)
 {
 
   if ( mask.test(strip-1) ) return 1;

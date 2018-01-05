@@ -1,27 +1,27 @@
-#include "RecoLocalMuon/GEMRecHit/interface/GEMClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/ME0Clusterizer.h"
 
-GEMClusterizer::GEMClusterizer()
+ME0Clusterizer::ME0Clusterizer()
 {
 }
 
-GEMClusterizer::~GEMClusterizer()
+ME0Clusterizer::~ME0Clusterizer()
 {
 }
 
 RecHitClusterContainer
-GEMClusterizer::doAction(const GEMDigiCollection::Range& digiRange)
+ME0Clusterizer::doAction(const ME0DigiCollection::Range& digiRange)
 {
   RecHitClusterContainer cls;
   for (auto digi = digiRange.first; digi != digiRange.second; digi++) {
     RecHitCluster cl(digi->strip(),digi->strip(),digi->bx());
     cls.insert(cl);
   }
-  RecHitClusterContainer clsNew = doActualAction(cls);
+  RecHitClusterContainer clsNew =this->doActualAction(cls);
   return clsNew;
 }
 
 RecHitClusterContainer
-GEMClusterizer::doActualAction(const RecHitClusterContainer& initialclusters)
+ME0Clusterizer::doActualAction(const RecHitClusterContainer& initialclusters) const
 {
   RecHitClusterContainer finalCluster;
   RecHitCluster prev;

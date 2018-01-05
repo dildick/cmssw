@@ -6,17 +6,17 @@ import FWCore.ParameterSet.Config as cms
 ## as input to build pseudo stubs
 
 from SimMuon.GEMDigitizer.muonME0PseudoReDigis_cfi import *
-from RecoLocalMuon.GEMRecHit.me0RecHits_cfi import *
-from RecoLocalMuon.GEMSegment.me0Segments_cfi import *
+from RecoLocalMuon.GEMRecHit.me0PseudoRecHits_cfi import *
+from RecoLocalMuon.GEMSegment.me0PseudoSegments_cfi import *
 
 simMuonME0PseudoReDigisCoarse = simMuonME0PseudoReDigis.clone(
     usePads = cms.bool(True)
 )
-me0RecHitsCoarse = me0RecHits.clone(
+me0RecHitsCoarse = me0PseudoRecHits.clone(
     me0DigiLabel = cms.InputTag("simMuonME0PseudoReDigisCoarse")
 )
 
-me0TriggerPseudoDigis = me0Segments.clone(
+me0TriggerPseudoDigis = me0PseudoSegments.clone(
     me0RecHitLabel = cms.InputTag("me0RecHitsCoarse")
 )
 ## 1.2 is to make the matching window safely the two nearest strips
