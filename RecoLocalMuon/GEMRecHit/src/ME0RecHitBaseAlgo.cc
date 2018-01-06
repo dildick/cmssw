@@ -1,4 +1,5 @@
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitBaseAlgo.h"
+#include "RecoLocalMuon/GEMRecHit/interface/Clusterizer.h"
 #include "Geometry/GEMGeometry/interface/ME0EtaPartition.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
@@ -16,8 +17,10 @@ edm::OwnVector<ME0RecHit> ME0RecHitBaseAlgo::reconstruct(const ME0EtaPartition& 
 {
   edm::OwnVector<ME0RecHit> result;
 
-  ME0Clusterizer clizer;
-  RecHitClusterContainer tcls = clizer.doAction(digiRange);
+  Clusterizer<ME0DigiCollection::Range> clizer;
+  RecHitClusterContainer tcls;
+  clizer.clusterize(digiRange, tcls);
+
   ME0MaskReClusterizer mrclizer;
   RecHitClusterContainer cls = mrclizer.doAction(me0Id,tcls,mask);
 

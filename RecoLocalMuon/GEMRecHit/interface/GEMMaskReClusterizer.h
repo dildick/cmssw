@@ -6,7 +6,8 @@
  */
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMEtaPartitionMask.h"
-#include "RecoLocalMuon/GEMRecHit/interface/GEMClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/Clusterizer.h"
+#include "DataFormats/MuonDetId/interface/GEMDetId.h"
 
 class GEMMaskReClusterizer
 {

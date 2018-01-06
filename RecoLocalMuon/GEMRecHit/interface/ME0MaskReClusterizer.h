@@ -2,7 +2,8 @@
 #define RecoLocalMuon_GEMRecHit_ME0MaskReClusterizer_h
 
 #include "RecoLocalMuon/GEMRecHit/interface/ME0EtaPartitionMask.h"
-#include "RecoLocalMuon/GEMRecHit/interface/ME0Clusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/Clusterizer.h"
+#include "DataFormats/MuonDetId/interface/ME0DetId.h"
 
 class ME0MaskReClusterizer
 {

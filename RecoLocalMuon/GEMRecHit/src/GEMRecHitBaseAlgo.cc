@@ -5,7 +5,7 @@
  */
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitBaseAlgo.h"
-#include "RecoLocalMuon/GEMRecHit/interface/GEMClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/Clusterizer.h"
 #include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
 
 #include "Geometry/GEMGeometry/interface/GEMEtaPartition.h"
@@ -26,8 +26,10 @@ edm::OwnVector<GEMRecHit> GEMRecHitBaseAlgo::reconstruct(const GEMEtaPartition& 
 {
   edm::OwnVector<GEMRecHit> result;
 
-  GEMClusterizer clizer;
-  RecHitClusterContainer tcls = clizer.doAction(digiRange);
+  Clusterizer<GEMDigiCollection::Range> clizer;
+  RecHitClusterContainer tcls;
+  clizer.clusterize(digiRange, tcls);
+
   GEMMaskReClusterizer mrclizer;
   RecHitClusterContainer cls = mrclizer.doAction(gemId,tcls,mask);
 
