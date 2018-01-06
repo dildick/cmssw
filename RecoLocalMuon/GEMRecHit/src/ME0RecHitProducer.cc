@@ -12,6 +12,9 @@
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitAlgoFactory.h"
 #include "RecoLocalMuon/GEMRecHit/interface/ME0RecHitProducer.h"
 
+#include "CondFormats/DataRecord/interface/ME0MaskedStripsRcd.h"
+#include "CondFormats/DataRecord/interface/ME0DeadStripsRcd.h"
+
 #include <string>
 
 using namespace edm;

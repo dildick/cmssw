@@ -22,9 +22,7 @@
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitAlgoFactory.h"
 #include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
 
-#include "CondFormats/GEMObjects/interface/GEMMaskedStrips.h"
 #include "CondFormats/DataRecord/interface/GEMMaskedStripsRcd.h"
-#include "CondFormats/GEMObjects/interface/GEMDeadStrips.h"
 #include "CondFormats/DataRecord/interface/GEMDeadStripsRcd.h"
 
 #include <string>

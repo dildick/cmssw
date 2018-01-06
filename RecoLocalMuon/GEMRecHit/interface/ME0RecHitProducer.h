@@ -18,9 +18,7 @@
 #include "DataFormats/GEMDigi/interface/ME0DigiCollection.h"
 
 #include "CondFormats/GEMObjects/interface/ME0MaskedStrips.h"
-#include "CondFormats/DataRecord/interface/ME0MaskedStripsRcd.h"
 #include "CondFormats/GEMObjects/interface/ME0DeadStrips.h"
-#include "CondFormats/DataRecord/interface/ME0DeadStripsRcd.h"
 
 #include "RecoLocalMuon/GEMRecHit/interface/ME0EtaPartitionMask.h"
 
