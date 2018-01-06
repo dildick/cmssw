@@ -6,7 +6,8 @@
 
 #include "RecoLocalMuon/GEMRecHit/interface/GEMRecHitBaseAlgo.h"
 #include "RecoLocalMuon/GEMRecHit/interface/Clusterizer.h"
-#include "RecoLocalMuon/GEMRecHit/interface/GEMMaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/MaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/GEMEtaPartitionMask.h"
 
 #include "Geometry/GEMGeometry/interface/GEMEtaPartition.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -30,8 +31,9 @@ edm::OwnVector<GEMRecHit> GEMRecHitBaseAlgo::reconstruct(const GEMEtaPartition& 
   RecHitClusterContainer tcls;
   clizer.clusterize(digiRange, tcls);
 
-  GEMMaskReClusterizer mrclizer;
-  RecHitClusterContainer cls = mrclizer.doAction(gemId,tcls,mask);
+  MaskReClusterizer<GEMEtaPartitionMask> mrclizer;
+  RecHitClusterContainer cls;
+  mrclizer.reclusterize(tcls, cls, mask);
 
   for (const auto& cl : cls) {
 

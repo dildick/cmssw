@@ -12,7 +12,7 @@
 #include "DataFormats/GEMRecHit/interface/ME0RecHitCollection.h"
 
 #include "RecoLocalMuon/GEMRecHit/interface/ME0EtaPartitionMask.h"
-#include "RecoLocalMuon/GEMRecHit/interface/ME0MaskReClusterizer.h"
+#include "RecoLocalMuon/GEMRecHit/interface/MaskReClusterizer.h"
 
 class RecHitCluster;
 class ME0EtaPartition;
