@@ -24,12 +24,10 @@ class ME0RecHitStandardAlgo : public ME0RecHitBaseAlgo
   /// Pass the Event Setup to the algo at each event
   void setES(const edm::EventSetup& setup) override;
 
-
   bool compute(const ME0EtaPartition& roll,
                const RecHitCluster& cluster,
                LocalPoint& point,
                LocalError& error) const override;
-
 
   bool compute(const ME0EtaPartition& roll,
                const RecHitCluster& cluster,
@@ -40,5 +38,3 @@ class ME0RecHitStandardAlgo : public ME0RecHitBaseAlgo
 };
 
 #endif
-
-

@@ -13,8 +13,6 @@
 
 
 GEMRecHitBaseAlgo::GEMRecHitBaseAlgo(const edm::ParameterSet& config) {
-  //  theSync = GEMTTrigSyncFactory::get()->create(config.getParameter<string>("tTrigMode"),
-  //config.getParameter<ParameterSet>("tTrigModeConfig"));
 }
 
 GEMRecHitBaseAlgo::~GEMRecHitBaseAlgo(){}

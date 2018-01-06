@@ -20,7 +20,6 @@ class ME0PseudoRecHitStandardAlgo : public ME0PseudoRecHitBaseAlgo
   /// Pass the Event Setup to the algo at each event
   void setES(const edm::EventSetup& setup) override;
 
-
   bool compute(const ME0DigiPreReco& digi,
                LocalPoint& point,
                LocalError& error) const override;
