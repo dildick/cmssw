@@ -8,34 +8,34 @@
 
 GEMGeometry::GEMGeometry(){}
 
-GEMGeometry::~GEMGeometry(){}  
+GEMGeometry::~GEMGeometry(){}
 
-const GEMGeometry::DetTypeContainer&  GEMGeometry::detTypes() const{
+const GEMGeometry::DetTypeContainer&  GEMGeometry::detTypes() const {
   return theEtaPartitionTypes;
 }
 
-const GEMGeometry::DetContainer& GEMGeometry::detUnits() const{
+const GEMGeometry::DetContainer& GEMGeometry::detUnits() const {
   return theEtaPartitions;
 }
 
-const GEMGeometry::DetContainer& GEMGeometry::dets() const{
+const GEMGeometry::DetContainer& GEMGeometry::dets() const {
   return theDets;
 }
 
-const GEMGeometry::DetIdContainer& GEMGeometry::detUnitIds() const{
+const GEMGeometry::DetIdContainer& GEMGeometry::detUnitIds() const {
   return theEtaPartitionIds;
 }
 
-const GEMGeometry::DetIdContainer& GEMGeometry::detIds() const{
+const GEMGeometry::DetIdContainer& GEMGeometry::detIds() const {
   return theDetIds;
 }
 
-const GeomDet* GEMGeometry::idToDetUnit(DetId id) const{
+const GeomDet* GEMGeometry::idToDetUnit(DetId id) const {
   return dynamic_cast<const GeomDet*>(idToDet(id));
 }
 
 
-const GeomDet* GEMGeometry::idToDet(DetId id) const{
+const GeomDet* GEMGeometry::idToDet(DetId id) const {
   mapIdToDet::const_iterator i = theMap.find(id);
   return (i != theMap.end()) ? i->second : nullptr;
 }
@@ -48,7 +48,7 @@ const std::vector<const GEMStation*>& GEMGeometry::stations() const {
   return allStations;
 }
 
-const std::vector<const GEMRing*>& GEMGeometry::rings() const{
+const std::vector<const GEMRing*>& GEMGeometry::rings() const {
   return allRings;
 }
 
@@ -60,43 +60,43 @@ const std::vector<const GEMChamber*>& GEMGeometry::chambers() const {
   return allChambers;
 }
 
-const std::vector<const GEMEtaPartition*>& GEMGeometry::etaPartitions() const{
+const std::vector<const GEMEtaPartition*>& GEMGeometry::etaPartitions() const {
   return allEtaPartitions;
 }
 
-const GEMRegion* GEMGeometry::region(int re) const{
-  for (auto region : allRegions) {
+const GEMRegion* GEMGeometry::region(int re) const {
+  for (const auto& region : allRegions) {
     if (re != region->region()) continue;
     return region;
   }
   return nullptr;
 }
 
-const GEMStation* GEMGeometry::station(int re, int st) const{ 
-  for (auto station : allStations) {
+const GEMStation* GEMGeometry::station(int re, int st) const {
+  for (const auto& station : allStations) {
     if (re != station->region() || st != station->station()) continue;
     return station;
   }
   return nullptr;
 }
 
-const GEMRing* GEMGeometry::ring(int re, int st, int ri) const{
-  for (auto ring : allRings) {
-    if (re != ring->region() || st != ring->station() || ri != ring->ring()) continue;	
+const GEMRing* GEMGeometry::ring(int re, int st, int ri) const {
+  for (const auto& ring : allRings) {
+    if (re != ring->region() || st != ring->station() || ri != ring->ring()) continue;
     return ring;
   }
   return nullptr;
 }
 
-const GEMSuperChamber* GEMGeometry::superChamber(GEMDetId id) const{
+const GEMSuperChamber* GEMGeometry::superChamber(GEMDetId id) const {
   return dynamic_cast<const GEMSuperChamber*>(idToDet(id.superChamberId()));
 }
 
-const GEMChamber* GEMGeometry::chamber(GEMDetId id) const{ 
+const GEMChamber* GEMGeometry::chamber(GEMDetId id) const {
   return dynamic_cast<const GEMChamber*>(idToDet(id.chamberId()));
 }
 
-const GEMEtaPartition* GEMGeometry::etaPartition(GEMDetId id) const{
+const GEMEtaPartition* GEMGeometry::etaPartition(GEMDetId id) const {
   return dynamic_cast<const GEMEtaPartition*>(idToDetUnit(id));
 }
 

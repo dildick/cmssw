@@ -32,16 +32,14 @@ using namespace edm;
 using namespace std;
 
 
-GEMRecHitProducer::GEMRecHitProducer(const ParameterSet& config){
-
-  // Set verbose output
-
+GEMRecHitProducer::GEMRecHitProducer(const ParameterSet& config)
+{
+  // Set output
   produces<GEMRecHitCollection>();
 
   theGEMDigiToken = consumes<GEMDigiCollection>(config.getParameter<edm::InputTag>("gemDigiLabel"));
 
   // Get the concrete reconstruction algo from the factory
-
   string theAlgoName = config.getParameter<string>("recAlgo");
   theAlgo.reset(GEMRecHitAlgoFactory::get()->create(theAlgoName,
                 config.getParameter<ParameterSet>("recAlgoConfig")));
@@ -101,30 +99,31 @@ void GEMRecHitProducer::produce(Event& event, const EventSetup& setup)
     GEMEtaPartitionMask mask;
 
     const int rawId = gemId.rawId();
-    int Size = GEMMaskedStripsObj->getMaskVec().size();
-    for (int i = 0; i < Size; i++ ) {
-      if ( GEMMaskedStripsObj->getMaskVec()[i].rawId == rawId ) {
-        const int bit = GEMMaskedStripsObj->getMaskVec()[i].strip;
-        mask.set(bit-1);
+
+    if ( maskSource == "EventSetup" ) {
+      int Size = GEMMaskedStripsObj->getMaskVec().size();
+      for (int i = 0; i < Size; i++ ) {
+        if ( GEMMaskedStripsObj->getMaskVec()[i].rawId == rawId ) {
+          const int bit = GEMMaskedStripsObj->getMaskVec()[i].strip;
+          mask.set(bit-1);
+        }
       }
     }
 
-    Size = GEMDeadStripsObj->getDeadVec().size();
-    for (int i = 0; i < Size; i++ ) {
-      if ( GEMDeadStripsObj->getDeadVec()[i].rawId == rawId ) {
-        const int bit = GEMDeadStripsObj->getDeadVec()[i].strip;
-        mask.set(bit-1);
+    if ( deadSource == "EventSetup" ) {
+      int Size = GEMDeadStripsObj->getDeadVec().size();
+      for (int i = 0; i < Size; i++ ) {
+        if ( GEMDeadStripsObj->getDeadVec()[i].rawId == rawId ) {
+          const int bit = GEMDeadStripsObj->getDeadVec()[i].strip;
+          mask.set(bit-1);
+        }
       }
     }
 
     // Call the reconstruction algorithm
-    OwnVector<GEMRecHit> recHits =
-      theAlgo->reconstruct(*roll, gemId, range, mask);
-
-    if(!recHits.empty())
+    OwnVector<GEMRecHit> recHits = theAlgo->reconstruct(*roll, gemId, range, mask);
       recHitCollection->put(gemId, recHits.begin(), recHits.end());
   }
-
   event.put(std::move(recHitCollection));
 }
 

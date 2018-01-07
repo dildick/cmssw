@@ -1,7 +1,7 @@
 #include "Geometry/GEMGeometry/interface/GEMRing.h"
 #include "Geometry/GEMGeometry/interface/GEMSuperChamber.h"
 
-GEMRing::GEMRing(int region, int station, int ring) : 
+GEMRing::GEMRing(int region, int station, int ring) :
   region_(region),
   station_(station),
   ring_(ring)
@@ -14,7 +14,7 @@ std::vector<GEMDetId> GEMRing::ids() const {
 }
 
 bool GEMRing::operator==(const GEMRing& ri) const {
-  return ( region_ == ri.region() && 
+  return ( region_ == ri.region() &&
 	   station_ == ri.station() &&
 	   ring_ == ri.ring() );
 }
@@ -22,11 +22,11 @@ bool GEMRing::operator==(const GEMRing& ri) const {
 void GEMRing::add(GEMSuperChamber* sch) {
   superChambers_.emplace_back(sch);
 }
-  
+
 std::vector<const GeomDet*> GEMRing::components() const {
   std::vector<const GeomDet*> result;
-  for (auto sch : superChambers_) {
-    auto newSch(sch->components());
+  for (const auto& sch : superChambers_) {
+    const auto& newSch(sch->components());
     result.insert(result.end(), newSch.begin(), newSch.end());
   }
   return result;
@@ -42,14 +42,14 @@ const GEMSuperChamber* GEMRing::superChamber(GEMDetId id) const {
 }
 
 const GEMSuperChamber* GEMRing::superChamber(int isch) const {
-  for (auto sch : superChambers_) {
+  for (const auto& sch : superChambers_) {
     if (sch->id().chamber() == isch) {
       return sch;
     }
   }
   return nullptr;
 }
-  
+
 const std::vector<const GEMSuperChamber*>& GEMRing::superChambers() const {
   return superChambers_;
 }
@@ -61,11 +61,11 @@ int GEMRing::nSuperChambers() const {
 int GEMRing::region() const {
   return region_;
 }
-  
+
 int GEMRing::station() const {
   return station_;
 }
-  
+
 int GEMRing::ring() const {
   return ring_;
 }

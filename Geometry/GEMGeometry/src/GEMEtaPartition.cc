@@ -38,13 +38,13 @@ GEMEtaPartition::specificPadTopology() const
   return specs_->specificPadTopology();
 }
 
-const GeomDetType& 
+const GeomDetType&
 GEMEtaPartition::type() const
 {
   return (*specs_);
 }
 
-int 
+int
 GEMEtaPartition::nstrips() const
 {
   return this->specificTopology().nstrips();
@@ -71,24 +71,24 @@ GEMEtaPartition::localError(float strip, float cluster_size) const
 
 float
 GEMEtaPartition::strip(const LocalPoint& lp) const
-{ 
+{
   return this->specificTopology().strip(lp);
 }
 
 float
 GEMEtaPartition::localPitch(const LocalPoint& lp) const
-{ 
+{
   return this->specificTopology().localPitch(lp);
 }
 
 float
 GEMEtaPartition::pitch() const
-{ 
+{
   return this->specificTopology().pitch();
 }
 
 
-int 
+int
 GEMEtaPartition::npads() const
 {
   return specificPadTopology().nstrips();
@@ -109,19 +109,19 @@ GEMEtaPartition::centreOfPad(float pad) const
 
 float
 GEMEtaPartition::pad(const LocalPoint& lp) const
-{ 
+{
   return specificPadTopology().strip(lp);
 }
 
 float
 GEMEtaPartition::localPadPitch(const LocalPoint& lp) const
-{ 
+{
   return specificPadTopology().localPitch(lp);
 }
 
 float
 GEMEtaPartition::padPitch() const
-{ 
+{
   return specificPadTopology().pitch();
 }
 
@@ -129,7 +129,7 @@ GEMEtaPartition::padPitch() const
 float
 GEMEtaPartition::padOfStrip(int strip) const
 {
-  LocalPoint c_o_s = centreOfStrip(strip);
+  const LocalPoint& c_o_s = centreOfStrip(strip);
   return pad(c_o_s);
 }
 
@@ -137,7 +137,7 @@ int
 GEMEtaPartition::firstStripInPad(int pad) const
 {
   float p = static_cast<float>(pad) - 0.9999;
-  LocalPoint lp = specificPadTopology().localPosition(p);
+  const LocalPoint& lp = specificPadTopology().localPosition(p);
   return static_cast<int>(strip(lp)) + 1;
 }
 
@@ -145,7 +145,7 @@ int
 GEMEtaPartition::lastStripInPad(int pad) const
 {
   float p = static_cast<float>(pad) - 0.0001;
-  LocalPoint lp = specificPadTopology().localPosition(p);
+  const LocalPoint& lp = specificPadTopology().localPosition(p);
   return static_cast<int>(strip(lp)) + 1;
 }
 

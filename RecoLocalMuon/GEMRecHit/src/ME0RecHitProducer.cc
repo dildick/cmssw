@@ -23,7 +23,7 @@ using namespace std;
 
 ME0RecHitProducer::ME0RecHitProducer(const ParameterSet& config)
 {
-  // Set verbose output
+  // Set output
   produces<ME0RecHitCollection>();
 
   theME0DigiToken = consumes<ME0DigiCollection>(config.getParameter<edm::InputTag>("me0DigiLabel"));
@@ -88,30 +88,31 @@ void ME0RecHitProducer::produce(Event& event, const EventSetup& setup)
     ME0EtaPartitionMask mask;
 
     const int rawId = me0Id.rawId();
-    int Size = ME0MaskedStripsObj->getMaskVec().size();
-    for (int i = 0; i < Size; i++ ) {
-      if ( ME0MaskedStripsObj->getMaskVec()[i].rawId == rawId ) {
-        const int bit = ME0MaskedStripsObj->getMaskVec()[i].strip;
-        mask.set(bit-1);
+
+    if ( maskSource == "EventSetup" ) {
+      int Size = ME0MaskedStripsObj->getMaskVec().size();
+      for (int i = 0; i < Size; i++ ) {
+        if ( ME0MaskedStripsObj->getMaskVec()[i].rawId == rawId ) {
+          const int bit = ME0MaskedStripsObj->getMaskVec()[i].strip;
+          mask.set(bit-1);
+        }
       }
     }
 
-    Size = ME0DeadStripsObj->getDeadVec().size();
-    for (int i = 0; i < Size; i++ ) {
-      if ( ME0DeadStripsObj->getDeadVec()[i].rawId == rawId ) {
-        const int bit = ME0DeadStripsObj->getDeadVec()[i].strip;
-        mask.set(bit-1);
+    if ( deadSource == "EventSetup" ) {
+      int Size = ME0DeadStripsObj->getDeadVec().size();
+      for (int i = 0; i < Size; i++ ) {
+        if ( ME0DeadStripsObj->getDeadVec()[i].rawId == rawId ) {
+          const int bit = ME0DeadStripsObj->getDeadVec()[i].strip;
+          mask.set(bit-1);
+        }
       }
     }
 
     // Call the reconstruction algorithm
     OwnVector<ME0RecHit> recHits = theAlgo->reconstruct(*roll, me0Id, range, mask);
-
-    if(!recHits.empty())
-      recHitCollection->put(me0Id, recHits.begin(), recHits.end());
+    recHitCollection->put(me0Id, recHits.begin(), recHits.end());
   }
-
   event.put(std::move(recHitCollection));
-
 }
 

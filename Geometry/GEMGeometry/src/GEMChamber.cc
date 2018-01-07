@@ -1,7 +1,7 @@
-/** 
+/**
  * Implementation of the Model for a GEM Chamber
  *
- *  \author S.Dildick 
+ *  \author S.Dildick
  */
 
 #include "Geometry/GEMGeometry/interface/GEMChamber.h"
@@ -50,8 +50,8 @@ const GEMEtaPartition* GEMChamber::etaPartition(GEMDetId id) const {
 }
 
 const GEMEtaPartition* GEMChamber::etaPartition(int isl) const {
-  for (auto roll : etaPartitions_){
-    if (roll->id().roll()==isl) 
+  for (const auto& roll : etaPartitions_){
+    if (roll->id().roll()==isl)
       return roll;
   }
   return nullptr;
