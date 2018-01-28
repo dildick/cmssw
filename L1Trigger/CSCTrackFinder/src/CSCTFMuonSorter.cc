@@ -1,5 +1,5 @@
 #include <L1Trigger/CSCTrackFinder/interface/CSCTFMuonSorter.h>
-
+#include "L1Trigger/CSCCommonTrigger/interface/CSCConstants.h"
 #include <FWCore/MessageLogger/interface/MessageLogger.h>
 
 CSCTFMuonSorter::CSCTFMuonSorter(const edm::ParameterSet& pset)
@@ -13,20 +13,21 @@ std::vector<L1MuRegionalCand> CSCTFMuonSorter::run(const CSCTriggerContainer<csc
   std::vector<L1MuRegionalCand> result;
 
   // First we sort and crop the incoming tracks based on their rank.
-  for(int bx = m_minBX - 6; bx <= m_maxBX - 6; ++bx) // switch back into signed BX
+  for(int bx = m_minBX - CSCConstants::LCT_CENTRAL_BX;
+      bx <= m_maxBX - CSCConstants::LCT_CENTRAL_BX; ++bx) // switch back into signed BX
     {
       std::vector<csc::L1Track> tks = tracks.get(bx);
       std::sort(tks.begin(),tks.end(),std::greater<csc::L1Track>());
       if(tks.size() > 4) tks.resize(4); // resize to max number of muons the MS can output
-      
+
       std::vector<csc::L1Track>::iterator itr = tks.begin();
       std::vector<csc::L1Track>::const_iterator end = tks.end();
       for(; itr != end; itr++)
 	{
-	  
-	  
+
+
 	  unsigned gbl_phi = itr->localPhi() + ((itr->sector() - 1)*24) + 6; // for now, convert using this.. LUT in the future
-	  if(gbl_phi > 143) gbl_phi -= 143;	  
+	  if(gbl_phi > 143) gbl_phi -= 143;
 	  itr->setPhiPacked(gbl_phi & 0xff);
 	  unsigned eta_sign = (itr->endcap() == 1 ? 0 : 1);
 
@@ -47,7 +48,7 @@ std::vector<L1MuRegionalCand> CSCTFMuonSorter::run(const CSCTriggerContainer<csc
   unsigned ii = 1;
   for(; ittr != result.end(); ittr++)
     {
-      LogDebug("CSCTFMuonSorter:run()") << "TRACK " << ii++ << ": Eta: " << ittr->etaValue() 
+      LogDebug("CSCTFMuonSorter:run()") << "TRACK " << ii++ << ": Eta: " << ittr->etaValue()
 					<< " Phi: " << ittr->phiValue() << " Pt: " << ittr->ptValue()
 					<< " Quality: " << ittr->quality() << " BX: " << ittr->bx();
     }
@@ -57,7 +58,7 @@ std::vector<L1MuRegionalCand> CSCTFMuonSorter::run(const CSCTriggerContainer<csc
 
 
 // This will change to use a look up table
-void CSCTFMuonSorter::decodeRank(const unsigned& rank, unsigned& quality, 
+void CSCTFMuonSorter::decodeRank(const unsigned& rank, unsigned& quality,
 				 unsigned& pt) const
 {
   if(rank == 0)

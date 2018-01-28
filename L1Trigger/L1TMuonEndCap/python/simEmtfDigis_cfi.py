@@ -27,8 +27,9 @@ simEmtfDigisMC = cms.EDProducer("L1TMuonEndCapTrackProducer",
     MaxBX    = cms.int32(+3),
     BXWindow = cms.int32(3),
 
-    # CSC LCT BX offset correction
-    CSCInputBXShift = cms.int32(-6),
+    # Stub BX offset correction
+    # central LCT BX is 8!
+    CSCInputBXShift = cms.int32(-8),
     RPCInputBXShift = cms.int32(0),
     GEMInputBXShift = cms.int32(0),
 

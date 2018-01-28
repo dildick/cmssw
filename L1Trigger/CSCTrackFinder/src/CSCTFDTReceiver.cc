@@ -28,7 +28,7 @@ CSCTriggerContainer<csctf::TrackStub> CSCTFDTReceiver::process(const L1MuDTChamb
 	{
 	  int wheel = (e == 1) ? 2 : -2;
 	  int sector = 2*s - 1;
-	  int csc_bx = bx + 6;//Delay DT stubs by 6 bx.
+    int csc_bx = bx + CSCConstants::LCT_CENTRAL_BX;//Delay DT stubs by the central LCT bx.
 
 	  // combine two 30 degree DT sectors into a 60 degree CSC
 	  // sector.
@@ -75,7 +75,7 @@ CSCTriggerContainer<csctf::TrackStub> CSCTFDTReceiver::process(const L1MuDTChamb
 
 		      if (phi > 4096)
 			{ std::cout << "AAAAAAAAAAGH TOO BIG PHI:" << phi << std::endl;
-			  continue; 
+			  continue;
 			}
 		      if (phi < 0){
 			std::cout << "AAAAAAAAH NEG PHI" << phi << std::endl;
@@ -89,7 +89,7 @@ CSCTriggerContainer<csctf::TrackStub> CSCTFDTReceiver::process(const L1MuDTChamb
 		      // DT chambers may lie outside CSC sector boundary
 		      // Eventually we need to extend CSC phi definition
 		      // --------------------------------------------------------------
-		      // IKF: this is a protection, physically can't happen in data (bus too narrow) - 
+		      // IKF: this is a protection, physically can't happen in data (bus too narrow) -
 		      // - what really happens in data?
 		      // --------------------------------------------------------------
 
