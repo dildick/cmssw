@@ -1,14 +1,10 @@
-#ifndef GEMCode_GEMValidation_SimHitMatcher_h
-#define GEMCode_GEMValidation_SimHitMatcher_h
+#ifndef Validation_MuonHits_SimHitMatcher_h
+#define Validation_MuonHits_SimHitMatcher_h
 
 /**\class SimHitMatcher
 
- Description: Matching of SimHit for SimTrack in CSC & GEM
-
- Original Author:  "Vadim Khotilovich"
+   Description: Matching of muon SimHit to SimTrack
 */
-
-#include "GEMCode/GEMValidation/interface/BaseMatcher.h"
 
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
@@ -23,22 +19,13 @@ class ME0Geometry;
 class RPCGeometry;
 class DTGeometry;
 
-class SimHitMatcher : public BaseMatcher
+class SimHitMatcher
 {
 public:
 
-  SimHitMatcher(const SimTrack& t,
-                const SimVertex& v,
-                const edm::ParameterSet& ps,
-                const edm::Event& ev,
-                const edm::EventSetup& es,
-                const edm::EDGetTokenT<edm::SimVertexContainer>& simVertexInput_,
-                const edm::EDGetTokenT<edm::SimTrackContainer>& simTrackInput_,
-                const edm::EDGetTokenT<edm::PSimHitContainer>& gemSimHitInput_,
-                const edm::EDGetTokenT<edm::PSimHitContainer>& cscSimHitInput_,
-                const edm::EDGetTokenT<edm::PSimHitContainer>& rpcSimHitInput_,
-                const edm::EDGetTokenT<edm::PSimHitContainer>& me0SimHitInput_,
-                const edm::EDGetTokenT<edm::PSimHitContainer>& dtSimHitInput_);
+  SimHitMatcher(const SimTrack& t, const SimVertex& v,
+                const edm::Event&, const edm::EventSetup&,
+                edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
 
   ~SimHitMatcher();
 
@@ -62,7 +49,6 @@ public:
   /// RPC partitions' detIds with SimHits
   std::set<unsigned int> detIdsRPC(int rpc_type = RPC_ALL) const;
   /// CSC layers' detIds with SimHits
-  /// by default, only returns those from ME1b
   std::set<unsigned int> detIdsCSC(int csc_type = CSC_ALL) const;
   /// DT partitions' detIds with SimHits
   std::set<unsigned int> detIdsDT(int dt_type = DT_ALL) const;
@@ -210,12 +196,6 @@ private:
   bool discardEleHitsME0_;
   bool discardEleHitsDT_;
 
-  bool runCSCSimHit_;
-  bool runGEMSimHit_;
-  bool runRPCSimHit_;
-  bool runME0SimHit_;
-  bool runDTSimHit_;
-
   std::string simInputLabel_;
 
   std::map<unsigned int, unsigned int> trkid_to_index_;
@@ -262,6 +242,21 @@ private:
   //std::vector<edm::InputTag> rpcSimHitInput_;
   //std::vector<edm::InputTag> me0SimHitInput_;
   //std::vector<edm::InputTag> dtSimHitInput_;
+
+  bool hasGEMGeometry_;
+  bool hasRPCGeometry_;
+  bool hasME0Geometry_;
+  bool hasCSCGeometry_;
+  bool hasDTGeometry_;
+
+  edm::ParameterSet simTrackPSet_;
+  bool verboseSimTrack_;
+
+  const CSCGeometry* cscGeometry_;
+  const RPCGeometry* rpcGeometry_;
+  const GEMGeometry* gemGeometry_;
+  const ME0Geometry* me0Geometry_;
+  const DTGeometry* dtGeometry_;
 
   edm::Handle<edm::SimTrackContainer> sim_tracks;
   edm::Handle<edm::SimVertexContainer> sim_vertices;

@@ -1,5 +1,4 @@
 #include "GEMCode/GEMValidation/interface/SimHitMatcher.h"
-#include "GEMCode/GEMValidation/interface/PtassignmentHelper.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 
 #include "TF1.h"
@@ -13,56 +12,115 @@ using namespace std;
 
 
 SimHitMatcher::SimHitMatcher(const SimTrack& t,
-			     const SimVertex& v,
-      			     const edm::ParameterSet& ps,
-			     const edm::Event& ev,
-			     const edm::EventSetup& es,
-                             const edm::EDGetTokenT<edm::SimVertexContainer>& simVertexInput_,
-                             const edm::EDGetTokenT<edm::SimTrackContainer>& simTrackInput_,
-                             const edm::EDGetTokenT<edm::PSimHitContainer>& gemSimHitInput_,
-                             const edm::EDGetTokenT<edm::PSimHitContainer>& cscSimHitInput_,
-                             const edm::EDGetTokenT<edm::PSimHitContainer>& rpcSimHitInput_,
-                             const edm::EDGetTokenT<edm::PSimHitContainer>& me0SimHitInput_,
-                             const edm::EDGetTokenT<edm::PSimHitContainer>& dtSimHitInput_
-      			)
-: BaseMatcher(t, v, ps, ev, es)
+                             const SimVertex& v,
+                             const edm::Event& ev,
+                             const edm::EventSetup& es,
+                             const edm::ParameterSet& ps,
+                             edm::ConsumesCollector && iC)
 {
+  event().getByToken(simTrackInput_, sim_tracks);
+  event().getByToken(simVertexInput_, sim_vertices);
+
+  const edm::EDGetTokenT<edm::SimVertexContainer>& simVertexInput_;
+  const edm::EDGetTokenT<edm::SimTrackContainer>& simTrackInput_;
+  const edm::EDGetTokenT<edm::PSimHitContainer>& gemSimHitInput_;
+  const edm::EDGetTokenT<edm::PSimHitContainer>& cscSimHitInput_;
+  const edm::EDGetTokenT<edm::PSimHitContainer>& rpcSimHitInput_;
+  const edm::EDGetTokenT<edm::PSimHitContainer>& me0SimHitInput_;
+  const edm::EDGetTokenT<edm::PSimHitContainer>& dtSimHitInput_;
+
+
+  hasGEMGeometry_ = true;
+  hasRPCGeometry_ = true;
+  hasCSCGeometry_ = true;
+  hasME0Geometry_ = true;
+  hasDTGeometry_ = true;
+
+  es.get<MuonGeometryRecord>().get(gem_geom_);
+  if (gem_geom_.isValid()) {
+    gemGeometry_ = &*gem_geom_;
+  } else {
+    hasGEMGeometry_ = false;
+    if (useGEM)
+      std::cout << "+++ Info: GEM geometry is unavailable. +++\n";
+  }
+
+  es.get<MuonGeometryRecord>().get(me0_geom_);
+  if (me0_geom_.isValid()) {
+    me0Geometry_ = &*me0_geom_;
+  } else {
+    hasME0Geometry_ = false;
+    if (useCSCChamberTypes_[GEM_ME0]) // if ME0 is still used butME0 geom is not found, print out warning
+      std::cout << "+++ Info: ME0 geometry is unavailable. +++\n";
+  }
+
+  es.get<MuonGeometryRecord>().get(rpc_geom_);
+  if (rpc_geom_.isValid()) {
+    rpcGeometry_ = &*rpc_geom_;
+  } else {
+    hasRPCGeometry_ = false;
+    std::cout << "+++ Info: RPC geometry is unavailable. +++\n";
+  }
+
+  es.get<MuonGeometryRecord>().get(dt_geom_);
+  if (dt_geom_.isValid()) {
+    dtGeometry_ = &*dt_geom_;
+  } else {
+    hasDTGeometry_ = false;
+    std::cout << "+++ Info: DT geometry is unavailable. +++\n";
+  }
+
+  es.get<MuonGeometryRecord>().get(csc_geom_);
+  if (csc_geom_.isValid()) {
+    cscGeometry_ = &*csc_geom_;
+  } else {
+    hasCSCGeometry_ = false;
+    std::cout << "+++ Info: CSC geometry is unavailable. +++\n";
+  }
+
+
+  edm::Handle<edm::PSimHitContainer> dt_hits;
+  iEvent.getByToken(dtSimHitInput_, dt_hits);
+
+  edm::Handle<edm::PSimHitContainer> rpc_hits;
+  iEvent.getByToken(rpcSimHitInput_, rpc_hits);
+
+  edm::Handle<edm::PSimHitContainer> me0_hits;
+  iEvent.getByToken(me0SimHitInput_, me0_hits);
+
+  edm::Handle<edm::PSimHitContainer> gem_hits;
+  iEvent.getByToken(gemSimHitInput_, gem_hits);
+
+  edm::Handle<edm::PSimHitContainer> csc_hits;
+  iEvent.getByToken(cscSimHitInput_, csc_hits);
 
   const auto& gemSimHit_ = conf().getParameter<edm::ParameterSet>("gemSimHit");
   verboseGEM_ = gemSimHit_.getParameter<int>("verbose");
   simMuOnlyGEM_ = gemSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsGEM_ = gemSimHit_.getParameter<bool>("discardEleHits");
-  runGEMSimHit_ = gemSimHit_.getParameter<bool>("run");
 
   const auto& cscSimHit_= conf().getParameter<edm::ParameterSet>("cscSimHit");
   verboseCSC_ = cscSimHit_.getParameter<int>("verbose");
   simMuOnlyCSC_ = cscSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsCSC_ = cscSimHit_.getParameter<bool>("discardEleHits");
-  runCSCSimHit_ = cscSimHit_.getParameter<bool>("run");
 
   const auto& me0SimHit_ = conf().getParameter<edm::ParameterSet>("me0SimHit");
   verboseME0_ = me0SimHit_.getParameter<int>("verbose");
   simMuOnlyME0_ = me0SimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsME0_ = me0SimHit_.getParameter<bool>("discardEleHits");
-  runME0SimHit_ = me0SimHit_.getParameter<bool>("run");
 
   const auto& rpcSimHit_ = conf().getParameter<edm::ParameterSet>("rpcSimHit");
   verboseRPC_ = rpcSimHit_.getParameter<int>("verbose");
   simMuOnlyRPC_ = rpcSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsRPC_ = rpcSimHit_.getParameter<bool>("discardEleHits");
-  runRPCSimHit_ = rpcSimHit_.getParameter<bool>("run");
 
   const auto& dtSimHit_ = conf().getParameter<edm::ParameterSet>("dtSimHit");
   verboseDT_ = dtSimHit_.getParameter<int>("verbose");
   simMuOnlyDT_ = dtSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsDT_ = dtSimHit_.getParameter<bool>("discardEleHits");
-  runDTSimHit_ = dtSimHit_.getParameter<bool>("run");
 
    verboseSimTrack_ = (verboseCSC_ || verboseGEM_ || verboseME0_ || verboseRPC_ || verboseDT_);
   //simInputLabel_ = conf().getUntrackedParameter<std::string>("simInputLabel", "g4SimHits");
-
-  event().getByToken(simTrackInput_, sim_tracks);
-  event().getByToken(simVertexInput_, sim_vertices);
 
   // fill trkId2Index associoation:
   int no = 0;
@@ -79,8 +137,6 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
   }
 
   if (hasCSCGeometry_) {
-    edm::Handle<edm::PSimHitContainer> csc_hits;
-    if (gemvalidation::getByToken(cscSimHitInput_, csc_hits, event())) {
 
       // select CSC simhits
       edm::PSimHitContainer csc_hits_select;
@@ -113,8 +169,6 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
   }
 
   if (hasGEMGeometry_) {
-    edm::Handle<edm::PSimHitContainer> gem_hits;
-    if (gemvalidation::getByToken(gemSimHitInput_, gem_hits, event())) {
 
       // select GEM simhits
       edm::PSimHitContainer gem_hits_select;
@@ -123,7 +177,6 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
         if (useGEMChamberType(gemvalidation::toGEMType(id.station(), id.ring()))) gem_hits_select.push_back(h);
       }
 
-      if(runGEMSimHit_) {
         matchGEMSimHitsToSimTrack(track_ids, gem_hits_select);
 
         if (verboseGEM_) {
@@ -145,16 +198,12 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
             const auto& gem_simhits_gp = simHitsMeanPosition(gem_simhits);
             cout<<"gemschid "<<GEMDetId(id)<<": "<<nCoincidencePadsWithHits() <<" | "<<gem_simhits.size()<<" "<<gem_simhits_gp.phi()<<" "<< gem_superchamber_to_hits_[id].size()<<endl;
           }
-        }
       }
     }
   }
 
   if (hasME0Geometry_) {
-    edm::Handle<edm::PSimHitContainer> me0_hits;
-    if (gemvalidation::getByToken(me0SimHitInput_, me0_hits, event())) {
 
-      if (runME0SimHit_) {
         matchME0SimHitsToSimTrack(track_ids, *me0_hits.product());
 
         if (verboseME0_) {
@@ -170,14 +219,11 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
             // cout<<"nStrip "<<strips.size()<<endl;
             // cout<<"strips : "; std::copy(strips.begin(), strips.end(), ostream_iterator<int>(cout, " ")); cout<<endl;
           }
-        }
       }
     }
   }
 
   if (hasRPCGeometry_) {
-    edm::Handle<edm::PSimHitContainer> rpc_hits;
-    if (gemvalidation::getByToken(rpcSimHitInput_, rpc_hits, event())) {
 
       // select RPC simhits
       edm::PSimHitContainer rpc_hits_select;
@@ -186,7 +232,6 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
         if (useRPCChamberType(gemvalidation::toRPCType(id.region(), id.station(), id.ring()))) rpc_hits_select.push_back(h);
       }
 
-      if (runRPCSimHit_) {
         matchRPCSimHitsToSimTrack(track_ids, rpc_hits_select);
 
         if (verboseRPC_) {
@@ -203,13 +248,10 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
             cout<<"strips : "; std::copy(strips.begin(), strips.end(), ostream_iterator<int>(cout, " ")); cout<<endl;
           }
         }
-      }
     }
   }
 
   if (hasDTGeometry_) {
-    edm::Handle<edm::PSimHitContainer> dt_hits;
-    if (gemvalidation::getByToken(dtSimHitInput_, dt_hits, event())) {
 
       // select DT simhits
       edm::PSimHitContainer dt_hits_select;
@@ -218,7 +260,6 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
         if (useDTChamberType(gemvalidation::toDTType(id.wheel(), id.station()))) dt_hits_select.push_back(h);
       }
 
-      if (runDTSimHit_) {
         matchDTSimHitsToSimTrack(track_ids, dt_hits_select);
 
         if (verboseDT_) {
@@ -235,7 +276,6 @@ SimHitMatcher::SimHitMatcher(const SimTrack& t,
             // cout<<"nWires "<<wires.size()<<endl;
             // cout<<"wires : "; std::copy(wires.begin(), wires.end(), ostream_iterator<int>(cout, " ")); cout<<endl;
           }
-        }
       }
     }
   }

@@ -30,8 +30,9 @@ class CSCDigiMatcher
 {
 public:
 
-  CSCDigiMatcher(const edm::Event&, const edm::EventSetup&,
-                 const SimHitMatcher& sh, edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
+  CSCDigiMatcher(const SimTrack& t, const SimVertex& v,
+                 const edm::Event&, const edm::EventSetup&,
+                 edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
 
   ~CSCDigiMatcher();
 
@@ -71,6 +72,8 @@ public:
   std::set<int> wiregroupsInChamber(unsigned int, int max_gap_to_fill = 0) const;
 
 private:
+
+const SimHitMatcher& sh,
 
   void matchStripsToSimTrack(const CSCComparatorDigiCollection& comparators);
   void matchWiresToSimTrack(const CSCWireDigiCollection& wires);
