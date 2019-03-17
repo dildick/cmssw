@@ -6,57 +6,56 @@ using namespace std;
 
 
 CSCStubMatcher(const edm::Event& iEvent, const edm::EventSetup& iEventSetup,
-               const CSCDigiMatcher& csc_dg,
-               const GEMDigiMatcher& gem_dg,
-               edm::ParameterSet const& iPS, edm::ConsumesCollector && iC) :
+               const edm::ParameterSet& pSet, edm::ConsumesCollector && iC
+               const CSCDigiMatcher& csc_dg, const GEMDigiMatcher& gem_dg) :
   csc_digi_matcher_(&csc_dg)
   , gem_digi_matcher_(&gem_dg)
 {
-  edm::EDGetTokenT<CSCCLCTDigiCollection> clctInputs_ = iC.consumes<CSCCLCTDigiCollection>(conf().getInputTag("inputTag"));
-  edm::EDGetTokenT<CSCALCTDigiCollection> alctInputs_;
-  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lctInputs_;
-  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> mplctInputs_;
+  const auto& cscCLCT = pSet.getParameter<edm::ParameterSet>("cscCLCT");
+  minBXCLCT_ = cscCLCT.getParameter<int>("minBX");
+  maxBXCLCT_ = cscCLCT.getParameter<int>("maxBX");
+  verboseCLCT_ = cscCLCT.getParameter<int>("verbose");
+  minNHitsChamberCLCT_ = cscCLCT.getParameter<int>("minNHitsChamber");
 
-  const auto& cscCLCT_ = conf().getParameter<edm::ParameterSet>("cscCLCT");
-  minBXCLCT_ = cscCLCT_.getParameter<int>("minBX");
-  maxBXCLCT_ = cscCLCT_.getParameter<int>("maxBX");
-  verboseCLCT_ = cscCLCT_.getParameter<int>("verbose");
-  minNHitsChamberCLCT_ = cscCLCT_.getParameter<int>("minNHitsChamber");
+  const auto& cscALCT = pSet.getParameter<edm::ParameterSet>("cscALCT");
+  minBXALCT_ = cscALCT.getParameter<int>("minBX");
+  maxBXALCT_ = cscALCT.getParameter<int>("maxBX");
+  verboseALCT_ = cscALCT.getParameter<int>("verbose");
+  minNHitsChamberALCT_ = cscALCT.getParameter<int>("minNHitsChamber");
 
-  const auto& cscALCT_ = conf().getParameter<edm::ParameterSet>("cscALCT");
-  minBXALCT_ = cscALCT_.getParameter<int>("minBX");
-  maxBXALCT_ = cscALCT_.getParameter<int>("maxBX");
-  verboseALCT_ = cscALCT_.getParameter<int>("verbose");
-  minNHitsChamberALCT_ = cscALCT_.getParameter<int>("minNHitsChamber");
+  const auto& cscLCT = pSet.getParameter<edm::ParameterSet>("cscLCT");
+  minBXLCT_ = cscLCT.getParameter<int>("minBX");
+  maxBXLCT_ = cscLCT.getParameter<int>("maxBX");
+  verboseLCT_ = cscLCT.getParameter<int>("verbose");
+  minNHitsChamberLCT_ = cscLCT.getParameter<int>("minNHitsChamber");
+  hsFromSimHitMean_ = cscLCT.getParameter<bool>("hsFromSimHitMean");
 
-  const auto& cscLCT_ = conf().getParameter<edm::ParameterSet>("cscLCT");
-  minBXLCT_ = cscLCT_.getParameter<int>("minBX");
-  maxBXLCT_ = cscLCT_.getParameter<int>("maxBX");
-  verboseLCT_ = cscLCT_.getParameter<int>("verbose");
-  minNHitsChamberLCT_ = cscLCT_.getParameter<int>("minNHitsChamber");
-  addGhostLCTs_ = cscLCT_.getParameter<bool>("addGhosts");
-  hsFromSimHitMean_ = cscLCT_.getParameter<bool>("hsFromSimHitMean");
+  const auto& cscMPLCT = pSet.getParameter<edm::ParameterSet>("cscMPLCT");
+  minBXMPLCT_ = cscMPLCT.getParameter<int>("minBX");
+  maxBXMPLCT_ = cscMPLCT.getParameter<int>("maxBX");
+  verboseMPLCT_ = cscMPLCT.getParameter<int>("verbose");
+  minNHitsChamberMPLCT_ = cscMPLCT.getParameter<int>("minNHitsChamber");
 
-  const auto& cscMPLCT_ = conf().getParameter<edm::ParameterSet>("cscMPLCT");
-  minBXMPLCT_ = cscMPLCT_.getParameter<int>("minBX");
-  maxBXMPLCT_ = cscMPLCT_.getParameter<int>("maxBX");
-  verboseMPLCT_ = cscMPLCT_.getParameter<int>("verbose");
-  minNHitsChamberMPLCT_ = cscMPLCT_.getParameter<int>("minNHitsChamber");
-  addGhostMPLCTs_ = cscMPLCT_.getParameter<bool>("addGhosts");
-
-  minNHitsChamber_ = conf().getUntrackedParameter<int>("minNHitsChamber", 4);
+  edm::EDGetTokenT<CSCCLCTDigiCollection> clctToken = iC.consumes<CSCCLCTDigiCollection>(cscCLCT.getInputTag("inputTag"));
+  edm::EDGetTokenT<CSCALCTDigiCollection> alctToken  = iC.consumes<CSCCLCTDigiCollection>(cscALCT.getInputTag("inputTag"));
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lctToken  = iC.consumes<CSCCorrelatedLCTDigiCollection>(cscLCT.getInputTag("inputTag"));
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> mplctToken = iC.consumes<CSCCorrelatedLCTDigiCollection>(cscMPLCT.getInputTag("inputTag"));
 
   edm::Handle<CSCCLCTDigiCollection> clcts;
-  iEvent.getByToken(clctInputs_, clcts) matchCLCTsToSimTrack(*clcts.product());
+  iEvent.getByToken(clctToken, clcts);
+  matchCLCTsToSimTrack(*clcts.product());
 
   edm::Handle<CSCALCTDigiCollection> alcts;
-  iEvent.getByToken(alctInputs_, alcts) matchALCTsToSimTrack(*alcts.product());
+  iEvent.getByToken(alctToken, alcts);
+  matchALCTsToSimTrack(*alcts.product());
 
   edm::Handle<CSCCorrelatedLCTDigiCollection> lcts;
-  iEvent.getByToken(lctInputs_, lcts) matchLCTsToSimTrack(*lcts.product());
+  iEvent.getByToken(lctToken, lcts);
+  matchLCTsToSimTrack(*lcts.product());
 
   edm::Handle<CSCCorrelatedLCTDigiCollection> mplcts;
-  iEvent.getByToken(mplctInputs_, mplcts) matchMPLCTsToSimTrack(*mplcts.product());
+  iEvent.getByToken(mplctToken, mplcts);
+  matchMPLCTsToSimTrack(*mplcts.product());
 }
 
 
@@ -110,10 +109,10 @@ CSCStubMatcher::matchCLCTsToSimTrack(const CSCCLCTDigiCollection& clcts)
 
       int half_strip = c->getKeyStrip() + 1; // CLCT halfstrip numbers start from 0
       if (ch_id.ring() == 4 and ch_id.station() == 1 and half_strip > 128)
-	  half_strip  = half_strip - 128;
+        half_strip  = half_strip - 128;
 
       // store all CLCTs in this chamber
-      chamber_to_cscClcts_all_[id].push_back(*c);
+      chamber_to_clcts_all_[id].push_back(*c);
 
       // match by half-strip with the digis
       if (digi_strips.find(half_strip) == digi_strips.end())
@@ -123,40 +122,13 @@ CSCStubMatcher::matchCLCTsToSimTrack(const CSCCLCTDigiCollection& clcts)
       }
       if (verbose()) cout<<"clctGOOD"<<endl;
 
-
       // store matching CLCTs in this chamber
-      chamber_to_clcts_[id].push_back(mydigi);
-      chamber_to_cscClcts_[id].push_back(*c);
-
-      if (chamber_to_clct_.find(id) != chamber_to_clct_.end())
-      {
-        //cout<<"WARNING!!! there already was matching CLCT "<<chamber_to_clct_[id]<<endl;
-        //cout<<"   new digi: "<<mydigi<<endl;
-	//sh_matcher_.
-	//GlobalPoint keygp(sh_matcher_.simHitPositionKeyLayer(id));
-  	//LocalPoint csc_intersect = layer_geo->intersectionOfStripAndWire(fractional_strip, wire);
-  	//GlobalPoint csc_gp = cscGeometry_->idToDet(key_id)->surface().toGlobal(csc_intersect);
-        // decide which one to choose
-        int q_old = digi_quality(chamber_to_clct_[id]);
-        int q_new = digi_quality(mydigi);
-
-        if (q_old > q_new) continue; // keep old
-        else if (q_old == q_new)
-        {
-          int p_old = digi_pattern(chamber_to_clct_[id]);
-          int p_new = digi_pattern(mydigi);
-          if (p_old > p_new) continue; // keep old
-        }
-        //cout<<"   new chosen"<<endl;
-      }
-
-      chamber_to_clct_[id] = mydigi;
-
+      chamber_to_clcts_[id].push_back(*c);
     }
     if (chamber_to_clcts_[id].size() > 2)
     {
-      //cout<<"WARNING!!! too many CLCTs "<<chamber_to_clcts_[id].size()<<" in "<<ch_id<<endl;
-      //for (auto &c: chamber_to_clcts_[id]) cout<<"  "<<c<<endl;
+      cout<<"WARNING!!! too many CLCTs "<<chamber_to_clcts_[id].size()<<" in "<<ch_id<<endl;
+      for (auto &c: chamber_to_clcts_[id]) cout<<"  "<<c<<endl;
     }
   }
 
@@ -210,17 +182,15 @@ CSCStubMatcher::matchALCTsToSimTrack(const CSCALCTDigiCollection& alcts)
       if (!a->isValid()) continue;
 
       if (verbose())
-	  cout<<"alct "<<ch_id<<" "<<*a<<endl;
+        cout<<"alct "<<ch_id<<" "<<*a<<endl;
 
       // check that the BX for stub wasn't too early or too late
       if (a->getBX() < minBXALCT_ || a->getBX() > maxBXALCT_) continue;
 
       int wg = a->getKeyWG() + 1; // as ALCT wiregroups numbers start from 0
-      const auto& mydigi = make_digi(id, wg, a->getBX(), CSC_ALCT, a->getQuality());
 
       // store all ALCTs in this chamber
-      chamber_to_alcts_all_[id].push_back(mydigi);
-      chamber_to_cscAlcts_all_[id].push_back(*a);
+      chamber_to_alcts_all_[id].push_back(*a);
 
       // match by wiregroup with the digis
       if (digi_wgs.find(wg) == digi_wgs.end())
@@ -231,34 +201,18 @@ CSCStubMatcher::matchALCTsToSimTrack(const CSCALCTDigiCollection& alcts)
       if (verbose()) cout<<"alctGOOD"<<endl;
 
       // store matching ALCTs in this chamber
-      chamber_to_alcts_[id].push_back(mydigi);
-      chamber_to_cscAlcts_[id].push_back(*a);
-
-      if (chamber_to_alct_.find(id) != chamber_to_alct_.end())
-      {
-        //cout<<"WARNING!!! there already was matching ALCT "<<chamber_to_alct_[id]<<endl;
-        //cout<<"   new digi: "<<mydigi<<endl;
-
-        // decide which one to choose
-        int q_old = digi_quality(chamber_to_alct_[id]);
-        int q_new = digi_quality(mydigi);
-        if (q_old > q_new) continue; // keep old
-        //cout<<"   new chosen"<<endl;
-      }
-
-      chamber_to_alct_[id] = mydigi;
-
+      chamber_to_alcts_[id].push_back(*a);
     }
     if (chamber_to_alcts_[id].size() > 2)
     {
-      //cout<<"WARNING!!! too many ALCTs "<<chamber_to_alcts_[id].size()<<" in "<<ch_id<<endl;
-      //for (auto &a: chamber_to_alcts_[id]) cout<<"  "<<a<<endl;
+      cout<<"WARNING!!! too many ALCTs "<<chamber_to_alcts_[id].size()<<" in "<<ch_id<<endl;
+      for (auto &a: chamber_to_alcts_[id]) cout<<"  "<<a<<endl;
     }
   }
 
   if (verbose() and n_minLayers > 0)
   {
-    if (chamber_to_alct_.size() == 0)
+    if (chamber_to_alcts_.size() == 0)
     {
       cout<<"effNoALCT"<<endl;
       for (const auto &it: alcts)
@@ -306,7 +260,7 @@ CSCStubMatcher::matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& lcts)
       bool lct_gem2_match(false);
       if (verbose()) cout <<"in LCT, getCLCT "<< lct.getCLCT() <<" getALCT "<< lct.getALCT() << endl;
       // Check if matched to an CLCT
-      for (const auto& p: cscClctsInChamber(id)){
+      for (const auto& p: clctsInChamber(id)){
         if (p==lct.getCLCT()) {
           lct_clct_match = true;
           if (verbose()) cout<<" LCT matched to CLCT "<< p <<endl;
@@ -501,7 +455,7 @@ CSCCLCTDigi
 CSCStubMatcher::bestClctInChamber(unsigned int detid) const
 {
   //sort stubs based on quality
-  const auto& input(cscClctsInChamber(detid));
+  const auto& input(clctsInChamber(detid));
   int bestQ = 0;
   int index = -1;
   for (unsigned int i=0; i<input.size(); ++i){
@@ -556,8 +510,8 @@ float
 CSCStubMatcher::zpositionOfLayer(unsigned int detid, int layer) const{
 
   const auto& id = CSCDetId(detid);
-  const auto& cscChamber(cscGeometry_->chamber(id));
-  return fabs(cscChamber->layer(layer)->centerOfStrip(20).z());
+  const auto& chamber(cscGeometry_->chamber(id));
+  return fabs(chamber->layer(layer)->centerOfStrip(20).z());
 }
 
 int
@@ -568,8 +522,8 @@ CSCStubMatcher::nChambersWithCLCT(int min_quality) const
   for (const auto& id: chamber_ids)
   {
     const auto& clct = clctsInChamber(id);
-    if (!clct.isValid()) continue;
-    if (digi_quality(clct) >= min_quality) ++result;
+    if (!lct.isValid()) continue;
+    if (lct.getQuality() >= min_quality) ++result;
   }
   return result;
 }
@@ -582,8 +536,8 @@ CSCStubMatcher::nChambersWithALCT(int min_quality) const
   for (const auto& id: chamber_ids)
   {
     const auto& alct = alctsInChamber(id);
-    if (!is_valid(alct)) continue;
-    if (digi_quality(alct) >= min_quality) ++result;
+    if (!lct.isValid()) continue;
+    if (lct.getQuality() >= min_quality) ++result;
   }
   return result;
 }
@@ -596,8 +550,8 @@ CSCStubMatcher::nChambersWithLCT(int min_quality) const
   for (const auto& id: chamber_ids)
   {
     const auto& lct = lctsInChamber(id);
-    if (!is_valid(lct)) continue;
-    if (digi_quality(lct) >= min_quality) ++result;
+    if (!lct.isValid()) continue;
+    if (lct.getQuality() >= min_quality) ++result;
   }
   return result;
 }
@@ -609,19 +563,19 @@ CSCStubMatcher::nChambersWithMPLCT(int min_quality) const
   const auto& chamber_ids = chamberIdsMPLCT();
   for (const auto& id: chamber_ids)
   {
-    const auto& mplct = mplctInChamber(id);
-    if (!is_valid(mplct)) continue;
-    if (digi_quality(mplct) >= min_quality) ++result;
+    const auto& mplct = mplctsInChamber(id);
+    if (!lct.isValid()) continue;
+    if (lct.getQuality() >= min_quality) ++result;
   }
   return result;
 }
 
 
 bool
-CSCStubMatcher::wasStubMatchedInChamber(const CSCDetId& id, const CSCCorrelatedLCTDigi& lct) const
+CSCStubMatcher::lctInChamber(const CSCDetId& id, const CSCCorrelatedLCTDigi& lct) const
 {
   for (const auto& stub: lctsInChamber(id.rawId())){
-    if (stub==lct) return true;
+    if (stub == lct) return true;
   }
   return false;
 }
@@ -634,9 +588,9 @@ CSCStubMatcher::getGlobalPosition(unsigned int rawId, const CSCCorrelatedLCTDigi
   CSCDetId cscId = CSCDetId(rawId);
   CSCDetId key_id(cscId.endcap(), cscId.station(), cscId.ring(),
                   cscId.chamber(), CSCConstants::KEY_CLCT_LAYER);
-  const auto& cscChamber = getCSCGeometry()->chamber(cscId);
+  const auto& chamber = getCSCGeometry()->chamber(cscId);
   float fractional_strip = getFractionalStrip(lct);
-  const auto& layer_geo = cscChamber->layer(CSCConstants::KEY_CLCT_LAYER)->geometry();
+  const auto& layer_geo = chamber->layer(CSCConstants::KEY_CLCT_LAYER)->geometry();
   // LCT::getKeyWG() also starts from 0
   float wire = layer_geo->middleWireOfGroup(lct.getKeyWG() + 1);
   const LocalPoint& csc_intersect = layer_geo->intersectionOfStripAndWire(fractional_strip, wire);
