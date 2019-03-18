@@ -16,4 +16,6 @@
 <use   name="SimDataFormats/Vertex"/>
 <use   name="root"/>
 <use   name="clhep"/>
-<flags   EDM_PLUGIN="1"/>
+<export>
+  <lib   name="1"/>
+</export>

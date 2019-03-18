@@ -1,3 +1,4 @@
+<use   name="Validation/MuonHits"/>
 <use   name="DQMServices/Core"/>
 <use   name="DataFormats/CSCDigi"/>
 <use   name="DataFormats/GEMDigi"/>
@@ -14,7 +15,6 @@
 <use   name="Geometry/CSCGeometry"/>
 <use   name="Geometry/GEMGeometry"/>
 <use   name="Geometry/Records"/>
-<use   name="Validation/MuonHits"/>
 <export>
   <lib   name="1"/>
 </export>

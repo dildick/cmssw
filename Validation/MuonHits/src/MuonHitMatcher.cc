@@ -1,10 +1,6 @@
 #include "Validation/MuonHits/interface/MuonHitMatcher.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
 
-#include "TF1.h"
-#include "TGraph.h"
-#include "TFitResult.h"
-
 #include <algorithm>
 #include <iomanip>
 
@@ -112,7 +108,7 @@ void MuonHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
 }
 
 /// do the matching
-void MuonHitMatcher::match(const SimTrack& track, const SimVertex& verte)
+void MuonHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 {
   const edm::SimTrackContainer& simTracks = *simTracksH_.product();
   const edm::SimVertexContainer& simVertices = *simVerticesH_.product();
@@ -1093,83 +1089,6 @@ MuonHitMatcher::simHitsMeanPosition(const edm::PSimHitContainer& sim_hits) const
   if (n == 0) return GlobalPoint();
   return GlobalPoint(sumx/n, sumy/n, sumz/n);
 }
-
-// GlobalPoint
-// MuonHitMatcher::simHitPositionKeyLayer(unsigned int chid) const
-// {
-//   /*
-//     1. Return the (average) position of the keylayer simhit if available
-//     2. Return the fitted position of the simhit in the keylayer if fit good
-//     3. Return average position of the simhits in the chamber if all else fails
-//   */
-//   const CSCDetId chamberId(chid);
-//   const CSCDetId keyLayerId(chamberId.endcap(), chamberId.station(),
-//                             chamberId.ring(), chamberId.chamber(), 3);
-//   GlobalPoint returnValue;
-
-//   const edm::PSimHitContainer& keyLayerIdHits(hitsInDetId(keyLayerId.rawId()));
-//   //std::cout <<"CSC id "<< chamberId <<" keyLayerIdHits size "<< keyLayerIdHits.size() << " hitsInChamber "<< hitsInChamber(chid).size()<< std::endl;
-//   if (keyLayerIdHits.size()!=0) returnValue = simHitsMeanPosition(keyLayerIdHits);
-//   else{
-//     // check if the chamber has hits at all
-//     if (hitsInChamber(chid).size()==0) returnValue = GlobalPoint();
-//     //else if (hitsInChamber(chid).size()>=1) returnValue = simHitsMeanPosition(hitsInChamber(chid));
-//     else if (hitsInChamber(chid).size()==1) returnValue = simHitsMeanPosition(hitsInChamber(chid));
-//     else if (hitsInChamber(chid).size()==2) returnValue = simHitsMeanPosition(hitsInChamber(chid));
-//     else {
-//       std::vector<float> zs;
-//       std::vector<float> xs;
-//       std::vector<float> ys;
-//       std::vector<float> ezs;
-//       std::vector<float> exs;
-//       std::vector<float> eys;
-//       std::vector<float> status;
-
-//       // add the positions of all hits in a chamber
-//       for (int l=1; l<=6; l++){
-//         CSCDetId l_id(chamberId.endcap(), chamberId.station(),
-//                       chamberId.ring(), chamberId.chamber(), l);
-//         for (const auto& p: hitsInDetId(l_id.rawId())) {
-//           //std::cout <<"layerId "<< l_id;
-//           const LocalPoint& lp = p.entryPoint();
-//           //std::cout <<" localPoint (x,y): "<<lp.x()<<" "<< lp.y();
-//           const GlobalPoint& gp = cscGeometry_->idToDet(p.detUnitId())->surface().toGlobal(lp);
-//           // std::cout <<" gp (x,y,z) "<< gp.x()<<" "<< gp.y()<<" "<< gp.z()<< std::endl;
-//           zs.push_back(gp.z());
-//           xs.push_back(gp.x());
-//           ys.push_back(gp.y());
-//           ezs.push_back(0);
-//           exs.push_back(0);
-//           eys.push_back(0);
-//         }
-//       }
-//       // fit a straight line through the hits (bending is negligible
-//       //std::cout <<"size "<<zs.size()<<" xs[0] "<< xs[0] <<" ys[0] "<< ys[0]<<" zs[0] "<< zs[0] << std::endl;
-//       float alphax = -99., betax = 0.;
-//       PtassignmentHelper::calculateAlphaBeta(zs, xs, ezs, exs, status,
-//      		     alphax, betax);
-//       float alphay = -99., betay = 0.;
-//       PtassignmentHelper::calculateAlphaBeta(zs, ys, ezs, exs, status,
-//     		     alphay, betay);
-//       if(std::abs(betax)>0.0 and std::abs(betay)>0.0){
-//         float z_pos_L3 = cscGeometry_->layer(keyLayerId)->centerOfStrip(20).z();
-//         float x_pos_L3 = alphax + betax * z_pos_L3;
-//         float y_pos_L3 = alphay + betay * z_pos_L3;
-//         returnValue =  GlobalPoint(x_pos_L3, y_pos_L3, z_pos_L3);
-// 	//std::cout <<"return gp of keylayer at sim level, id "<<  chamberId <<" z "<< z_pos_L3 <<" perp "<< returnValue.perp()<< std::endl;
-//       }
-//       else{
-//         returnValue = simHitsMeanPosition(hitsInChamber(chid));
-//       }
-//     }
-//   }
-
-// 	//GlobalPoint gptest(simHitsMeanPosition(hitsInChamber(chid)));
-// 	//std::cout <<"as comparison, gp from MeanPosition, id  "<< chamberId <<" z "<< gptest.z()<<" perp "<< gptest.perp() << std::endl;
-//   //std::cout <<"final return gp of keylayer at sim level, id "<< chamberId <<" z "<< returnValue.z() <<" perp "<< returnValue.perp() <<" eta "<< returnValue.eta()<<" phi "<< returnValue.phi() << std::endl;
-//   return returnValue;
-// }
-
 
 GlobalVector
 MuonHitMatcher::simHitsMeanMomentum(const edm::PSimHitContainer& sim_hits) const

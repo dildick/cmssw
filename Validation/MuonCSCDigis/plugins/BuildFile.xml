@@ -1,5 +1,6 @@
 <library   file="Module.cc" name="ValidationMuonCSCDigisPlugin">
   <use   name="FWCore/Framework"/>
   <use   name="Validation/MuonCSCDigis"/>
+  <use   name="Validation/MuonHits"/>
   <flags   EDM_PLUGIN="1"/>
 </library>

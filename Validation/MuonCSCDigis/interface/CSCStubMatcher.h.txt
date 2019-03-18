@@ -3,8 +3,9 @@
 
 /**\class CSCStubMatcher
 
- Description: Matching of CSC L1 trigger stubs to SimTrack
+   Description: Matching of CSC L1 trigger stubs to SimTrack
 
+   Author: Sven Dildick (TAMU), Tao Huang (TAMU)
 */
 
 #include "Validation/MuonCSCDigis/interface/CSCDigiMatcher.h"
