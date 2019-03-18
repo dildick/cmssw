@@ -12,4 +12,5 @@
 <use   name="rootcore"/>
 <use   name="root"/>
 <use   name="FWCore/Utilities"/>
+<use   name="Validation/MuonHits"/>
 <flags   EDM_PLUGIN="1"/>
