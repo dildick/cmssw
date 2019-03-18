@@ -1,42 +1,44 @@
-#include "Validation/MuonGEMDigis/interface/GEMDigiTrackMatch.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "DataFormats/Common/interface/Handle.h"
+#include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 #include "DQMServices/Core/interface/DQMStore.h"
 #include <TMath.h>
 #include <TH1F.h>
+#include "Validation/MuonGEMDigis/interface/GEMDigiTrackMatch.h"
 #include "Validation/MuonGEMHits/interface/GEMDetLabel.h"
 
 using namespace std;
 using namespace GEMDetLabel;
-GEMDigiTrackMatch::GEMDigiTrackMatch(const edm::ParameterSet& ps) : GEMTrackMatch(ps)
+
+GEMDigiTrackMatch::GEMDigiTrackMatch(const edm::ParameterSet& ps)
+  : GEMTrackMatch(ps)
 {
   std::string simInputLabel_ = ps.getUntrackedParameter<std::string>("simInputLabel");
   simHitsToken_ = consumes<edm::PSimHitContainer>(edm::InputTag(simInputLabel_,"MuonGEMHits"));
   simTracksToken_ = consumes< edm::SimTrackContainer >(ps.getParameter<edm::InputTag>("simTrackCollection"));
   simVerticesToken_ = consumes< edm::SimVertexContainer >(ps.getParameter<edm::InputTag>("simVertexCollection"));
 
-  gem_digiToken_ = consumes<GEMDigiCollection>(ps.getParameter<edm::InputTag>("gemDigiInput"));
-  gem_padToken_  = consumes<GEMPadDigiCollection>(ps.getParameter<edm::InputTag>("gemPadDigiInput"));
-  gem_copadToken_ = consumes<GEMCoPadDigiCollection>(ps.getParameter<edm::InputTag>("gemCoPadDigiInput")); 
-  detailPlot_ = ps.getParameter<bool>("detailPlot");
   cfg_ = ps;
+
+  muonHitMatcher_.reset(new MuonHitMatcher(ps, consumesCollector()));
+  gemDigiMatcher_.reset(new GEMDigiMatcher(ps, consumesCollector()));
 }
 
-void GEMDigiTrackMatch::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& run, edm::EventSetup const & iSetup){
-
-  edm::ESHandle<GEMGeometry> hGeom;
+void GEMDigiTrackMatch::bookHistograms(DQMStore::IBooker& ibooker, edm::Run const& run, edm::EventSetup const & iSetup)
+{
   iSetup.get<MuonGeometryRecord>().get(hGeom);
-  const GEMGeometry& geom = *hGeom;
-  setGeometry(geom);
-    
+  geom = &*hGeom;
+  setGeometry(*geom);
+
   ibooker.setCurrentFolder("MuonGEMDigisV/GEMDigisTask");
   LogDebug("GEMDigiTrackMatch")<<"ibooker set current folder\n";
 
   const float PI=TMath::Pi();
 
-  nstation = geom.regions()[0]->stations().size();
-  if ( detailPlot_) { 
+  nstation = geom->regions()[0]->stations().size();
+  if ( detailPlot_) {
     for( unsigned int j=0 ; j<nstation ; j++) {
       string track_eta_name  = string("track_eta")+s_suffix[j];
       string track_eta_title = string("track_eta")+";SimTrack |#eta|;# of tracks";
@@ -96,100 +98,88 @@ GEMDigiTrackMatch::~GEMDigiTrackMatch() {  }
 
 void GEMDigiTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  edm::ESHandle<GEMGeometry> hGeom;
-  iSetup.get<MuonGeometryRecord>().get(hGeom);
-  const GEMGeometry& geom = *hGeom;
+  // match simhits and digis
+  muonHitMatcher_->init(iEvent, iSetup);
+  gemDigiMatcher_->init(iEvent, iSetup);
 
   edm::Handle<edm::PSimHitContainer> simhits;
   edm::Handle<edm::SimTrackContainer> sim_tracks;
   edm::Handle<edm::SimVertexContainer> sim_vertices;
+
   iEvent.getByToken(simHitsToken_, simhits);
   iEvent.getByToken(simTracksToken_, sim_tracks);
   iEvent.getByToken(simVerticesToken_, sim_vertices);
+
+  const edm::SimVertexContainer& sim_vert = *sim_vertices.product();
+  const edm::SimTrackContainer& sim_trks = *sim_tracks.product();
+
   if ( !simhits.isValid() || !sim_tracks.isValid() || !sim_vertices.isValid()) return;
 
-  if ( detailPlot_) {
+  MySimTrack track_;
+  for (const auto& t: sim_trks) {
 
-    edm::Handle<edm::PSimHitContainer> simhits;
-    edm::Handle<edm::SimTrackContainer> sim_tracks;
-    edm::Handle<edm::SimVertexContainer> sim_vertices;
-    iEvent.getByToken(simHitsToken_, simhits);
-    iEvent.getByToken(simTracksToken_, sim_tracks);
-    iEvent.getByToken(simVerticesToken_, sim_vertices);
-    if ( !simhits.isValid() || !sim_tracks.isValid() || !sim_vertices.isValid()) return;
+    if (!isSimTrackGood(t)) {
+      continue;
+    }
 
-    //const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
-    const edm::SimTrackContainer & sim_trks = *sim_tracks.product();
-    MySimTrack track_; 
-    for (auto& t: sim_trks)
-    {
-      if (!isSimTrackGood(t)) 
-      { continue; } 
+    // match hits and digis to this SimTrack
+    muonHitMatcher_->match(t, sim_vert[t.vertIndex()]);
+    gemDigiMatcher_->match(t, sim_vert[t.vertIndex()]);
 
-      // match hits and digis to this SimTrack
+    track_.pt = t.momentum().pt();
+    track_.phi = t.momentum().phi();
+    track_.eta = t.momentum().eta();
+    std::fill( std::begin(track_.hitOdd), std::end(track_.hitOdd),false);
+    std::fill( std::begin(track_.hitEven), std::end(track_.hitEven),false);
 
-      const SimHitMatcher& match_sh = SimHitMatcher( t, iEvent, geom, cfg_, simHitsToken_, simTracksToken_, simVerticesToken_);
-      const GEMDigiMatcher& match_gd = GEMDigiMatcher( match_sh, iEvent, geom, cfg_ ,gem_digiToken_, gem_padToken_, gem_copadToken_);
-
-      track_.pt = t.momentum().pt();
-      track_.phi = t.momentum().phi();
-      track_.eta = t.momentum().eta();
-      std::fill( std::begin(track_.hitOdd), std::end(track_.hitOdd),false);
-      std::fill( std::begin(track_.hitEven), std::end(track_.hitEven),false);
-
-      for ( int i= 0 ; i< 3 ; i++) {
-        for ( int j= 0 ; j<2 ; j++) {
-          track_.gem_sh[i][j]  = false;
-          track_.gem_dg[i][j]  = false;
-          track_.gem_pad[i][j] = false;
-        }
+    for ( int i= 0 ; i< 3 ; i++) {
+      for ( int j= 0 ; j<2 ; j++) {
+        track_.gem_sh[i][j]  = false;
+        track_.gem_dg[i][j]  = false;
+        track_.gem_pad[i][j] = false;
       }
+    }
 
-      // ** GEM SimHits ** //
-      const auto gem_sh_ids_ch = match_sh.chamberIdsGEM();
-      for(auto d: gem_sh_ids_ch)
-      {
-        const GEMDetId id(d);
-        if ( id.chamber() %2 ==0 ) track_.hitEven[id.station()-1] = true;
-        else if ( id.chamber() %2 ==1 ) track_.hitOdd[id.station()-1] = true;
-        else { std::cout<<"Error to get chamber id"<<std::endl;}
+    // ** GEM SimHits ** //
+    const auto& gem_sh_ids_ch = muonHitMatcher_->chamberIdsGEM();
+    for(const auto& d: gem_sh_ids_ch) {
+      const GEMDetId id(d);
+      if ( id.chamber() %2 ==0 ) track_.hitEven[id.station()-1] = true;
+      else if ( id.chamber() %2 ==1 ) track_.hitOdd[id.station()-1] = true;
+      else { std::cout<<"Error to get chamber id"<<std::endl;}
 
-        track_.gem_sh[ id.station()-1][ (id.layer()-1)] = true;
-
-      }
-      // ** GEM Digis, Pads and CoPads ** //
-      const auto gem_dg_ids_ch = match_gd.chamberIds();
-
-      for(auto d: gem_dg_ids_ch)
-      {
-        const GEMDetId id(d);
-        track_.gem_dg[ id.station()-1][ (id.layer()-1)] = true;
-      }
-      const auto gem_pad_ids_ch = match_gd.chamberIdsWithPads();
-      for(auto d: gem_pad_ids_ch)
-      {
-        const GEMDetId id(d);
-        track_.gem_pad[ id.station()-1][ (id.layer()-1)] = true;
-      }
-
-
-      FillWithTrigger( track_eta, fabs(track_.eta)) ;
-      FillWithTrigger( track_phi, fabs(track_.eta), track_.phi, track_.hitOdd, track_.hitEven);
-
-
-      FillWithTrigger( dg_sh_eta, track_.gem_sh  , fabs( track_.eta) );
-      FillWithTrigger( dg_eta,    track_.gem_dg  , fabs( track_.eta) );
-      FillWithTrigger( pad_eta,   track_.gem_pad , fabs( track_.eta) );
-      FillWithTrigger( copad_eta,   track_.gem_pad , fabs( track_.eta) );
-
-      // Separate station.
-
-      FillWithTrigger( dg_sh_phi, track_.gem_sh  ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
-      FillWithTrigger( dg_phi,    track_.gem_dg  ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
-      FillWithTrigger( pad_phi,   track_.gem_pad ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
-      FillWithTrigger( copad_phi,   track_.gem_pad ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
-
+      track_.gem_sh[ id.station()-1][ (id.layer()-1)] = true;
 
     }
+
+    // ** GEM Digis, Pads and CoPads ** //
+    const auto& gem_dg_ids_ch = gemDigiMatcher_->chamberIdsDigi();
+    for(const auto& d: gem_dg_ids_ch) {
+      const GEMDetId id(d);
+      track_.gem_dg[ id.station()-1][ (id.layer()-1)] = true;
+    }
+
+    const auto& gem_pad_ids_ch = gemDigiMatcher_->chamberIdsPad();
+    for(const auto& d: gem_pad_ids_ch) {
+      const GEMDetId id(d);
+      track_.gem_pad[ id.station()-1][ (id.layer()-1)] = true;
+    }
+
+
+    FillWithTrigger( track_eta, fabs(track_.eta)) ;
+    FillWithTrigger( track_phi, fabs(track_.eta), track_.phi, track_.hitOdd, track_.hitEven);
+
+
+    FillWithTrigger( dg_sh_eta, track_.gem_sh  , fabs( track_.eta) );
+    FillWithTrigger( dg_eta,    track_.gem_dg  , fabs( track_.eta) );
+    FillWithTrigger( pad_eta,   track_.gem_pad , fabs( track_.eta) );
+    FillWithTrigger( copad_eta,   track_.gem_pad , fabs( track_.eta) );
+
+    // Separate station.
+
+    FillWithTrigger( dg_sh_phi, track_.gem_sh  ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
+    FillWithTrigger( dg_phi,    track_.gem_dg  ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
+    FillWithTrigger( pad_phi,   track_.gem_pad ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
+    FillWithTrigger( copad_phi,   track_.gem_pad ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
   }
 }

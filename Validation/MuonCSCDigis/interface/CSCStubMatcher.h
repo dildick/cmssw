@@ -25,27 +25,25 @@ public:
 
   CSCStubMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
 
-  ~CSCStubMatcher();
-
-  ~SimHitMatcher();
+  ~CSCStubMatcher() {}
 
   /// initialize the event
-  init(const edm::Event& e, const edm::EventSetup& eventSetup);
+  void init(const edm::Event& e, const edm::EventSetup& eventSetup);
 
   /// do the matching
   void match(const SimTrack& t, const SimVertex& v);
 
   /// crossed chamber detIds with not necessarily matching stubs
-  std::set<unsigned int> chamberIdsAllCLCT(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsAllALCT(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsAllLCT(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsAllMPLCT(int csc_type = CSC_ALL) const;
+  std::set<unsigned int> chamberIdsAllCLCT(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsAllALCT(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsAllLCT(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsAllMPLCT(int csc_type = MuonHitHelper::CSC_ALL) const;
 
   /// chamber detIds with matching stubs
-  std::set<unsigned int> chamberIdsCLCT(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsALCT(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsLCT(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsMPLCT(int csc_type = CSC_ALL) const;
+  std::set<unsigned int> chamberIdsCLCT(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsALCT(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsLCT(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsMPLCT(int csc_type = MuonHitHelper::CSC_ALL) const;
 
   /// all stubs (not necessarily matching) from a particular crossed chamber
   const CSCCLCTDigiContainer& allCLCTsInChamber(unsigned int) const;
@@ -95,9 +93,20 @@ private:
   void matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection&);
   void matchMPLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection&);
 
-  std::unique_ptr<CSCDigiMatcher> csc_digi_matcher_;
-  std::unique_ptr<GEMDigiMatcher> gem_digi_matcher_;
-  std::unique_ptr<CSCGeometry> csc_geometry_;
+  edm::EDGetTokenT<CSCCLCTDigiCollection> clctToken_;
+  edm::EDGetTokenT<CSCALCTDigiCollection> alctToken_;
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lctToken_;
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> mplctToken_;
+
+  edm::Handle<CSCCLCTDigiCollection> clctsH_;
+  edm::Handle<CSCALCTDigiCollection> alctsH_;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lctsH_;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> mplctsH_;
+
+  std::unique_ptr<CSCDigiMatcher> cscDigiMatcher_;
+  std::unique_ptr<GEMDigiMatcher> gemDigiMatcher_;
+
+  const CSCGeometry* csc_geometry_;
 
   // all stubs (not necessarily matching) in crossed chambers with digis
   std::map<unsigned int, CSCCLCTDigiContainer> chamber_to_clcts_all_;
@@ -150,7 +159,7 @@ CSCStubMatcher::selectDetIds(D &digis, int csc_type) const
     if (csc_type > 0)
     {
       CSCDetId detId(id);
-      if (gemvalidation::toCSCType(detId.station(), detId.ring()) != csc_type) continue;
+      if (MuonHitHelper::toCSCType(detId.station(), detId.ring()) != csc_type) continue;
     }
     result.insert(p.first);
   }

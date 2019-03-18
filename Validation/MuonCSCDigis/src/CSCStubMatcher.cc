@@ -1,15 +1,10 @@
-#include "GEMCode/GEMValidation/interface/CSCStubMatcher.h"
+#include "Validation/MuonCSCDigis/interface/CSCStubMatcher.h"
 
 #include <algorithm>
 
 using namespace std;
 
-
-CSCStubMatcher(const edm::Event& iEvent, const edm::EventSetup& iEventSetup,
-               const edm::ParameterSet& pSet, edm::ConsumesCollector && iC
-               const CSCDigiMatcher& csc_dg, const GEMDigiMatcher& gem_dg) :
-  csc_digi_matcher_(&csc_dg)
-  , gem_digi_matcher_(&gem_dg)
+CSCStubMatcher::CSCStubMatcher(const edm::ParameterSet& pSet, edm::ConsumesCollector && iC)
 {
   const auto& cscCLCT = pSet.getParameter<edm::ParameterSet>("cscCLCT");
   minBXCLCT_ = cscCLCT.getParameter<int>("minBX");
@@ -36,31 +31,43 @@ CSCStubMatcher(const edm::Event& iEvent, const edm::EventSetup& iEventSetup,
   verboseMPLCT_ = cscMPLCT.getParameter<int>("verbose");
   minNHitsChamberMPLCT_ = cscMPLCT.getParameter<int>("minNHitsChamber");
 
-  edm::EDGetTokenT<CSCCLCTDigiCollection> clctToken = iC.consumes<CSCCLCTDigiCollection>(cscCLCT.getInputTag("inputTag"));
-  edm::EDGetTokenT<CSCALCTDigiCollection> alctToken  = iC.consumes<CSCCLCTDigiCollection>(cscALCT.getInputTag("inputTag"));
-  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lctToken  = iC.consumes<CSCCorrelatedLCTDigiCollection>(cscLCT.getInputTag("inputTag"));
-  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> mplctToken = iC.consumes<CSCCorrelatedLCTDigiCollection>(cscMPLCT.getInputTag("inputTag"));
+  gemDigiMatcher_.reset(new GEMDigiMatcher(pSet, std::move(iC)));
+  cscDigiMatcher_.reset(new CSCDigiMatcher(pSet, std::move(iC)));
 
-  edm::Handle<CSCCLCTDigiCollection> clcts;
-  iEvent.getByToken(clctToken, clcts);
-  matchCLCTsToSimTrack(*clcts.product());
-
-  edm::Handle<CSCALCTDigiCollection> alcts;
-  iEvent.getByToken(alctToken, alcts);
-  matchALCTsToSimTrack(*alcts.product());
-
-  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts;
-  iEvent.getByToken(lctToken, lcts);
-  matchLCTsToSimTrack(*lcts.product());
-
-  edm::Handle<CSCCorrelatedLCTDigiCollection> mplcts;
-  iEvent.getByToken(mplctToken, mplcts);
-  matchMPLCTsToSimTrack(*mplcts.product());
+  clctToken_ = iC.consumes<CSCCLCTDigiCollection>(cscCLCT.getInputTag("inputTag"));
+  alctToken_  = iC.consumes<CSCCLCTDigiCollection>(cscALCT.getInputTag("inputTag"));
+  lctToken_  = iC.consumes<CSCCorrelatedLCTDigiCollection>(cscLCT.getInputTag("inputTag"));
+  mplctToken_ = iC.consumes<CSCCorrelatedLCTDigiCollection>(cscMPLCT.getInputTag("inputTag"));
 }
 
 
-CSCStubMatcher::~CSCStubMatcher() {}
+void CSCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+  gemDigiMatcher_->init(iEvent, iSetup);
+  cscDigiMatcher_->init(iEvent, iSetup);
 
+  iEvent.getByToken(clctToken_, clctsH_);
+  iEvent.getByToken(alctToken_, alctsH_);
+  iEvent.getByToken(lctToken_, lctsH_);
+  iEvent.getByToken(mplctToken_, mplctsH_);
+
+/// do the matching
+void CSCDigiMatcher::match(const SimTrack& t, const SimVertex& v)
+{
+  // match simhits first
+  gemDigiMatcher_->match(t,v);
+  cscDigiMatcher_->match(t,v);
+
+  const CSCCLCTDigiCollection& clcts = *clctsH_.product();
+  const CSCALCTDigiCollection& alcts = *alctsH_.product();
+  const CSCCorrelatedLCTDigiCollection& lcts = *lctsH_.product();
+  const CSCCorrelatedLCTDigiCollection& mplcts = *mplctsH_.product();
+
+  matchCLCTsToSimTrack(clcts);
+  matchALCTsToSimTrack(alcts);
+  matchLCTsToSimTrack(lcts);
+  matchMPLCTsToSimTrack(mplcts);
+}
 
 void
 CSCStubMatcher::matchCLCTsToSimTrack(const CSCCLCTDigiCollection& clcts)
@@ -74,7 +81,7 @@ CSCStubMatcher::matchCLCTsToSimTrack(const CSCCLCTDigiCollection& clcts)
     }
   }
 
-  const auto& cathode_ids = digi_matcher_->chamberIdsStrip(0);
+  const auto& cathode_ids = cscDigiMatcher_->chamberIdsStrip(0);
   int n_minLayers = 0;
   for (const auto& id: cathode_ids)
   {
@@ -82,13 +89,13 @@ CSCStubMatcher::matchCLCTsToSimTrack(const CSCCLCTDigiCollection& clcts)
     if (verbose()){
 	cout <<"To check CSC chamber "<< ch_id << endl;
     }
-    if (digi_matcher_->nLayersWithStripInChamber(id) >= minNHitsChamberCLCT_) ++n_minLayers;
+    if (cscDigiMatcher_->nLayersWithStripInChamber(id) >= minNHitsChamberCLCT_) ++n_minLayers;
 
     // fill 1 half-strip wide gaps
-    const auto& digi_strips = digi_matcher_->stripsInChamber(id, 1);
+    const auto& digi_strips = cscDigiMatcher_->stripsInChamber(id, 1);
     if (verbose())
     {
-      cout<<"clct: digi_strips "<<ch_id<<" Nlayers " << digi_matcher_->nLayersWithStripInChamber(id) <<" ";
+      cout<<"clct: digi_strips "<<ch_id<<" Nlayers " << cscDigiMatcher_->nLayersWithStripInChamber(id) <<" ";
       copy(digi_strips.begin(), digi_strips.end(), ostream_iterator<int>(cout, " ")); cout<<endl;
     }
 
@@ -157,15 +164,15 @@ CSCStubMatcher::matchCLCTsToSimTrack(const CSCCLCTDigiCollection& clcts)
 void
 CSCStubMatcher::matchALCTsToSimTrack(const CSCALCTDigiCollection& alcts)
 {
-  const auto& anode_ids = digi_matcher_->chamberIdsWire(0);
+  const auto& anode_ids = cscDigiMatcher_->chamberIdsWire(0);
   int n_minLayers = 0;
   for (const auto& id: anode_ids)
   {
-    if (digi_matcher_->nLayersWithWireInChamber(id) >= minNHitsChamberALCT_) ++n_minLayers;
+    if (cscDigiMatcher_->nLayersWithWireInChamber(id) >= minNHitsChamberALCT_) ++n_minLayers;
     CSCDetId ch_id(id);
 
     // fill 1 WG wide gaps
-    const auto& digi_wgs = digi_matcher_->wiregroupsInChamber(id, 1);
+    const auto& digi_wgs = cscDigiMatcher_->wiregroupsInChamber(id, 1);
     if (verbose())
     {
       cout<<"alct: digi_wgs "<<ch_id<<" ";
@@ -284,7 +291,7 @@ CSCStubMatcher::matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& lcts)
       // fixME here: double check the timing of GEMPad
       if (ch_id.ring()==1 and (ch_id.station()==1 or ch_id.station()==2)) {
         const GEMDetId gemDetIdL1(ch_id.zendcap(),1,ch_id.station(),1,ch_id.chamber(),0);
-        for (const auto& p: gem_digi_matcher_->gemPadsInChamber(gemDetIdL1.rawId())){
+        for (const auto& p: gemDigiMatcher_->gemPadsInChamber(gemDetIdL1.rawId())){
           if (p==lct.getGEM1()){
             lct_gem1_match = true;
             if (verbose()) cout<<" LCT matched to GEML1 "<< p <<endl;
@@ -293,7 +300,7 @@ CSCStubMatcher::matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& lcts)
         }
         const GEMDetId gemDetIdL2(ch_id.zendcap(),1,ch_id.station(),2,ch_id.chamber(),0);
         // Check if matched to an GEM pad L2
-        for (const auto& p: gem_digi_matcher_->gemPadsInChamber(gemDetIdL2.rawId())){
+        for (const auto& p: gemDigiMatcher_->gemPadsInChamber(gemDetIdL2.rawId())){
           if (p==lct.getGEM2()){
             lct_gem2_match = true;
             if (verbose()) cout<<" LCT matched to GEML2 "<< p <<endl;
