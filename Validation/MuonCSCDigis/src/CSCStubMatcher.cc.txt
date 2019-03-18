@@ -584,7 +584,7 @@ CSCStubMatcher::lctInChamber(const CSCDetId& id, const CSCCorrelatedLCTDigi& lct
 GlobalPoint
 CSCStubMatcher::getGlobalPosition(unsigned int rawId, const CSCCorrelatedLCTDigi& lct) const
 {
-  // taken from https://github.com/cms-sw/cmssw/blob/dc9f78b6af4ad56c9342cf14041b6485a60b0691/L1Trigger/CSCTriggerPrimitives/src/CSCMotherboardME11GEM.cc
+  // taken from https://github.com/cms-sw/cmssw/blob/dc9f78b6af4ad56c9342cf14041b6485a60b0691/L1Trigger/CSCTriggerPrimitives/interface/CSCMotherboardME11GEM.cc
   CSCDetId cscId = CSCDetId(rawId);
   CSCDetId key_id(cscId.endcap(), cscId.station(), cscId.ring(),
                   cscId.chamber(), CSCConstants::KEY_CLCT_LAYER);

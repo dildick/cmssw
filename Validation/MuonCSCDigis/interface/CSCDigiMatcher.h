@@ -6,7 +6,7 @@
    Description: Matching of Digis to SimTrack in CSC
 */
 
-#include "Validation/MuonHits/interface/SimHitMatcher.h"
+#include "Validation/MuonHits/interface/MuonHitMatcher.h"
 #include "DataFormats/CSCDigi/interface/CSCComparatorDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCStripDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCWireDigiCollection.h"
@@ -19,7 +19,7 @@ typedef std::vector<std::pair<unsigned int, CSCComparatorDigi> > CSCComparatorDi
 typedef std::vector<std::pair<unsigned int, CSCStripDigi> > CSCStripDigiDetIdContainer;
 typedef std::vector<std::pair<unsigned int, CSCWireDigi> > CSCWireDigiDetIdContainer;
 
-class SimHitMatcher;
+class MuonHitMatcher;
 
 class CSCDigiMatcher
 {
@@ -27,25 +27,23 @@ public:
 
   CSCDigiMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
 
-  ~CSCDigiMatcher();
-
-  ~SimHitMatcher();
+  ~CSCDigiMatcher() {}
 
   /// initialize the event
-  init(const edm::Event& e, const edm::EventSetup& eventSetup);
+  void init(const edm::Event& e, const edm::EventSetup& eventSetup);
 
   /// do the matching
   void match(const SimTrack& t, const SimVertex& v);
 
   /// layer detIds with digis
-  std::set<unsigned int> detIdsComparator(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> detIdsStrip(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> detIdsWire(int csc_type = CSC_ALL) const;
+  std::set<unsigned int> detIdsComparator(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> detIdsStrip(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> detIdsWire(int csc_type = MuonHitHelper::CSC_ALL) const;
 
   /// chamber detIds with digis
-  std::set<unsigned int> chamberIdsComparator(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsStrip(int csc_type = CSC_ALL) const;
-  std::set<unsigned int> chamberIdsWire(int csc_type = CSC_ALL) const;
+  std::set<unsigned int> chamberIdsComparator(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsStrip(int csc_type = MuonHitHelper::CSC_ALL) const;
+  std::set<unsigned int> chamberIdsWire(int csc_type = MuonHitHelper::CSC_ALL) const;
 
   /// CSC strip digis from a particular layer or chamber
   const CSCComparatorDigiContainer& comparatorDigisInDetId(unsigned int) const;
@@ -83,7 +81,15 @@ public:
 
 private:
 
-  const SimHitMatcher& sh,
+  edm::EDGetTokenT<CSCComparatorDigiCollection> comparatorDigiInput_;
+  edm::EDGetTokenT<CSCStripDigiCollection> stripDigiInput_;
+  edm::EDGetTokenT<CSCWireDigiCollection> wireDigiInput_;
+
+  edm::Handle<CSCComparatorDigiCollection> comparatorDigisH_;
+  edm::Handle<CSCStripDigiCollection> stripDigisH_;
+  edm::Handle<CSCWireDigiCollection> wireDigisH_;
+
+  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
 
   void matchComparatorsToSimTrack(const CSCComparatorDigiCollection& comparators);
   void matchStripsToSimTrack(const CSCStripDigiCollection& strips);
@@ -92,8 +98,8 @@ private:
   template <class T>
   std::set<unsigned int> selectDetIds(const T &digis, int csc_type) const;
 
-  int minBXComp_, maxBXComp_;
-  int minBXComp_, maxBXComp_;
+  int minBXComparator_, maxBXComparator_;
+  int minBXStrip_, maxBXStrip_;
   int minBXWire_, maxBXWire_;
 
   int matchDeltaComparator_;
@@ -122,16 +128,14 @@ template <class T>
 std::set<unsigned int> CSCDigiMatcher::selectDetIds(const T &digis, int csc_type) const
 {
   std::set<unsigned int> result;
-  for (const auto& p: digis)
-    {
-      const auto& id = p.first;
-      if (csc_type > 0)
-        {
-          CSCDetId detId(id);
-          if (gemvalidation::toCSCType(detId.station(), detId.ring()) != csc_type) continue;
-        }
-      result.insert(p.first);
+  for (const auto& p: digis) {
+    const auto& id = p.first;
+    if (csc_type > 0) {
+      CSCDetId detId(id);
+      if (MuonHitHelper::toCSCType(detId.station(), detId.ring()) != csc_type) continue;
     }
+    result.insert(p.first);
+  }
   return result;
 }
 

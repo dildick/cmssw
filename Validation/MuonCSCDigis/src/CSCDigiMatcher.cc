@@ -3,90 +3,102 @@
 
 using namespace std;
 
-CSCDigiMatcher::CSCDigiMatcher(const edm::Event&, const edm::EventSetup&,
-                               edm::ParameterSet const& iPS, edm::ConsumesCollector && iC,
-                               const SimHitMatcher& sh)
+CSCDigiMatcher::CSCDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesCollector && iC)
 {
-  const auto& wireDigi = cfg.getParameterSet("cscWireDigi");
+  const auto& wireDigi = pset.getParameterSet("cscWireDigi");
   verboseWG_ = wireDigi.getParameter<int>("verbose");
   minBXWire_ = wireDigi.getParameter<int>("minBX");
   maxBXWire_ = wireDigi.getParameter<int>("maxBX");
   matchDeltaWG_ = wireDigi.getParameter<int>("matchDeltaWG");
 
-  const auto& cscComparatorDigi = cfg.getParameterSet("cscComparatorDigi");
-  verboseWG_ = cscComparatorDigi.getParameter<int>("verbose");
-  minBXComparator_ = cscComparatorDigi.getParameter<int>("minBX");
-  maxBXComparator_ = cscComparatorDigi.getParameter<int>("maxBX");
-  matchDeltaComparator_ = cscComparatorDigi.getParameter<int>("matchDeltaWG");
+  const auto& comparatorDigi = pset.getParameterSet("cscComparatorDigi");
+  verboseWG_ = comparatorDigi.getParameter<int>("verbose");
+  minBXComparator_ = comparatorDigi.getParameter<int>("minBX");
+  maxBXComparator_ = comparatorDigi.getParameter<int>("maxBX");
+  matchDeltaComparator_ = comparatorDigi.getParameter<int>("matchDeltaWG");
 
-  const auto& cscStripDigi = cfg.getParameterSet("cscStripDigi");
-  verboseStrip_ = cscStripDigi.getParameter<int>("verbose");
-  minBXComp_ = cscStripDigi.getParameter<int>("minBX");
-  maxBXComp_ = cscStripDigi.getParameter<int>("maxBX");
-  matchDeltaStrip_ = cscStripDigi.getParameter<int>("matchDeltaStrip");
+  const auto& stripDigi = pset.getParameterSet("cscStripDigi");
+  verboseStrip_ = stripDigi.getParameter<int>("verbose");
+  minBXStrip_ = stripDigi.getParameter<int>("minBX");
+  maxBXStrip_ = stripDigi.getParameter<int>("maxBX");
+  matchDeltaStrip_ = stripDigi.getParameter<int>("matchDeltaStrip");
 
-  const edm::EDGetTokenT<CSCComparatorDigiCollection>& cscComparatorDigiInput_;
-  const edm::EDGetTokenT<CSCStripDigiCollection>& cscStripDigiInput_;
-  const edm::EDGetTokenT<CSCWireDigiCollection>& wireDigiInput_;
+  // make a new simhits matcher
+  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
 
-  edm::Handle<CSCComparatorDigiCollection> comp_digis;
-  iEvent.getByToken(cscComparatorDigiInput_, comp_digis);
-  matchComparatorsToSimTrack(*comp_digis.product());
-
-  edm::Handle<CSCStripDigiCollection> strip_digis;
-  iEvent.getByToken(cscStripDigiInput_, strip_digis);
-  matchStripsToSimTrack(*strip_digis.product());
-
-  edm::Handle<CSCWireDigiCollection> wire_digis;
-  iEvent.getByToken(wireDigiInput_, wire_digis);
-  matchWiresToSimTrack(*wire_digis.product());
+  comparatorDigiInput_ = iC.consumes<CSCComparatorDigiCollection>(comparatorDigi.getParameter<edm::InputTag>("inputTag"));
+  stripDigiInput_ = iC.consumes<CSCStripDigiCollection>(stripDigi.getParameter<edm::InputTag>("inputTag"));
+  wireDigiInput_ = iC.consumes<CSCWireDigiCollection>(wireDigi.getParameter<edm::InputTag>("inputTag"));
 }
 
 
-CSCDigiMatcher::~CSCDigiMatcher() {}
+void CSCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+  muonHitMatcher_->init(iEvent, iSetup);
 
+  iEvent.getByToken(comparatorDigiInput_, comparatorDigisH_);
+  iEvent.getByToken(stripDigiInput_, stripDigisH_);
+  iEvent.getByToken(wireDigiInput_, wireDigisH_);
+}
+
+/// do the matching
+void CSCDigiMatcher::match(const SimTrack& t, const SimVertex& v)
+{
+  // match simhits first
+  muonHitMatcher_->match(t,v);
+
+  // get the digi collections
+  const CSCComparatorDigiCollection& comparators = *comparatorDigisH_.product();
+  const CSCStripDigiCollection& strips = *stripDigisH_.product();
+  const CSCWireDigiCollection& wires = *wireDigisH_.product();
+
+  // now match the digis
+  matchComparatorsToSimTrack(comparators);
+  matchStripsToSimTrack(strips);
+  matchWiresToSimTrack(wires);
+}
 
 void
 CSCDigiMatcher::matchComparatorsToSimTrack(const CSCComparatorDigiCollection& comparators)
 {
 
- for (auto detUnitIt= comparators.begin(); detUnitIt!= comparators.end(); ++detUnitIt){
-     const CSCDetId& id = (*detUnitIt).first;
-     const auto& range =(*detUnitIt).second;
-     for (auto digiIt =  range.first; digiIt!=range.second; ++digiIt){
-       if (id.station() == 1 and (id.ring() == 1 or id.ring() ==4 ))
-         if (verboseStrip_) cout <<"CSCid "<< id <<" Comparator digi (strip, comparator, Tbin ) "<< (*digiIt) << endl;
-     }
- }
+  for (auto detUnitIt= comparators.begin(); detUnitIt!= comparators.end(); ++detUnitIt){
+    const CSCDetId& id = (*detUnitIt).first;
+    const auto& range =(*detUnitIt).second;
+    for (auto digiIt =  range.first; digiIt!=range.second; ++digiIt){
+      if (id.station() == 1 and (id.ring() == 1 or id.ring() ==4 ))
+        if (verboseComparator_) cout <<"CSCid "<< id <<" Comparator digi (comparator, comparator, Tbin ) "<< (*digiIt) << endl;
+    }
+  }
 
-  const auto& det_ids = simhit_matcher_->detIdsCSC(0);
+  const auto& det_ids = muonHitMatcher_->detIdsCSC(0);
   for (const auto& id: det_ids)
   {
     CSCDetId layer_id(id);
 
-    const auto& hit_strips = simhit_matcher_->hitStripsInDetId(id, matchDeltaStrip_);
-    if (verboseStrip_)
+    const auto& hit_comparators = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
+    if (verboseComparator_)
     {
-      cout<<"hit_strips_fat, CSCid " << layer_id <<" ";
-      copy(hit_strips.begin(), hit_strips.end(), ostream_iterator<int>(cout, " "));
+      cout<<"hit_comparators_fat, CSCid " << layer_id <<" ";
+      copy(hit_comparators.begin(), hit_comparators.end(), ostream_iterator<int>(cout, " "));
       cout<<endl;
     }
 
     const auto& comp_digis_in_det = comparators.get(layer_id);
     for (auto c = comp_digis_in_det.first; c != comp_digis_in_det.second; ++c)
     {
-      if (verboseStrip_) cout<<"sdigi "<<layer_id<<" (strip, comparator, Tbin ) "<<*c<<endl;
+      if (verboseComparator_) cout<<"sdigi "<<layer_id<<" (comparator, comparator, Tbin ) "<<*c<<endl;
 
       // check that the first BX for this digi wasn't too early or too late
-      if (c->getTimeBin() < minBXCSCComp_ || c->getTimeBin() > maxBXCSCComp_) continue;
+      if (c->getTimeBin() < minBXComparator_ || c->getTimeBin() > maxBXComparator_) continue;
 
-      int strip = c->getStrip(); // strips are counted from 1
-      // check that it matches a strip that was hit by SimHits from our track
-      if (hit_strips.find(strip) == hit_strips.end()) continue;
+      int comparator = c->getStrip(); // comparators are counted from 1
+      // check that it matches a comparator that was hit by SimHits from our track
+      if (hit_comparators.find(comparator) == hit_comparators.end()) continue;
 
-      if (verboseStrip_) cout<< "Matched strip "<< *c << endl;
-      detid_to_halfstrips_[id].push_back(*c);
-      chamber_to_halfstrips_[ layer_id.chamberId().rawId() ].push_back(*c);
+      if (verboseComparator_) cout<< "Matched comparator "<< *c << endl;
+      detid_to_comparators_[id].push_back(*c);
+      chamber_to_comparators_[ layer_id.chamberId().rawId() ].push_back(*c);
     }
   }
 }
@@ -105,12 +117,12 @@ CSCDigiMatcher::matchStripsToSimTrack(const CSCStripDigiCollection& strips)
      }
  }
 
-  const auto& det_ids = simhit_matcher_->detIdsCSC(0);
+  const auto& det_ids = muonHitMatcher_->detIdsCSC(0);
   for (const auto& id: det_ids)
   {
     CSCDetId layer_id(id);
 
-    const auto& hit_strips = simhit_matcher_->hitStripsInDetId(id, matchDeltaStrip_);
+    const auto& hit_strips = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseStrip_)
     {
       cout<<"hit_strips_fat, CSCid " << layer_id <<" ";
@@ -138,12 +150,12 @@ CSCDigiMatcher::matchStripsToSimTrack(const CSCStripDigiCollection& strips)
 void
 CSCDigiMatcher::matchWiresToSimTrack(const CSCWireDigiCollection& wires)
 {
-  const auto& det_ids = simhit_matcher_->detIdsCSC(0);
+  const auto& det_ids = muonHitMatcher_->detIdsCSC(0);
   for (const auto& id: det_ids)
   {
     CSCDetId layer_id(id);
 
-    const auto& hit_wires = simhit_matcher_->hitWiregroupsInDetId(id, matchDeltaWG_);
+    const auto& hit_wires = muonHitMatcher_->hitWiregroupsInDetId(id, matchDeltaWG_);
     if (verboseWG_)
     {
       cout<<"hit_wires ";
@@ -155,7 +167,7 @@ CSCDigiMatcher::matchWiresToSimTrack(const CSCWireDigiCollection& wires)
     for (auto w = wire_digis_in_det.first; w != wire_digis_in_det.second; ++w)
     {
       // check that the first BX for this digi wasn't too early or too late
-      if (w->getTimeBin() < minBXCSCWire_ || w->getTimeBin() > maxBXCSCWire_) continue;
+      if (w->getTimeBin() < minBXWire_ || w->getTimeBin() > maxBXWire_) continue;
 
       int wg = w->getWireGroup(); // wiregroups are counted from 1
       // check that it matches a strip that was hit by SimHits from our track
@@ -190,6 +202,13 @@ CSCDigiMatcher::chamberIdsComparator(int csc_type) const
 
 
 std::set<unsigned int>
+CSCDigiMatcher::chamberIdsStrip(int csc_type) const
+{
+  return selectDetIds(chamber_to_strips_, csc_type);
+}
+
+
+std::set<unsigned int>
 CSCDigiMatcher::chamberIdsWire(int csc_type) const
 {
   return selectDetIds(chamber_to_wires_, csc_type);
@@ -199,7 +218,7 @@ CSCDigiMatcher::chamberIdsWire(int csc_type) const
 const CSCComparatorDigiContainer&
 CSCDigiMatcher::comparatorDigisInDetId(unsigned int detid) const
 {
-  if (detid_to_comparators_.find(detid) == detid_to_comparators_.end()) return no__strips_;
+  if (detid_to_comparators_.find(detid) == detid_to_comparators_.end()) return no_comparators_;
   return detid_to_comparators_.at(detid);
 }
 
@@ -207,7 +226,7 @@ CSCDigiMatcher::comparatorDigisInDetId(unsigned int detid) const
 const CSCComparatorDigiContainer&
 CSCDigiMatcher::comparatorDigisInChamber(unsigned int detid) const
 {
-  if (chamber_to_comparators_.find(detid) == chamber_to_comparators_.end()) return no__strips_;
+  if (chamber_to_comparators_.find(detid) == chamber_to_comparators_.end()) return no_comparators_;
   return chamber_to_comparators_.at(detid);
 }
 
@@ -215,7 +234,7 @@ CSCDigiMatcher::comparatorDigisInChamber(unsigned int detid) const
 const CSCStripDigiContainer&
 CSCDigiMatcher::stripDigisInDetId(unsigned int detid) const
 {
-  if (detid_to_strips_.find(detid) == detid_to_strips_.end()) return no__strips_;
+  if (detid_to_strips_.find(detid) == detid_to_strips_.end()) return no_strips_;
   return detid_to_strips_.at(detid);
 }
 
@@ -223,7 +242,7 @@ CSCDigiMatcher::stripDigisInDetId(unsigned int detid) const
 const CSCStripDigiContainer&
 CSCDigiMatcher::stripDigisInChamber(unsigned int detid) const
 {
-  if (chamber_to_strips_.find(detid) == chamber_to_strips_.end()) return no__strips_;
+  if (chamber_to_strips_.find(detid) == chamber_to_strips_.end()) return no_strips_;
   return chamber_to_strips_.at(detid);
 }
 
@@ -231,7 +250,7 @@ CSCDigiMatcher::stripDigisInChamber(unsigned int detid) const
 const CSCWireDigiContainer&
 CSCDigiMatcher::wireDigisInDetId(unsigned int detid) const
 {
-  if (detid_to_wires_.find(detid) == detid_to_wires_.end()) return no__wires_;
+  if (detid_to_wires_.find(detid) == detid_to_wires_.end()) return no_wires_;
   return detid_to_wires_.at(detid);
 }
 
@@ -239,7 +258,7 @@ CSCDigiMatcher::wireDigisInDetId(unsigned int detid) const
 const CSCWireDigiContainer&
 CSCDigiMatcher::wireDigisInChamber(unsigned int detid) const
 {
-  if (chamber_to_wires_.find(detid) == chamber_to_wires_.end()) return no__wires_;
+  if (chamber_to_wires_.find(detid) == chamber_to_wires_.end()) return no_wires_;
   return chamber_to_wires_.at(detid);
 }
 
@@ -247,42 +266,45 @@ CSCDigiMatcher::wireDigisInChamber(unsigned int detid) const
 int
 CSCDigiMatcher::nLayersWithComparatorInChamber(unsigned int detid) const
 {
-  set<int> layers_with_hits;
-  const auto& digis = comparatorDigisInChamber(detid);
-  for (const auto& d: digis)
-  {
-    CSCDetId idd(digi_id(d));
-    layers_with_hits.insert(idd.layer());
+  int nLayers;
+  CSCDetId chamberId(detid);
+  for (int i=1;i<=6;++i) {
+    CSCDetId layerId(chamberId.endcap(), chamberId.station(), chamberId.ring(), chamberId.chamber(), i);
+    if (!comparatorDigisInDetId(layerId.rawId()).empty()) {
+      nLayers++;
+    }
   }
-  return layers_with_hits.size();
+  return nLayers;
 }
 
 
 int
 CSCDigiMatcher::nLayersWithStripInChamber(unsigned int detid) const
 {
-  set<int> layers_with_hits;
-  const auto& digis = stripDigisInChamber(detid);
-  for (const auto& d: digis)
-  {
-    CSCDetId idd(digi_id(d));
-    layers_with_hits.insert(idd.layer());
+  int nLayers;
+  CSCDetId chamberId(detid);
+  for (int i=1;i<=6;++i) {
+    CSCDetId layerId(chamberId.endcap(), chamberId.station(), chamberId.ring(), chamberId.chamber(), i);
+    if (!stripDigisInDetId(layerId.rawId()).empty()) {
+      nLayers++;
+    }
   }
-  return layers_with_hits.size();
+  return nLayers;
 }
 
 
 int
 CSCDigiMatcher::nLayersWithWireInChamber(unsigned int detid) const
 {
-  set<int> layers_with_hits;
-  const auto& digis = wireDigisInChamber(detid);
-  for (const auto& d: digis)
-  {
-    CSCDetId idd(digi_id(d));
-    layers_with_hits.insert(idd.layer());
+  int nLayers;
+  CSCDetId chamberId(detid);
+  for (int i=1;i<=6;++i) {
+    CSCDetId layerId(chamberId.endcap(), chamberId.station(), chamberId.ring(), chamberId.chamber(), i);
+    if (!wireDigisInDetId(layerId.rawId()).empty()) {
+      nLayers++;
+    }
   }
-  return layers_with_hits.size();
+  return nLayers;
 }
 
 
@@ -358,8 +380,38 @@ CSCDigiMatcher::wiregroupsInDetId(unsigned int detid) const
   const auto& digis = wireDigisInDetId(detid);
   for (const auto& d: digis)
   {
-    result.insert( d.getKeyWG() );
+    result.insert( d.getWireGroup() );
   }
+  return result;
+}
+
+
+std::set<int>
+CSCDigiMatcher::comparatorsInChamber(unsigned int detid, int max_gap_to_fill) const
+{
+  set<int> result;
+  const auto& digis = comparatorDigisInChamber(detid);
+  for (const auto& d: digis)
+  {
+    result.insert( d.getStrip() );
+  }
+  if (max_gap_to_fill > 0)
+  {
+    int prev = -111;
+    for (const auto& s: result)
+    {
+      //cout<<"gap "<<s<<" - "<<prev<<" = "<<s - prev<<"  added 0";
+      if (s - prev > 1 && s - prev - 1 <= max_gap_to_fill)
+      {
+        //int sz = result.size();
+        for (int fill_s = prev+1; fill_s < s; ++fill_s) result.insert(fill_s);
+        //cout<<result.size() - sz;
+      }
+      //cout<<" elems"<<endl;
+      prev = s;
+    }
+  }
+
   return result;
 }
 
@@ -371,7 +423,7 @@ CSCDigiMatcher::stripsInChamber(unsigned int detid, int max_gap_to_fill) const
   const auto& digis = stripDigisInChamber(detid);
   for (const auto& d: digis)
   {
-    result.insert( digi_channel(d) );
+    result.insert( d.getStrip() );
   }
   if (max_gap_to_fill > 0)
   {
@@ -400,7 +452,7 @@ CSCDigiMatcher::wiregroupsInChamber(unsigned int detid, int max_gap_to_fill) con
   const auto& digis = wireDigisInChamber(detid);
   for (const auto& d: digis)
   {
-    result.insert( digi_channel(d) );
+    result.insert( d.getWireGroup() );
   }
   if (max_gap_to_fill > 0)
   {
