@@ -236,13 +236,19 @@ private:
   edm::EDGetTokenT<edm::PSimHitContainer> me0SimHitInput_;
   edm::EDGetTokenT<edm::PSimHitContainer> dtSimHitInput_;
 
-  edm::Handle<edm::SimTrackContainer> simTracks;
-  edm::Handle<edm::SimVertexContainer> simVertices;
-  edm::Handle<edm::PSimHitContainer> dtHits_;
-  edm::Handle<edm::PSimHitContainer> rpcHits_;
-  edm::Handle<edm::PSimHitContainer> me0Hits_;
-  edm::Handle<edm::PSimHitContainer> gemHits_;
-  edm::Handle<edm::PSimHitContainer> cscHits_;
+  edm::Handle<edm::SimTrackContainer> simTracksH_;
+  edm::Handle<edm::SimVertexContainer> simVerticesH_;
+  edm::Handle<edm::PSimHitContainer> dtHitsH_;
+  edm::Handle<edm::PSimHitContainer> rpcHitsH_;
+  edm::Handle<edm::PSimHitContainer> me0HitsH_;
+  edm::Handle<edm::PSimHitContainer> gemHitsH_;
+  edm::Handle<edm::PSimHitContainer> cscHitsH_;
+
+  edm::ESHandle<CSCGeometry> csc_geom_;
+  edm::ESHandle<RPCGeometry> rpc_geom_;
+  edm::ESHandle<GEMGeometry> gem_geom_;
+  edm::ESHandle<ME0Geometry> me0_geom_;
+  edm::ESHandle<DTGeometry> dt_geom_;
 
   std::map<unsigned int, unsigned int> trkid_to_index_;
 
@@ -280,11 +286,11 @@ private:
   edm::ParameterSet simTrackPSet_;
   bool verboseSimTrack_;
 
-  std::unique_ptr<CSCGeometry> cscGeometry_;
-  std::unique_ptr<RPCGeometry> rpcGeometry_;
-  std::unique_ptr<GEMGeometry> gemGeometry_;
-  std::unique_ptr<ME0Geometry> me0Geometry_;
-  std::unique_ptr<DTGeometry> dtGeometry_;
+  const CSCGeometry* cscGeometry_;
+  const RPCGeometry* rpcGeometry_;
+  const GEMGeometry* gemGeometry_;
+  const ME0Geometry* me0Geometry_;
+  const DTGeometry* dtGeometry_;
 };
 
 #endif

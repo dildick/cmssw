@@ -10,7 +10,11 @@
 <use   name="Geometry/CSCGeometry"/>
 <use   name="Geometry/DTGeometry"/>
 <use   name="Geometry/RPCGeometry"/>
+<use   name="Geometry/GEMGeometry"/>
+<use   name="Geometry/ME0Geometry"/>
 <use   name="Geometry/Records"/>
+<use   name="SimDataFormats/TrackingHit"/>
+<use   name="SimDataFormats/Vertex"/>
 <use   name="root"/>
 <use   name="clhep"/>
 <flags   EDM_PLUGIN="1"/>

@@ -1,4 +1,4 @@
-#include "Validation/MuonHits/interface/Helper.h"
+#include "Validation/MuonHits/interface/MuonHitHelper.h"
 
 bool MuonHitHelper::isDT(unsigned int detId)
 {
