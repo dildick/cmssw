@@ -58,8 +58,8 @@ public:
   const CSCCorrelatedLCTDigiContainer& mplctsInChamber(unsigned int) const;
 
   /// all matching lcts
-  std::map<unsigned int, CSCCLCTDigiContainer> alcts() const { return chamber_to_alcts_; }
   std::map<unsigned int, CSCCLCTDigiContainer> clcts() const { return chamber_to_clcts_; }
+  std::map<unsigned int, CSCALCTDigiContainer> alcts() const { return chamber_to_alcts_; }
   std::map<unsigned int, CSCCorrelatedLCTDigiContainer> lcts() const { return chamber_to_lcts_; }
   std::map<unsigned int, CSCCorrelatedLCTDigiContainer> mplcts() const { return chamber_to_mplcts_; }
 
@@ -83,9 +83,6 @@ public:
   // get the position of an LCT in global coordinates
   GlobalPoint getGlobalPosition(unsigned int rawId, const CSCCorrelatedLCTDigi& lct) const;
 
-  // get the bending angle from the pattern number and bending bit
-  float getAverageBendingLCT(unsigned int rawId, const CSCCorrelatedLCTDigi& lct) const;
-
 private:
 
   void matchCLCTsToSimTrack(const CSCCLCTDigiCollection&);
@@ -106,7 +103,7 @@ private:
   std::unique_ptr<CSCDigiMatcher> cscDigiMatcher_;
   std::unique_ptr<GEMDigiMatcher> gemDigiMatcher_;
 
-  const CSCGeometry* csc_geometry_;
+  const CSCGeometry* cscGeometry_;
 
   // all stubs (not necessarily matching) in crossed chambers with digis
   std::map<unsigned int, CSCCLCTDigiContainer> chamber_to_clcts_all_;

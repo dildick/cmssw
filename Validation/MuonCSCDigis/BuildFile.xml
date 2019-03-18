@@ -1,4 +1,5 @@
 <use   name="Validation/MuonHits"/>
+<use   name="Validation/MuonGEMDigis"/>
 <use   name="DQMServices/Core"/>
 <use   name="DataFormats/CSCDigi"/>
 <use   name="DataFormats/GEMDigi"/>
