@@ -6,36 +6,53 @@
    Description: Matching of muon SimHit to SimTrack
 */
 
-#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+#include "FWCore/Framework/interface/Frameworkfwd.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
+
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
+
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
+#include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
+
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include "Geometry/GEMGeometry/interface/GEMGeometry.h"
+#include "Geometry/GEMGeometry/interface/ME0Geometry.h"
+#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
+#include "Geometry/CSCGeometry/interface/CSCLayerGeometry.h"
+#include "Geometry/DTGeometry/interface/DTGeometry.h"
+
+#include "Validation/MuonHits/interface/MuonHitHelper.h"
 
 #include <vector>
 #include <map>
 #include <set>
 
-class CSCGeometry;
-class GEMGeometry;
-class ME0Geometry;
-class RPCGeometry;
-class DTGeometry;
 
 class MuonHitMatcher
 {
 public:
 
   // constructor
-  MuonHitMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
+  MuonHitMatcher(const edm::ParameterSet& iPS, edm::ConsumesCollector && iC);
 
-  ~MuonHitMatcher();
+  ~MuonHitMatcher() {}
 
   /// initialize the event
-  init(const edm::Event& e, const edm::EventSetup& eventSetup);
+  void init(const edm::Event& e, const edm::EventSetup& eventSetup);
 
   /// do the matching
   void match(const SimTrack& t, const SimVertex& v);
 
   /// access to all the Muon SimHits (use MuonSubdetId::SubSystem)
-  const edm::PSimHitContainer& simHits(enum MuonType) const;
+  const edm::PSimHitContainer& simHits(int) const;
   /// access to all the GEM SimHits
   const edm::PSimHitContainer& simHitsGEM() const {return gem_hits_;}
   /// access to all the CSC SimHits
@@ -48,15 +65,15 @@ public:
   const edm::PSimHitContainer& simHitsDT() const {return dt_hits_;}
 
   /// GEM partitions' detIds with SimHits
-  std::set<unsigned int> detIdsGEM(int gem_type = GEM_ALL) const;
+  std::set<unsigned int> detIdsGEM(int gem_type = MuonHitHelper::GEM_ALL) const;
   /// ME0 partitions' detIds with SimHits
   std::set<unsigned int> detIdsME0() const;
   /// RPC partitions' detIds with SimHits
-  std::set<unsigned int> detIdsRPC(int rpc_type = RPC_ALL) const;
+  std::set<unsigned int> detIdsRPC(int rpc_type = MuonHitHelper::RPC_ALL) const;
   /// CSC layers' detIds with SimHits
-  std::set<unsigned int> detIdsCSC(int csc_type = CSC_ALL) const;
+  std::set<unsigned int> detIdsCSC(int csc_type = MuonHitHelper::CSC_ALL) const;
   /// DT partitions' detIds with SimHits
-  std::set<unsigned int> detIdsDT(int dt_type = DT_ALL) const;
+  std::set<unsigned int> detIdsDT(int dt_type = MuonHitHelper::DT_ALL) const;
 
   /// GEM detid's with hits in 2 layers of coincidence pads
   /// those are layer==1 only detid's
@@ -66,15 +83,15 @@ public:
   std::set<unsigned int> detIdsME0Coincidences(int min_n_layers = 2) const;
 
   /// GEM chamber detIds with SimHits
-  std::set<unsigned int> chamberIdsGEM(int gem_type = GEM_ALL) const;
+  std::set<unsigned int> chamberIdsGEM(int gem_type = MuonHitHelper::GEM_ALL) const;
   /// ME0 chamber detIds with SimHits
   std::set<unsigned int> chamberIdsME0() const;
   /// RPC chamber detIds with SimHits
-  std::set<unsigned int> chamberIdsRPC(int rpc_type = RPC_ALL) const;
+  std::set<unsigned int> chamberIdsRPC(int rpc_type = MuonHitHelper::RPC_ALL) const;
   /// CSC chamber detIds with SimHits
-  std::set<unsigned int> chamberIdsCSC(int csc_type = CSC_ALL) const;
+  std::set<unsigned int> chamberIdsCSC(int csc_type = MuonHitHelper::CSC_ALL) const;
   /// DT chamber detIds with SimHits
-  std::set<unsigned int> chamberIdsDT(int dt_type = DT_ALL) const;
+  std::set<unsigned int> chamberIdsDT(int dt_type = MuonHitHelper::DT_ALL) const;
 
   /// DT station detIds with SimHits
   std::set<unsigned int> chamberIdsCSCStation(int station) const;
@@ -178,8 +195,6 @@ public:
 
 private:
 
-  void init();
-
   std::vector<unsigned int> getIdsOfSimTrackShower(unsigned  trk_id,
       const edm::SimTrackContainer& simTracks, const edm::SimVertexContainer& simVertices);
 
@@ -201,7 +216,33 @@ private:
   bool discardEleHitsME0_;
   bool discardEleHitsDT_;
 
-  std::string simInputLabel_;
+  bool verboseGEM_;
+  bool verboseCSC_;
+  bool verboseRPC_;
+  bool verboseME0_;
+  bool verboseDT_;
+
+  bool hasGEMGeometry_;
+  bool hasRPCGeometry_;
+  bool hasME0Geometry_;
+  bool hasCSCGeometry_;
+  bool hasDTGeometry_;
+
+  edm::EDGetTokenT<edm::SimVertexContainer> simVertexInput_;
+  edm::EDGetTokenT<edm::SimTrackContainer> simTrackInput_;
+  edm::EDGetTokenT<edm::PSimHitContainer> gemSimHitInput_;
+  edm::EDGetTokenT<edm::PSimHitContainer> cscSimHitInput_;
+  edm::EDGetTokenT<edm::PSimHitContainer> rpcSimHitInput_;
+  edm::EDGetTokenT<edm::PSimHitContainer> me0SimHitInput_;
+  edm::EDGetTokenT<edm::PSimHitContainer> dtSimHitInput_;
+
+  edm::Handle<edm::SimTrackContainer> simTracks;
+  edm::Handle<edm::SimVertexContainer> simVertices;
+  edm::Handle<edm::PSimHitContainer> dtHits_;
+  edm::Handle<edm::PSimHitContainer> rpcHits_;
+  edm::Handle<edm::PSimHitContainer> me0Hits_;
+  edm::Handle<edm::PSimHitContainer> gemHits_;
+  edm::Handle<edm::PSimHitContainer> cscHits_;
 
   std::map<unsigned int, unsigned int> trkid_to_index_;
 
@@ -236,35 +277,14 @@ private:
   // detids with hits in 2-layer pad coincidences
   std::map<unsigned int, std::set<int> > gem_detids_to_copads_;
 
-  bool verboseGEM_;
-  bool verboseCSC_;
-  bool verboseRPC_;
-  bool verboseME0_;
-  bool verboseDT_;
-
-  //std::vector<edm::InputTag> gemSimHitInput_;
-  //std::vector<edm::InputTag> cscSimHitInput_;
-  //std::vector<edm::InputTag> rpcSimHitInput_;
-  //std::vector<edm::InputTag> me0SimHitInput_;
-  //std::vector<edm::InputTag> dtSimHitInput_;
-
-  bool hasGEMGeometry_;
-  bool hasRPCGeometry_;
-  bool hasME0Geometry_;
-  bool hasCSCGeometry_;
-  bool hasDTGeometry_;
-
   edm::ParameterSet simTrackPSet_;
   bool verboseSimTrack_;
 
-  const CSCGeometry* cscGeometry_;
-  const RPCGeometry* rpcGeometry_;
-  const GEMGeometry* gemGeometry_;
-  const ME0Geometry* me0Geometry_;
-  const DTGeometry* dtGeometry_;
-
-  edm::Handle<edm::SimTrackContainer> sim_tracks;
-  edm::Handle<edm::SimVertexContainer> sim_vertices;
+  std::unique_ptr<CSCGeometry> cscGeometry_;
+  std::unique_ptr<RPCGeometry> rpcGeometry_;
+  std::unique_ptr<GEMGeometry> gemGeometry_;
+  std::unique_ptr<ME0Geometry> me0Geometry_;
+  std::unique_ptr<DTGeometry> dtGeometry_;
 };
 
 #endif

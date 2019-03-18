@@ -1,5 +1,5 @@
-#ifndef Validation_MuonHits_MuonHitHelpers_h
-#define Validation_MuonHits_MuonHitHelpers_h
+#ifndef Validation_MuonHits_MuonHitHelper_h
+#define Validation_MuonHits_MuonHitHelper_h
 
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/MuonDetId/interface/CSCTriggerNumbering.h"
@@ -8,8 +8,10 @@
 #include "DataFormats/MuonDetId/interface/ME0DetId.h"
 #include "DataFormats/MuonDetId/interface/DTWireId.h"
 
-class MuonHitHelpers
+class MuonHitHelper
 {
+ public:
+
   /// CSC chamber types, according to CSCDetId::iChamberType()
   enum CSCType {CSC_ALL = 0, CSC_ME11,
                 CSC_ME1a, CSC_ME1b, CSC_ME12, CSC_ME13, CSC_ME21,

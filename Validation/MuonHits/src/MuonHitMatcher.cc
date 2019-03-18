@@ -13,55 +13,53 @@ using namespace std;
 
 MuonHitMatcher::MuonHitMatcher(const edm::ParameterSet& ps, edm::ConsumesCollector && iC)
 {
-  event().getByToken(simTrackInput_, sim_tracks);
-  event().getByToken(simVertexInput_, sim_vertices);
+  const auto& simVertex = ps.getParameterSet("simVertex");
+  const auto& simTrack = ps.getParameterSet("simTrack");
+  verboseSimTrack_ = simTrack.getParameter<int>("verbose");
+  simTrackMinPt_ = simTrack.getParameter<double>("minPt");
+  simTrackMinEta_ = simTrack.getParameter<double>("minEta");
+  simTrackMaxEta_ = simTrack.getParameter<double>("maxEta");
+  simTrackOnlyMuon_ = simTrack.getParameter<bool>("onlyMuon");
 
-  const edm::EDGetTokenT<edm::SimVertexContainer>& simVertexInput_;
-  const edm::EDGetTokenT<edm::SimTrackContainer>& simTrackInput_;
-  const edm::EDGetTokenT<edm::PSimHitContainer>& gemSimHitInput_;
-  const edm::EDGetTokenT<edm::PSimHitContainer>& cscSimHitInput_;
-  const edm::EDGetTokenT<edm::PSimHitContainer>& rpcSimHitInput_;
-  const edm::EDGetTokenT<edm::PSimHitContainer>& me0SimHitInput_;
-  const edm::EDGetTokenT<edm::PSimHitContainer>& dtSimHitInput_;
-
-
-
-  const auto& gemSimHit_ = conf().getParameter<edm::ParameterSet>("gemSimHit");
+  const auto& gemSimHit_ = ps.getParameterSet("gemSimHit");
   verboseGEM_ = gemSimHit_.getParameter<int>("verbose");
   simMuOnlyGEM_ = gemSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsGEM_ = gemSimHit_.getParameter<bool>("discardEleHits");
 
-  const auto& cscSimHit_= conf().getParameter<edm::ParameterSet>("cscSimHit");
+  const auto& cscSimHit_= ps.getParameterSet("cscSimHit");
   verboseCSC_ = cscSimHit_.getParameter<int>("verbose");
   simMuOnlyCSC_ = cscSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsCSC_ = cscSimHit_.getParameter<bool>("discardEleHits");
 
-  const auto& me0SimHit_ = conf().getParameter<edm::ParameterSet>("me0SimHit");
+  const auto& me0SimHit_ = ps.getParameterSet("me0SimHit");
   verboseME0_ = me0SimHit_.getParameter<int>("verbose");
   simMuOnlyME0_ = me0SimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsME0_ = me0SimHit_.getParameter<bool>("discardEleHits");
 
-  const auto& rpcSimHit_ = conf().getParameter<edm::ParameterSet>("rpcSimHit");
+  const auto& rpcSimHit_ = ps.getParameterSet("rpcSimHit");
   verboseRPC_ = rpcSimHit_.getParameter<int>("verbose");
   simMuOnlyRPC_ = rpcSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsRPC_ = rpcSimHit_.getParameter<bool>("discardEleHits");
 
-  const auto& dtSimHit_ = conf().getParameter<edm::ParameterSet>("dtSimHit");
+  const auto& dtSimHit_ = ps.getParameterSet("dtSimHit");
   verboseDT_ = dtSimHit_.getParameter<int>("verbose");
   simMuOnlyDT_ = dtSimHit_.getParameter<bool>("simMuOnly");
   discardEleHitsDT_ = dtSimHit_.getParameter<bool>("discardEleHits");
 
   verboseSimTrack_ = (verboseCSC_ || verboseGEM_ || verboseME0_ || verboseRPC_ || verboseDT_);
+
+  simVertexInput_ = iC.consumes<edm::SimVertexContainer>(simVertex.getParameter<edm::InputTag>("inputTag"));
+  simTrackInput_ = iC.consumes<edm::SimTrackContainer>(simTrack.getParameter<edm::InputTag>("inputTag"));
+  gemSimHitInput_ = iC.consumes<edm::PSimHitContainer>(gemSimHit_.getParameter<edm::InputTag>("inputTag"));
+  cscSimHitInput_ = iC.consumes<edm::PSimHitContainer>(cscSimHit_.getParameter<edm::InputTag>("inputTag"));
+  me0SimHitInput_ = iC.consumes<edm::PSimHitContainer>(me0SimHit_.getParameter<edm::InputTag>("inputTag"));
+  rpcSimHitInput_ = iC.consumes<edm::PSimHitContainer>(rpcSimHit_.getParameter<edm::InputTag>("inputTag"));
+  dtSimHitInput_ = iC.consumes<edm::PSimHitContainer>(dtSimHit_.getParameter<edm::InputTag>("inputTag"));
 }
 
-MuonHitMatcher::~MuonHitMatcher() {}
-
-
-}
-
-  /// initialize the event
-  init(const edm::Event& e, const edm::EventSetup& eventSetup)
-  {
+/// initialize the event
+MuonHitMatcher::init(const edm::Event& e, const edm::EventSetup& eventSetup)
+{
   hasGEMGeometry_ = true;
   hasRPCGeometry_ = true;
   hasCSCGeometry_ = true;
@@ -73,8 +71,7 @@ MuonHitMatcher::~MuonHitMatcher() {}
     gemGeometry_ = &*gem_geom_;
   } else {
     hasGEMGeometry_ = false;
-    if (useGEM)
-      std::cout << "+++ Info: GEM geometry is unavailable. +++\n";
+    std::cout << "+++ Info: GEM geometry is unavailable. +++\n";
   }
 
   es.get<MuonGeometryRecord>().get(me0_geom_);
@@ -82,8 +79,7 @@ MuonHitMatcher::~MuonHitMatcher() {}
     me0Geometry_ = &*me0_geom_;
   } else {
     hasME0Geometry_ = false;
-    if (useCSCChamberTypes_[GEM_ME0]) // if ME0 is still used butME0 geom is not found, print out warning
-      std::cout << "+++ Info: ME0 geometry is unavailable. +++\n";
+    std::cout << "+++ Info: ME0 geometry is unavailable. +++\n";
   }
 
   es.get<MuonGeometryRecord>().get(rpc_geom_);
@@ -110,38 +106,27 @@ MuonHitMatcher::~MuonHitMatcher() {}
     std::cout << "+++ Info: CSC geometry is unavailable. +++\n";
   }
 
-
-  edm::Handle<edm::PSimHitContainer> dt_hits;
+  iEvent.getByToken(simTrackInput_, simTracks);
+  iEvent.getByToken(simVertexInput_, simVertices);
   iEvent.getByToken(dtSimHitInput_, dt_hits);
-
-  edm::Handle<edm::PSimHitContainer> rpc_hits;
   iEvent.getByToken(rpcSimHitInput_, rpc_hits);
-
-  edm::Handle<edm::PSimHitContainer> me0_hits;
   iEvent.getByToken(me0SimHitInput_, me0_hits);
-
-  edm::Handle<edm::PSimHitContainer> gem_hits;
   iEvent.getByToken(gemSimHitInput_, gem_hits);
-
-  edm::Handle<edm::PSimHitContainer> csc_hits;
   iEvent.getByToken(cscSimHitInput_, csc_hits);
-
 }
 
-  /// do the matching
-  void match(const SimTrack& t, const SimVertex& v)
-  {
-
+/// do the matching
+void MuonHitMatcher::match(const SimTrack& t, const SimVertex& v)
+{
   // fill trkId2Index associoation:
   int no = 0;
   trkid_to_index_.clear();
-  for (const auto& t: *sim_tracks.product())
-  {
+  for (const auto& t: *simTracks.product()) {
     trkid_to_index_[t.trackId()] = no;
     no++;
   }
 
-  vector<unsigned> track_ids = getIdsOfSimTrackShower(trk().trackId(), *sim_tracks.product(), *sim_vertices.product());
+  vector<unsigned> track_ids = getIdsOfSimTrackShower(trk().trackId(), *simTracks.product(), *simVertices.product());
   if (verboseSimTrack_) {
     std::cout << "Printing track_ids" << std::endl;
     for (const auto& id: track_ids) std::cout << "id: " << id << std::endl;
@@ -149,42 +134,42 @@ MuonHitMatcher::~MuonHitMatcher() {}
 
   if (hasCSCGeometry_) {
 
-      // select CSC simhits
-      edm::PSimHitContainer csc_hits_select;
-      for (const auto& h: *csc_hits.product()) {
-        const CSCDetId& id(h.detUnitId());
-        if (useCSCChamberType(gemvalidation::toCSCType(id.station(), id.ring()))) csc_hits_select.push_back(h);
-      }
+    // select CSC simhits
+    edm::PSimHitContainer csc_hits_select;
+    for (const auto& h: *csc_hits.product()) {
+      const CSCDetId& id(h.detUnitId());
+      if (useCSCChamberType(gemvalidation::toCSCType(id.station(), id.ring()))) csc_hits_select.push_back(h);
+    }
 
-      if(runCSCSimHit_) {
-        matchCSCSimHitsToSimTrack(track_ids, csc_hits_select);
+    if(runCSCSimHit_) {
+      matchCSCSimHitsToSimTrack(track_ids, csc_hits_select);
 
-	if (verboseCSC_) {
-	  cout<<"nSimHits "<<no<<" nTrackIds "<<track_ids.size()<<" nSelectedCSCSimHits "<<csc_hits_select.size()<<endl;
-	  cout<<"detids CSC " << detIdsCSC(0).size()<<endl;
+      if (verboseCSC_) {
+        cout<<"nSimHits "<<no<<" nTrackIds "<<track_ids.size()<<" nSelectedCSCSimHits "<<csc_hits_select.size()<<endl;
+        cout<<"detids CSC " << detIdsCSC(0).size()<<endl;
 
-	  for (const auto& id: detIdsCSC(0)) {
-	    const auto& csc_simhits = hitsInDetId(id);
-	    const auto& csc_simhits_gp = simHitsMeanPosition(csc_simhits);
-	    const auto& strips = hitStripsInDetId(id);
-	    CSCDetId cscid(id);
-	    if (cscid.station() == 1 and (cscid.ring() == 1 or cscid.ring() == 4)){
-		cout<<"cscdetid "<<CSCDetId(id)<<": "<<csc_simhits.size()<<" "<<csc_simhits_gp.phi()<<" "<< csc_detid_to_hits_[id].size()<<endl;
-		cout<<"nStrip "<<strips.size()<<endl;
-		cout<<"strips : "; std::copy(strips.begin(), strips.end(), ostream_iterator<int>(cout, " ")); cout<<endl;
-	    }
-	  }
-	}
+        for (const auto& id: detIdsCSC(0)) {
+          const auto& csc_simhits = hitsInDetId(id);
+          const auto& csc_simhits_gp = simHitsMeanPosition(csc_simhits);
+          const auto& strips = hitStripsInDetId(id);
+          CSCDetId cscid(id);
+          if (cscid.station() == 1 and (cscid.ring() == 1 or cscid.ring() == 4)){
+            cout<<"cscdetid "<<CSCDetId(id)<<": "<<csc_simhits.size()<<" "<<csc_simhits_gp.phi()<<" "<< csc_detid_to_hits_[id].size()<<endl;
+            cout<<"nStrip "<<strips.size()<<endl;
+            cout<<"strips : "; std::copy(strips.begin(), strips.end(), ostream_iterator<int>(cout, " ")); cout<<endl;
+          }
+        }
       }
     }
   }
+}
 
-  if (hasGEMGeometry_) {
+if (hasGEMGeometry_) {
 
-      // select GEM simhits
-      edm::PSimHitContainer gem_hits_select;
-      for (const auto& h: *gem_hits.product()) {
-        const GEMDetId& id(h.detUnitId());
+  // select GEM simhits
+  edm::PSimHitContainer gem_hits_select;
+  for (const auto& h: *gem_hits.product()) {
+    const GEMDetId& id(h.detUnitId());
         if (useGEMChamberType(gemvalidation::toGEMType(id.station(), id.ring()))) gem_hits_select.push_back(h);
       }
 
@@ -295,14 +280,14 @@ MuonHitMatcher::~MuonHitMatcher() {}
 
 std::vector<unsigned int>
 MuonHitMatcher::getIdsOfSimTrackShower(unsigned int initial_trk_id,
-    const edm::SimTrackContainer & sim_tracks, const edm::SimVertexContainer & sim_vertices)
+    const edm::SimTrackContainer & simTracks, const edm::SimVertexContainer & simVertices)
 {
   vector<unsigned int> result;
   result.push_back(initial_trk_id);
 
   if (! (simMuOnlyGEM_ || simMuOnlyCSC_ || simMuOnlyDT_ || simMuOnlyME0_ || simMuOnlyRPC_) ) return result;
 
-  for (const auto& t: sim_tracks)
+  for (const auto& t: simTracks)
   {
     SimTrack last_trk = t;
     //if (std::abs(t.type()) != 13) continue;
@@ -310,9 +295,9 @@ MuonHitMatcher::getIdsOfSimTrackShower(unsigned int initial_trk_id,
     while (1)
     {
       if ( last_trk.noVertex() ) break;
-      if ( sim_vertices[last_trk.vertIndex()].noParent() ) break;
+      if ( simVertices[last_trk.vertIndex()].noParent() ) break;
 
-      unsigned parentId = sim_vertices[last_trk.vertIndex()].parentIndex();
+      unsigned parentId = simVertices[last_trk.vertIndex()].parentIndex();
       if ( parentId == initial_trk_id )
       {
         is_child = 1;
@@ -322,7 +307,7 @@ MuonHitMatcher::getIdsOfSimTrackShower(unsigned int initial_trk_id,
       const auto& association = trkid_to_index_.find( parentId );
       if ( association == trkid_to_index_.end() ) break;
 
-      last_trk = sim_tracks[ association->second ];
+      last_trk = simTracks[ association->second ];
     }
     if (is_child)
     {
@@ -523,7 +508,7 @@ MuonHitMatcher::matchDTSimHitsToSimTrack(std::vector<unsigned int> track_ids, co
 
 
 const edm::PSimHitContainer&
-MuonHitMatcher::simHits(enum MuonType sub) const
+MuonHitMatcher::simHits(int sub) const
 {
   switch(sub) {
   case MuonSubdetId::GEM:

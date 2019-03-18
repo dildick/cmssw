@@ -1,31 +1,31 @@
-#include "Validation/MuonHits/interface/Helpers.h"
+#include "Validation/MuonHits/interface/Helper.h"
 
-bool MuonHitHelpers::isDT(unsigned int detId)
+bool MuonHitHelper::isDT(unsigned int detId)
 {
   return (DetId(detId)).det() == DetId::Muon && (DetId(detId)).subdetId() == MuonSubdetId::DT;
 }
 
-bool MuonHitHelpers::isGEM(unsigned int detId)
+bool MuonHitHelper::isGEM(unsigned int detId)
 {
   return (DetId(detId)).det() == DetId::Muon && (DetId(detId)).subdetId() == MuonSubdetId::GEM;
 }
 
-bool MuonHitHelpers::isCSC(unsigned int detId)
+bool MuonHitHelper::isCSC(unsigned int detId)
 {
   return (DetId(detId)).det() == DetId::Muon && (DetId(detId)).subdetId() == MuonSubdetId::CSC;
 }
 
-bool MuonHitHelpers::isRPC(unsigned int detId)
+bool MuonHitHelper::isRPC(unsigned int detId)
 {
   return (DetId(detId)).det() == DetId::Muon && (DetId(detId)).subdetId() == MuonSubdetId::RPC;
 }
 
-bool MuonHitHelpers::isME0(unsigned int detId)
+bool MuonHitHelper::isME0(unsigned int detId)
 {
   return (DetId(detId)).det() == DetId::Muon && (DetId(detId)).subdetId() == MuonSubdetId::ME0;
 }
 
-int MuonHitHelpers::chamber(const DetId& id)
+int MuonHitHelper::chamber(const DetId& id)
 {
   if (id.det() != DetId::Detector::Muon) return -99;
   int chamberN = 0;
@@ -51,7 +51,7 @@ int MuonHitHelpers::chamber(const DetId& id)
 }
 
 // return MuonType for a particular DetId
-int MuonHitHelpers::toGEMType(int st, int ri)
+int MuonHitHelper::toGEMType(int st, int ri)
 {
   if (st==1) {
     if (ri==1) return GEM_ME11;
@@ -62,7 +62,7 @@ int MuonHitHelpers::toGEMType(int st, int ri)
   return GEM_ALL;
 }
 
-int MuonHitHelpers::toRPCType(int re, int st, int ri)
+int MuonHitHelper::toRPCType(int re, int st, int ri)
 {
   // endcap
   if (std::abs(re)==1) {
@@ -121,7 +121,7 @@ int MuonHitHelpers::toRPCType(int re, int st, int ri)
   return RPC_ALL;
 }
 
-int MuonHitHelpers::toDTType(int wh, int st)
+int MuonHitHelper::toDTType(int wh, int st)
 {
   if (wh==-2) {
     if (st==1) return DT_MB21n;
@@ -156,7 +156,7 @@ int MuonHitHelpers::toDTType(int wh, int st)
   return DT_ALL;
 }
 
-int MuonHitHelpers::toCSCType(int st, int ri)
+int MuonHitHelper::toCSCType(int st, int ri)
 {
   if (st==1) {
     if (ri==0) return CSC_ME11;
@@ -183,7 +183,7 @@ int MuonHitHelpers::toCSCType(int st, int ri)
 
 // return MuonTypeString for a particular DetId
 std::string
-MuonHitHelpers::toGEMTypeString(int st, int ri)
+MuonHitHelper::toGEMTypeString(int st, int ri)
 {
   if (st ==1) {
     if (ri==1) return "GEM_ME11";
@@ -195,7 +195,7 @@ MuonHitHelpers::toGEMTypeString(int st, int ri)
 }
 
 std::string
-MuonHitHelpers::toRPCTypeString(int re, int st, int ri)
+MuonHitHelper::toRPCTypeString(int re, int st, int ri)
 {
   // endcap
   if (std::abs(re)==1) {
@@ -255,7 +255,7 @@ MuonHitHelpers::toRPCTypeString(int re, int st, int ri)
 }
 
 std::string
-MuonHitHelpers::toDTTypeString(int wh, int st)
+MuonHitHelper::toDTTypeString(int wh, int st)
 {
   if (wh==-2) {
     if (st==1) return "DT_MB21n";
@@ -291,7 +291,7 @@ MuonHitHelpers::toDTTypeString(int wh, int st)
 }
 
 std::string
-MuonHitHelpers::toCSCTypeString(int st, int ri)
+MuonHitHelper::toCSCTypeString(int st, int ri)
 {
   if (st==1) {
     if (ri==0) return "CSC_ME11";
