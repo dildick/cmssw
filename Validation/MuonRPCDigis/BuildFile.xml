@@ -13,4 +13,6 @@
 <use   name="root"/>
 <use   name="FWCore/Utilities"/>
 <use   name="Validation/MuonHits"/>
-<flags   EDM_PLUGIN="1"/>
+<export>
+<lib name="1"/>
+</export>

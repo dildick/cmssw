@@ -5,6 +5,8 @@
 <use   name="Validation/MuonCSCDigis"/>
 <use   name="Validation/MuonRPCDigis"/>
 <use   name="Validation/MuonGEMDigis"/>
+<use   name="DataFormats/L1TMuon"/>
+<use   name="DataFormats/L1Trigger"/>
 <export>
   <lib name="1"/>
 </export>
