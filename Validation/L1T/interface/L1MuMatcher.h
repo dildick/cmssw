@@ -45,15 +45,15 @@ class L1MuMatcher
 
   void matchEmtfTrackToSimTrack(const l1t::EMTFTrackCollection&);
   void matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMuonCand>&);
-  void matchGMTToSimTrack(const BXVector<l1t::Muon>&);
+  void matchMuonToSimTrack(const BXVector<l1t::Muon>&);
 
   edm::Handle<l1t::EMTFTrackCollection> hl1Tracks_;
   edm::Handle<BXVector<l1t::RegionalMuonCand>> hRegMuonCand_;
-  edm::Handle<BXVector<l1t::Muon> > hGMT_;
+  edm::Handle<BXVector<l1t::Muon> > hMuon_;
 
   edm::EDGetTokenT<l1t::EMTFTrackCollection> emtfTrackToken_;
   edm::EDGetTokenT< BXVector<l1t::RegionalMuonCand> > regionalMuonCandToken_;
-  edm::EDGetTokenT< BXVector<l1t::Muon> > gmtToken_;
+  edm::EDGetTokenT< BXVector<l1t::Muon> > muonToken_;
 
   std::unique_ptr<CSCStubMatcher> csc_stub_matcher_;
   std::unique_ptr<RPCDigiMatcher> rpc_digi_matcher_;
@@ -62,7 +62,7 @@ class L1MuMatcher
   // eta and phi are the same for
   // EMTF, RegionalMuonCand and L1Mu
   float maxdRRegMuCand = 0.001;
-  float maxdRGMT = 0.001;
+  float maxdRMuon = 0.001;
 
   int minBXEMTFTrack_, maxBXEMTFTrack_;
   int verboseEMTFTrack_;
@@ -72,10 +72,10 @@ class L1MuMatcher
   double deltaRRegMuCand_;
   double deltaPtRelRegMuCand_;
 
-  int minBXGMT_, maxBXGMT_;
-  int verboseGMT_;
-  double deltaRGMT_;
-  double deltaPtRelGMT_;
+  int minBXMuon_, maxBXMuon_;
+  int verboseMuon_;
+  double deltaRMuon_;
+  double deltaPtRelMuon_;
 
   std::vector<l1t::EMTFTrack> emtfTracks_;
   std::vector<l1t::RegionalMuonCand> regionalMuonCands_;
