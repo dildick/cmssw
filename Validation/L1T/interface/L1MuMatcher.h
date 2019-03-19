@@ -59,21 +59,23 @@ class L1MuMatcher
   std::unique_ptr<RPCDigiMatcher> rpc_digi_matcher_;
   std::unique_ptr<GEMDigiMatcher> gem_digi_matcher_;
 
-  float mindREMTFTrack = 10;
-  float mindRRegMuCand = 10;
-  float mindRGMT = 10;
+  // eta and phi are the same for
+  // EMTF, RegionalMuonCand and L1Mu
+  float maxdRRegMuCand = 0.001;
+  float maxdRGMT = 0.001;
 
   int minBXEMTFTrack_, maxBXEMTFTrack_;
   int verboseEMTFTrack_;
-  double deltaREMTFTrack_;
 
   int minBXRegMuCand_, maxBXRegMuCand_;
   int verboseRegMuCand_;
   double deltaRRegMuCand_;
+  double deltaPtRelRegMuCand_;
 
   int minBXGMT_, maxBXGMT_;
   int verboseGMT_;
   double deltaRGMT_;
+  double deltaPtRelGMT_;
 
   std::vector<l1t::EMTFTrack> emtfTracks_;
   std::vector<l1t::RegionalMuonCand> regionalMuonCands_;
