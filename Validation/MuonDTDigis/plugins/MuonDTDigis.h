@@ -1,5 +1,5 @@
-#ifndef Validation_MuonDTDigis_h
-#define Validation_MuonDTDigis_h
+#ifndef Validation_MuonDTDigis_MuonDTDigis_h
+#define Validation_MuonDTDigis_MuonDTDigis_h
 
 /** \class MuonDTDigis
  *  Analyse the the muon-drift-tubes digitizer.

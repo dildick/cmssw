@@ -1,42 +1,81 @@
-#include "GEMCode/GEMValidation/interface/DTDigiMatcher.h"
-#include "GEMCode/GEMValidation/interface/SimHitMatcher.h"
-
-using namespace std;
-using namespace matching;
-
+#include "Validation/MuonDTDigis/interface/DTDigiMatcher.h"
 #include "DataFormats/MuonDetId/interface/DTWireId.h"
 
-DTDigiMatcher::DTDigiMatcher(const SimHitMatcher& sh, const edm::EDGetTokenT<DTDigiCollection>& dtDigiInput_)
-: DigiMatcher(sh)
-{
-  const auto& dtDigi_= conf().getParameter<edm::ParameterSet>("dtDigi");
-  minBXDT_ = dtDigi_.getParameter<int>("minBX");
-  maxBXDT_ = dtDigi_.getParameter<int>("maxBX");
-  matchDeltaWire_ = dtDigi_.getParameter<int>("matchDeltaWire");
-  verboseDigi_ = dtDigi_.getParameter<int>("verbose");
-  runDTDigi_ = dtDigi_.getParameter<bool>("run");
+using namespace std;
 
-  if (hasDTGeometry_) {
-    edm::Handle<DTDigiCollection> dt_digis;
-    if(gemvalidation::getByToken(dtDigiInput_, dt_digis, event())) if (runDTDigi_) matchDigisToSimTrack(*dt_digis.product());
+DTDigiMatcher::DTDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesCollector && iC)
+{
+  const auto& dtWire = pset.getParameterSet("dtWireDigi");
+  minBXDT_ = dtWire.getParameter<int>("minBX");
+  maxBXDT_ = dtWire.getParameter<int>("maxBX");
+  matchDeltaWire_ = dtWire.getParameter<int>("matchDeltaWire");
+  verboseWire_ = dtWire.getParameter<int>("verbose");
+
+  const auto& dtThDigi = pset.getParameterSet("dtThDigi");
+  minBXDT_ = dtThDigi.getParameter<int>("minBX");
+  maxBXDT_ = dtThDigi.getParameter<int>("maxBX");
+  matchDeltaThDigi_ = dtThDigi.getParameter<int>("matchDeltaThDigi");
+  verboseThDigi_ = dtThDigi.getParameter<int>("verbose");
+
+  const auto& dtPhDigi = pset.getParameterSet("dtPhDigi");
+  minBXDT_ = dtPhDigi.getParameter<int>("minBX");
+  maxBXDT_ = dtPhDigi.getParameter<int>("maxBX");
+  matchDeltaPhDigi_ = dtPhDigi.getParameter<int>("matchDeltaPhDigi");
+  verbosePhDigi_ = dtPhDigi.getParameter<int>("verbose");
+
+  // make a new simhits matcher
+  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+
+  dtWireToken_ = iC.consumes<DTDigiCollection>(dtWire.getParameter<edm::InputTag>("inputTag"));
+  dtThDigiToken_ = iC.consumes<L1MuDTChambThContainer>(dtThDigi.getParameter<edm::InputTag>("inputTag"));
+  dtPhDigiToken_ = iC.consumes<L1MuDTChambPhContainer>(dtPhDigi.getParameter<edm::InputTag>("inputTag"));
+}
+
+void DTDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+  muonHitMatcher_->init(iEvent, iSetup);
+
+  iEvent.getByToken(dtWireToken_, dtWiresH_);
+  iEvent.getByToken(dtThDigiToken_, dtThDigisH_);
+  iEvent.getByToken(dtPhDigiToken_, dtPhDigisH_);
+
+  iSetup.get<MuonGeometryRecord>().get(dt_geom_);
+  if (dt_geom_.isValid()) {
+    dtGeometry_ = &*dt_geom_;
+  } else {
+    std::cout << "+++ Info: DT geometry is unavailable. +++\n";
   }
 }
 
-DTDigiMatcher::~DTDigiMatcher() {}
+/// do the matching
+void DTDigiMatcher::match(const SimTrack& t, const SimVertex& v)
+{
+  // match simhits first
+  muonHitMatcher_->match(t,v);
 
+  // get the digi collections
+  const DTDigiCollection& dtWires = *dtWiresH_.product();
+  const L1MuDTChambThContainer& dtThDigis = *dtThDigisH_.product();
+  const L1MuDTChambPhContainer& dtPhDigis = *dtPhDigisH_.product();
+
+  // now match the digis
+  matchWiresToSimTrack(dtWires);
+  matchThDigisToSimTrack(dtThDigis);
+  matchPhDigisToSimTrack(dtPhDigis);
+}
 
 void
-DTDigiMatcher::matchDigisToSimTrack(const DTDigiCollection& digis)
+DTDigiMatcher::matchWiresToSimTrack(const DTDigiCollection& digis)
 {
-  const auto& det_ids = simhit_matcher_->detIdsDT();
+  const auto& det_ids = muonHitMatcher_->detIdsDT();
   for (const auto& id: det_ids)
   {
     const DTLayerId l_id(id);
     const DTSuperLayerId sl_id(l_id.superlayerId());
     const DTChamberId c_id(sl_id.chamberId());
 
-    const auto& hit_wires = simhit_matcher_->hitWiresInDTLayerId(l_id, matchDeltaWire_);
-    if (verboseDigi_)
+    const auto& hit_wires = muonHitMatcher_->hitWiresInDTLayerId(l_id, matchDeltaWire_);
+    if (verboseWire_)
     {
       cout<<"hit_wires_fat ";
       copy(hit_wires.begin(), hit_wires.end(), ostream_iterator<int>(cout, " "));
@@ -47,10 +86,10 @@ DTDigiMatcher::matchDigisToSimTrack(const DTDigiCollection& digis)
 
     for (auto d = digis_in_det.first; d != digis_in_det.second; ++d)
     {
-      if (verboseDigi_) cout<<"dt wire digi "<<l_id<<" "<<*d<<endl;
+      if (verboseWire_) cout<<"dt wire digi "<<l_id<<" "<<*d<<endl;
       // check that it matches a wire that was hit by SimHits from our track
       if (hit_wires.find(d->wire()) == hit_wires.end()) continue;
-      if (verboseDigi_) cout<<"oki"<<endl;
+      if (verboseWire_) cout<<"oki"<<endl;
 
       /// Constructor from a layerId and a wire number
       const DTWireId w_id(l_id, d->wire());
@@ -74,13 +113,35 @@ DTDigiMatcher::selectDetIds(const std::map<unsigned int, DTDigiContainer>& digis
     if (dt_type > 0)
     {
       DTWireId detId(id);
-      if (gemvalidation::toDTType(detId.wheel(), detId.station()) != dt_type) continue;
+      if (MuonHitHelper::toDTType(detId.wheel(), detId.station()) != dt_type) continue;
     }
     result.insert(p.first);
   }
   return result;
 }
 
+
+void DTDigiMatcher::matchThDigisToSimTrack(const L1MuDTChambThContainer& digis)
+{
+  for (const auto& d: *digis.getContainer()){
+
+    DTChamberId detId(d.whNum(),d.scNum(),d.stNum());
+    // get the corresponding wire digis
+
+    chamber_to_th_digis_[detId].push_back(d);
+  }
+}
+
+void DTDigiMatcher::matchPhDigisToSimTrack(const L1MuDTChambPhContainer& digis)
+{
+  for (const auto& d: *digis.getContainer()){
+
+    DTChamberId detId(d.whNum(),d.scNum(),d.stNum());
+    // get the corresponding wire digis
+
+    chamber_to_ph_digis_[detId].push_back(d);
+  }
+}
 
 std::set<unsigned int>
 DTDigiMatcher::detIds(int dt_type) const
@@ -154,7 +215,7 @@ int
 DTDigiMatcher::nLayersWithDigisInSuperLayer(unsigned int detId) const
 {
   set<int> layers;
-  for (const auto& l: getDTGeometry()->superLayer(DTSuperLayerId(detId))->layers())
+  for (const auto& l: dtGeometry_->superLayer(DTSuperLayerId(detId))->layers())
   {
     DTLayerId lid(l->id());
     if (digisInLayer(lid.rawId()).size()!=0)
@@ -168,7 +229,7 @@ int
 DTDigiMatcher::nSuperLayersWithDigisInChamber(unsigned int detId) const
 {
   set<int> superLayers;
-  for (const auto& sl: getDTGeometry()->chamber(DTChamberId(detId))->superLayers())
+  for (const auto& sl: dtGeometry_->chamber(DTChamberId(detId))->superLayers())
   {
     DTSuperLayerId slid(sl->id());
     if (digisInSuperLayer(slid.rawId()).size()!=0)

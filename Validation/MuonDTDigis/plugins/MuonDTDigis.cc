@@ -4,7 +4,7 @@
  *  \authors: R. Bellan
  */
 
-#include "MuonDTDigis.h"
+#include "Validation/MuonDTDigis/plugins/MuonDTDigis.h"
 
 #include <iostream>
 #include <string>
@@ -156,7 +156,7 @@ void MuonDTDigis::bookHistograms(DQMStore::IBooker & iBooker, edm::Run const & i
     sprintf(stringcham, "DigiTimeBox_slid_%d", slnum) ;
     meDigiHisto_ =  iBooker.book1D(stringcham, stringcham, 100,0,1200);
     meDigiTimeBox_SL_.push_back(meDigiHisto_);
-  }  
+  }
 }
 
 void  MuonDTDigis::analyze(const Event & event, const EventSetup& eventSetup){

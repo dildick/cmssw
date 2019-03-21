@@ -1,5 +1,5 @@
-#ifndef GEMCode_GEMValidation_DTDigiMatcher_h
-#define GEMCode_GEMValidation_DTDigiMatcher_h
+#ifndef Validation_MuonDTDigis_DTDigiMatcher_h
+#define Validation_MuonDTDigis_DTDigiMatcher_h
 
 /**\class DigiMatcher
 
@@ -8,35 +8,43 @@
  Original Author:  Sven Dildick
 */
 
-#include "GEMCode/GEMValidation/interface/DigiMatcher.h"
-
-#include "DataFormats/Common/interface/DetSetVector.h"
+#include "Validation/MuonHits/interface/MuonHitMatcher.h"
 #include "DataFormats/DTDigi/interface/DTDigiCollection.h"
+#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
+#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 
 #include <vector>
 #include <map>
 #include <set>
 
-class SimHitMatcher;
-
-class DTDigiMatcher : public DigiMatcher
+class DTDigiMatcher
 {
 public:
 
   typedef std::vector<DTDigi> DTDigiContainer;
+  typedef std::vector<L1MuDTChambThDigi> L1MuDTChambThDigiContainer;
+  typedef std::vector<L1MuDTChambPhDigi> L1MuDTChambPhDigiContainer;
 
-  DTDigiMatcher(const SimHitMatcher& sh, const edm::EDGetTokenT<DTDigiCollection>& dtDigiInput_);
-  
-  ~DTDigiMatcher();
+  // constructor
+  DTDigiMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
+
+  // destructor
+  ~DTDigiMatcher() {}
+
+  // initialize the event
+  void init(const edm::Event& e, const edm::EventSetup& eventSetup);
+
+  // do the matching
+  void match(const SimTrack& t, const SimVertex& v);
 
   // partition GEM detIds with digis
-  std::set<unsigned int> detIds(int dt_type = DT_ALL) const;
+  std::set<unsigned int> detIds(int dt_type = MuonHitHelper::DT_ALL) const;
   // chamber detIds with digis
-  std::set<unsigned int> layerIds(int dt_type = DT_ALL) const;
+  std::set<unsigned int> layerIds(int dt_type = MuonHitHelper::DT_ALL) const;
   // superchamber detIds with digis
-  std::set<unsigned int> superLayerIds(int dt_type = DT_ALL) const;
+  std::set<unsigned int> superLayerIds(int dt_type = MuonHitHelper::DT_ALL) const;
   // chamber detIds with digis
-  std::set<unsigned int> chamberIds(int dt_type = DT_ALL) const;
+  std::set<unsigned int> chamberIds(int dt_type = MuonHitHelper::DT_ALL) const;
 
   //DT digis from a particular partition, chamber or superchamber
   const DTDigiContainer& digisInDetId(unsigned int) const;
@@ -56,22 +64,46 @@ public:
 
 private:
 
-  void matchDigisToSimTrack(const DTDigiCollection&);
+  void matchWiresToSimTrack(const DTDigiCollection&);
+  void matchThDigisToSimTrack(const L1MuDTChambThContainer&);
+  void matchPhDigisToSimTrack(const L1MuDTChambPhContainer&);
+
+  edm::EDGetTokenT<DTDigiCollection> dtWireToken_;
+  edm::EDGetTokenT<L1MuDTChambThContainer> dtThDigiToken_;
+  edm::EDGetTokenT<L1MuDTChambPhContainer> dtPhDigiToken_;
+
+  edm::Handle<DTDigiCollection> dtWiresH_;
+  edm::Handle<L1MuDTChambThContainer> dtThDigisH_;
+  edm::Handle<L1MuDTChambPhContainer> dtPhDigisH_;
+
+  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
+
+  edm::ESHandle<DTGeometry> dt_geom_;
+  const DTGeometry* dtGeometry_;
 
   std::set<unsigned int> selectDetIds(const std::map<unsigned int, DTDigiContainer>&, int) const;
 
-
-  bool verboseDigi_;
-  bool runDTDigi_;
+  bool verboseWire_;
   int minBXDT_, maxBXDT_;
   int matchDeltaWire_;
+
+  bool verboseThDigi_;
+  int matchDeltaThDigi_;
+
+  bool verbosePhDigi_;
+  int matchDeltaPhDigi_;
 
   std::map<unsigned int, DTDigiContainer> detid_to_digis_;
   std::map<unsigned int, DTDigiContainer> layer_to_digis_;
   std::map<unsigned int, DTDigiContainer> superLayer_to_digis_;
   std::map<unsigned int, DTDigiContainer> chamber_to_digis_;
 
+  std::map<unsigned int, L1MuDTChambThDigiContainer> chamber_to_th_digis_;
+  std::map<unsigned int, L1MuDTChambPhDigiContainer> chamber_to_ph_digis_;
+
   DTDigiContainer no_dt_digis_;
+  L1MuDTChambThDigiContainer no_dt_th_digis;
+  L1MuDTChambThDigiContainer no_dt_ph_digis;
 };
 
 #endif
