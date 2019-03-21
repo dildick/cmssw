@@ -2,12 +2,12 @@
 //
 // Package:    L1T
 // Class:      L1Validator
-// 
+//
 /**
  * \class L1T L1Validator.cc Validation/L1T/plugins/L1Validator.cc
  *
  * Description: [one line class summary]
- * 
+ *
  * Implementation:
  *    [Notes on implementation]
  */
@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include <Validation/L1T/interface/L1Validator.h>
+#include "Validation/L1T/plugins/L1Validator.h"
 
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
@@ -54,6 +54,8 @@ if(COLLECTION1.product() != COLLECTION2.product()){ \
 L1Validator::L1Validator(const edm::ParameterSet& iConfig){
   _dirName = iConfig.getParameter<std::string>("dirName");
   _GenSource = consumes<reco::GenParticleCollection> (iConfig.getParameter<edm::InputTag>("GenSource"));
+  _SimTrackSource = consumes<edm::SimTrackContainer> (iConfig.getParameter<edm::InputTag>("SimTrackSource"));
+  _SimVertexSource = consumes<edm::SimVertexContainer> (iConfig.getParameter<edm::InputTag>("SimVertexSource"));
 
   _L1MuonBXSource = consumes<l1t::MuonBxCollection> (iConfig.getParameter<edm::InputTag>("L1MuonBXSource"));
   _L1EGammaBXSource = consumes<l1t::EGammaBxCollection> (iConfig.getParameter<edm::InputTag>("L1EGammaBXSource"));
@@ -63,6 +65,7 @@ L1Validator::L1Validator(const edm::ParameterSet& iConfig){
   _L1GenJetSource = consumes<reco::GenJetCollection>( iConfig.getParameter<edm::InputTag>("L1GenJetSource"));
 
   //_fileName = iConfig.getParameter<std::string>("fileName");
+  matcher_.reset(new L1MuMatcher(iConfig, consumesCollector()));
 }
 
 
@@ -80,6 +83,20 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   using namespace l1extra;
   using namespace reco;
 
+  matcher_->init(iEvent, iSetup);
+
+  edm::Handle<edm::SimTrackContainer> sim_tracks;
+  iEvent.getByToken(_SimTrackSource, sim_tracks);
+  const edm::SimTrackContainer& sim_track = *sim_tracks.product();
+
+  edm::Handle<edm::SimVertexContainer> sim_vertices;
+  iEvent.getByToken(_SimVertexSource, sim_vertices);
+  const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
+
+  for (const auto& t: sim_track) {
+    matcher_->match(t, sim_vert[t.vertIndex()]);
+  }
+
   Handle<GenParticleCollection> GenParticles;
   Handle<l1t::MuonBxCollection> MuonsBX;
   Handle<l1t::EGammaBxCollection> EGammasBX;
@@ -96,7 +113,7 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   if(!iEvent.getByToken(_L1TauBXSource, TausBX)) GotEverything=false;
   if(!iEvent.getByToken(_L1JetBXSource, JetsBX)) GotEverything=false;
   if(!iEvent.getByToken(_srcToken, genEvtInfoProduct)) GotEverything=false;
-  if(!iEvent.getByToken(_L1GenJetSource, GenJets)) GotEverything=false;  
+  if(!iEvent.getByToken(_L1GenJetSource, GenJets)) GotEverything=false;
 
   if(!GotEverything) return;
 
@@ -107,7 +124,7 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 	  moduleName = edm::moduleName(prov);
 	  //cout<<" generator name: "<<moduleName<<endl;
   }
-  */ 
+  */
 
   _Hists.NEvents++;
 
@@ -171,15 +188,15 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
        for(int iBx = MuonsBX->getFirstBX();  iBx<=MuonsBX->getLastBX(); ++iBx){
 	  if(iBx>0) continue;
           for(std::vector<l1t::Muon>::const_iterator mu = MuonsBX->begin(iBx); mu != MuonsBX->end(iBx); ++mu){
-	  	double idR = reco::deltaR(GenPart->eta(), GenPart->phi(), mu->eta(), mu->phi());  
+	  	double idR = reco::deltaR(GenPart->eta(), GenPart->phi(), mu->eta(), mu->phi());
 		if(idR < minDR ){
 			 minDR = idR;
 			 L1Part = &(*mu);
 		}
-	 		
+
 	  }
           _Hists.Fill(L1ValidatorHists::Type::Muon, GenPart, L1Part);
-       } 
+       }
 
 
     /// select the final state (i.e status==1) electrons (pdg==+/-11) and photons (pdg==22)
@@ -188,7 +205,7 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
        // eta within EM calorimeter acceptance 2.5
        if(fabs(GenPart->eta())>2.5) continue;
 
-       // exclude the calorimeter barrel and endcap overlap region 
+       // exclude the calorimeter barrel and endcap overlap region
        if(fabs(GenPart->eta())>1.4442 && fabs(GenPart->eta())<1.5660) continue;
 
        // match L1T object
@@ -196,7 +213,7 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
        for(int iBx = EGammasBX->getFirstBX();  iBx<=EGammasBX->getLastBX(); ++iBx){
 	  if(iBx>0) continue;
           for(std::vector<l1t::EGamma>::const_iterator eg = EGammasBX->begin(iBx); eg != EGammasBX->end(iBx); ++eg){
-	  	double idR = reco::deltaR(GenPart->eta(), GenPart->phi(), eg->eta(), eg->phi());  
+	  	double idR = reco::deltaR(GenPart->eta(), GenPart->phi(), eg->eta(), eg->phi());
 		if(idR < minDR ){
 			 minDR = idR;
 			 L1Part = &(*eg);
@@ -217,7 +234,7 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
        for(int iBx = TausBX->getFirstBX();  iBx<=TausBX->getLastBX(); ++iBx){
 	  if(iBx>0) continue;
           for(std::vector<l1t::Tau>::const_iterator tau = TausBX->begin(iBx); tau != TausBX->end(iBx); ++tau){
-	  	double idR = reco::deltaR(GenPart->eta(), GenPart->phi(), tau->eta(), tau->phi());  
+	  	double idR = reco::deltaR(GenPart->eta(), GenPart->phi(), tau->eta(), tau->phi());
 		if(idR < minDR ){
 			 minDR = idR;
 			 L1Part = &(*tau);
