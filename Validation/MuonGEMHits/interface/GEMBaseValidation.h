@@ -1,5 +1,5 @@
-#ifndef GEMBaseValidation_H
-#define GEMBaseValidation_H
+#ifndef Validation_MuonGEMHits_GEMBaseValidation_H
+#define Validation_MuonGEMHits_GEMBaseValidation_H
 
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
@@ -21,7 +21,7 @@ public:
   explicit GEMBaseValidation( const edm::ParameterSet& ps );
   ~GEMBaseValidation() override;
   void analyze(const edm::Event& e, const edm::EventSetup&) override = 0 ;
-  MonitorElement* BookHistZR( DQMStore::IBooker &, const char* name, const char* label, unsigned int region_num, unsigned int station_num, unsigned int layer_num =99 ); 
+  MonitorElement* BookHistZR( DQMStore::IBooker &, const char* name, const char* label, unsigned int region_num, unsigned int station_num, unsigned int layer_num =99 );
   MonitorElement* BookHistXY( DQMStore::IBooker &, const char* name, const char* label, unsigned int region_num, unsigned int station_num, unsigned int layer_num =99 );
   std::string getSuffixName(int region, int station, int layer);
   std::string getSuffixName(int region, int station);
@@ -42,7 +42,7 @@ public:
   unsigned int nStationForLabel() { return nstationForLabel;  }
   unsigned int nPart() { return npart;  }
 
-  void setNStationForLabel(unsigned int number) { nstationForLabel = number; } 
+  void setNStationForLabel(unsigned int number) { nstationForLabel = number; }
 protected:
   int nBinXY_;
   std::vector<double> nBinZR_;

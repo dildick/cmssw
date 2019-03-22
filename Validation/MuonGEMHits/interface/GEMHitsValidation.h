@@ -1,10 +1,8 @@
-#ifndef GEMHitsValidation_H
-#define GEMHitsValidation_H
+#ifndef Validation_MuonGEMHits_GEMHitsValidation_H
+#define Validation_MuonGEMHits_GEMHitsValidation_H
 
 #include "Validation/MuonGEMHits/interface/GEMBaseValidation.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-
 
 class GEMHitsValidation : public GEMBaseValidation
 {

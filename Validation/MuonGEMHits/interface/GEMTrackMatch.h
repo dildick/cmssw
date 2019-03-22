@@ -17,9 +17,7 @@
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
-#include "Geometry/CommonDetUnit/interface/GeomDet.h"
 #include "Geometry/GEMGeometry/interface/GEMGeometry.h"
-#include "Geometry/GEMGeometry/interface/GEMEtaPartition.h"
 #include "Geometry/GEMGeometry/interface/GEMEtaPartitionSpecs.h"
 
 struct MySimTrack
@@ -50,7 +48,7 @@ public:
   std::pair<int,int> getClosestChambers(const int maxChamberId, int region, float phi);
   std::pair<double, double> getEtaRangeForPhi( int station );
   bool isSimTrackGood(const SimTrack& );
-  void setGeometry(const GEMGeometry& geom); 
+  void setGeometry(const GEMGeometry& geom);
   std::pair<double,double> getEtaRange(int station, int chamber ) ;
 
   void FillWithTrigger( MonitorElement* me[3], Float_t eta);
@@ -70,7 +68,7 @@ public:
 
   std::vector< double > etaRangeForPhi;
 
-  
+
   float minPt_;
   float minEta_;
   float maxEta_;

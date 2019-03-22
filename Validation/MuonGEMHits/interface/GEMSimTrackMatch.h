@@ -1,10 +1,10 @@
-#ifndef Validation_GEMSimTrackMatch_H
-#define Validation_GEMSimTrackMatch_H
+#ifndef Validation_MuonGEMHits_GEMSimTrackMatch_H
+#define Validation_MuonGEMHits_GEMSimTrackMatch_H
 
 #include "Validation/MuonGEMHits/interface/GEMTrackMatch.h"
-#include "Validation/MuonGEMHits/interface/SimHitMatcher.h"
+#include "Validation/MuonHits/interface/MuonHitMatcher.h"
 
-class GEMSimTrackMatch : public GEMTrackMatch 
+class GEMSimTrackMatch : public GEMTrackMatch
 {
 public:
   explicit GEMSimTrackMatch(const edm::ParameterSet& ps);
@@ -20,7 +20,8 @@ private:
   // Local X, Local Y plots are not ready
   //MonitorElement* gem_lx[3][2];
   //MonitorElement* gem_ly[3][2];
-  bool detailPlot_;
+
+  std::unique_ptr<MuonHitMatcher> matcher_;
 };
 
 #endif
