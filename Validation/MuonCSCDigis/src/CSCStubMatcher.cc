@@ -51,6 +51,13 @@ void CSCStubMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.getByToken(alctToken_, alctsH_);
   iEvent.getByToken(lctToken_, lctsH_);
   iEvent.getByToken(mplctToken_, mplctsH_);
+
+  iSetup.get<MuonGeometryRecord>().get(csc_geom_);
+  if (csc_geom_.isValid()) {
+    cscGeometry_ = &*csc_geom_;
+  } else {
+    std::cout << "+++ Info: CSC geometry is unavailable. +++\n";
+  }
 }
 
 // do the matching
@@ -194,68 +201,79 @@ CSCStubMatcher::matchALCTsToSimTrack(const CSCALCTDigiCollection& alcts)
 void
 CSCStubMatcher::matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& lcts)
 {
-  /*
   // only look for stubs in chambers that already have CLCT and ALCT
   const auto& cathode_ids = chamberIdsAllCLCT(0);
   const auto& anode_ids = chamberIdsAllALCT(0);
 
   std::set<int> cathode_and_anode_ids;
-  std::set_union(
-      cathode_ids.begin(), cathode_ids.end(),
-      anode_ids.begin(), anode_ids.end(),
-      std::inserter(cathode_and_anode_ids, cathode_and_anode_ids.end())
-  );
+  std::set_union(cathode_ids.begin(), cathode_ids.end(),
+                 anode_ids.begin(), anode_ids.end(),
+                 std::inserter(cathode_and_anode_ids, cathode_and_anode_ids.end())
+                 );
 
   int n_minLayers = 0;
   for (const auto& id: cathode_and_anode_ids) {
     int iLct = -1;
-    for (const auto& lct: cscLcts_tmp)
-    {
+
+    CSCDetId ch_id(id);
+
+    //use ME1b id to get LCTs
+    int ring = ch_id.ring();
+    if (ring == 4) ring = 1;
+    CSCDetId ch_id2(ch_id.endcap(), ch_id.station(), ring, ch_id.chamber(), 0);
+
+    const auto& lcts_in_det = lcts.get(ch_id2);
+
+    // collect all LCTs in a handy container
+    CSCCorrelatedLCTDigiContainer lcts_tmp;
+    for (auto lct = lcts_in_det.first; lct != lcts_in_det.second; ++lct) {
+      lcts_tmp.push_back(*lct);
+    }
+
+    for (const auto& lct: lcts_tmp) {
       iLct++;
+
       bool lct_matched(false);
       bool lct_clct_match(false);
       bool lct_alct_match(false);
       bool lct_gem1_match(false);
       bool lct_gem2_match(false);
+
       if (verboseLCT_) cout <<"in LCT, getCLCT "<< lct.getCLCT() <<" getALCT "<< lct.getALCT() << endl;
+
       // Check if matched to an CLCT
       for (const auto& p: clctsInChamber(id)){
         if (p==lct.getCLCT()) {
           lct_clct_match = true;
-          if (verboseLCT_) cout<<" LCT matched to CLCT "<< p <<endl;
           break;
-        }else{
-          if (verboseLCT_) cout<<" LCT Failed to matched to CLCT "<< p <<endl;
         }
       }
+
       // Check if matched to an ALCT
-      for (const auto& p: cscAlctsInChamber(id)){
-        //ALCT BX is shifted
-        if (p.getKeyWG() == lct.getALCT().getKeyWG()) {
+      for (const auto& p: alctsInChamber(id)){
+        if (p == lct.getALCT()) {
           lct_alct_match = true;
-          if (verboseLCT_) cout<<" LCT matched to ALCT "<< p <<endl;
           break;
-        }else{
-          if (verboseLCT_) cout<<" LCT Failed to matched to ALCT "<< p <<endl;
         }
       }
-      // Check if matched to an GEM pad L1
+
       // fixME here: double check the timing of GEMPad
       if (ch_id.ring()==1 and (ch_id.station()==1 or ch_id.station()==2)) {
+
+        // Check if matched to an GEM pad L1
         const GEMDetId gemDetIdL1(ch_id.zendcap(),1,ch_id.station(),1,ch_id.chamber(),0);
-        for (const auto& p: gemDigiMatcher_->gemPadsInChamber(gemDetIdL1.rawId())){
+        for (const auto& p: gemDigiMatcher_->padsInChamber(gemDetIdL1.rawId())){
           if (p==lct.getGEM1()){
             lct_gem1_match = true;
-            if (verboseLCT_) cout<<" LCT matched to GEML1 "<< p <<endl;
             break;
           }
         }
-        const GEMDetId gemDetIdL2(ch_id.zendcap(),1,ch_id.station(),2,ch_id.chamber(),0);
+
         // Check if matched to an GEM pad L2
-        for (const auto& p: gemDigiMatcher_->gemPadsInChamber(gemDetIdL2.rawId())){
+        const GEMDetId gemDetIdL2(ch_id.zendcap(),1,ch_id.station(),2,ch_id.chamber(),0);
+        for (const auto& p: gemDigiMatcher_->padsInChamber(gemDetIdL2.rawId())){
           if (p==lct.getGEM2()){
             lct_gem2_match = true;
-            if (verboseLCT_) cout<<" LCT matched to GEML2 "<< p <<endl;
             break;
           }
         }
@@ -267,17 +285,39 @@ CSCStubMatcher::matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& lcts)
 
       if (lct_matched) {
         if (verboseLCT_) cout<<"this LCT matched to simtrack in chamber "<< ch_id << endl;
-        chamber_to_lcts_[id].emplace_back(lcts_tmp[iLct]);
-        chamber_to_cscLcts_[id].emplace_back(lct);
+        chamber_to_lcts_[id].emplace_back(lct);
       }
     } // lct loop over
   }
-  */
 }
 
 void
 CSCStubMatcher::matchMPLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& mplcts)
 {
+  // match simtrack to MPC LCT by looking only in chambers
+  // that already have LCTs matched to this simtrack
+  const auto& lcts_ids = chamberIdsLCT(0);
+
+  // loop on the detids
+  for (const auto& id: lcts_ids) {
+
+    const auto& mplcts_in_det = mplcts.get(id);
+
+    // loop on the MPC LCTs in this detid
+    for (auto lct = mplcts_in_det.first; lct != mplcts_in_det.second; ++lct) {
+      if (!lct->isValid()) continue;
+
+      // std::cout << "MPC Stub ALL " << *lct << std::endl;
+      chamber_to_mplcts_all_[id].emplace_back(*lct);
+
+      // check if this stub corresponds with a previously matched stub
+      for (const auto& sim_stub : lctsInChamber(id)) {
+        if (sim_stub == *lct) {
+          chamber_to_mplcts_[id].emplace_back(*lct);
+        }
+      }
+    }
+  }
 }
 
 std::set<unsigned int>

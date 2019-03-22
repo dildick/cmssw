@@ -81,6 +81,8 @@ public:
   std::set<int> stripsInChamber(unsigned int, int max_gap_to_fill = 0) const;
   std::set<int> wiregroupsInChamber(unsigned int, int max_gap_to_fill = 0) const;
 
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher() const {return muonHitMatcher_;}
+
 private:
 
   // match simtracks to digis
@@ -99,7 +101,7 @@ private:
   edm::Handle<CSCStripDigiCollection> stripDigisH_;
   edm::Handle<CSCWireDigiCollection> wireDigisH_;
 
-  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
 
   int minBXComparator_, maxBXComparator_;
   int minBXStrip_, maxBXStrip_;

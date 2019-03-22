@@ -83,6 +83,9 @@ public:
   // get the position of an LCT in global coordinates
   GlobalPoint getGlobalPosition(unsigned int rawId, const CSCCorrelatedLCTDigi& lct) const;
 
+  std::shared_ptr<CSCDigiMatcher> cscDigiMatcher() {return cscDigiMatcher_;}
+  std::shared_ptr<GEMDigiMatcher> gemDigiMatcher() {return gemDigiMatcher_;}
+
 private:
 
   void matchCLCTsToSimTrack(const CSCCLCTDigiCollection&);
@@ -100,9 +103,10 @@ private:
   edm::Handle<CSCCorrelatedLCTDigiCollection> lctsH_;
   edm::Handle<CSCCorrelatedLCTDigiCollection> mplctsH_;
 
-  std::unique_ptr<CSCDigiMatcher> cscDigiMatcher_;
-  std::unique_ptr<GEMDigiMatcher> gemDigiMatcher_;
+  std::shared_ptr<CSCDigiMatcher> cscDigiMatcher_;
+  std::shared_ptr<GEMDigiMatcher> gemDigiMatcher_;
 
+  edm::ESHandle<CSCGeometry> csc_geom_;
   const CSCGeometry* cscGeometry_;
 
   // all stubs (not necessarily matching) in crossed chambers with digis
