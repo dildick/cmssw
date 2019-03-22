@@ -3,6 +3,7 @@
 <use   name="DataFormats/DTRecHit"/>
 <use   name="Geometry/Records"/>
 <use   name="Geometry/DTGeometry"/>
+<use   name="Validation/MuonDTDigis"/>
 <use   name="root"/>
 <export>
   <lib   name="1"/>
