@@ -52,8 +52,6 @@ public:
   const DTDigiContainer& digisInSuperLayer(unsigned int) const;
   const DTDigiContainer& digisInChamber(unsigned int) const;
 
-  // #tubes with digis in layer from this simtrack
-  int nTubesWithDigisInLayer(unsigned int) const;
   // #layers with digis from this simtrack
   int nLayersWithDigisInSuperLayer(unsigned int) const;
   // #layers with digis from this simtrack
@@ -61,6 +59,7 @@ public:
 
   // wire numbers from this simtrack in a detId
   std::set<int> wireNumbersInDetId(unsigned int) const;
+
 
 private:
 

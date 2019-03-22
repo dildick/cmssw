@@ -3,8 +3,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DQMServices/Core/interface/DQMStore.h"
-#include <TMath.h>
-#include <TH1F.h>
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 using namespace std;
 using namespace GEMDetLabel;

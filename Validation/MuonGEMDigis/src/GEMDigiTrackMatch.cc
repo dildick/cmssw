@@ -22,7 +22,6 @@ GEMDigiTrackMatch::GEMDigiTrackMatch(const edm::ParameterSet& ps)
 
   cfg_ = ps;
 
-  muonHitMatcher_.reset(new MuonHitMatcher(ps, consumesCollector()));
   gemDigiMatcher_.reset(new GEMDigiMatcher(ps, consumesCollector()));
 }
 
@@ -99,7 +98,6 @@ GEMDigiTrackMatch::~GEMDigiTrackMatch() {  }
 void GEMDigiTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   // match simhits and digis
-  muonHitMatcher_->init(iEvent, iSetup);
   gemDigiMatcher_->init(iEvent, iSetup);
 
   edm::Handle<edm::PSimHitContainer> simhits;
@@ -123,7 +121,6 @@ void GEMDigiTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
 
     // match hits and digis to this SimTrack
-    muonHitMatcher_->match(t, sim_vert[t.vertIndex()]);
     gemDigiMatcher_->match(t, sim_vert[t.vertIndex()]);
 
     track_.pt = t.momentum().pt();
@@ -141,7 +138,7 @@ void GEMDigiTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
 
     // ** GEM SimHits ** //
-    const auto& gem_sh_ids_ch = muonHitMatcher_->chamberIdsGEM();
+    const auto& gem_sh_ids_ch = gemDigiMatcher_->muonHitMatcher()->chamberIdsGEM();
     for(const auto& d: gem_sh_ids_ch) {
       const GEMDetId id(d);
       if ( id.chamber() %2 ==0 ) track_.hitEven[id.station()-1] = true;

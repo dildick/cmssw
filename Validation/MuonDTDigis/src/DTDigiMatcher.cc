@@ -71,8 +71,6 @@ DTDigiMatcher::matchWiresToSimTrack(const DTDigiCollection& digis)
   for (const auto& id: det_ids)
   {
     const DTLayerId l_id(id);
-    const DTSuperLayerId sl_id(l_id.superlayerId());
-    const DTChamberId c_id(sl_id.chamberId());
 
     const auto& hit_wires = muonHitMatcher_->hitWiresInDTLayerId(l_id, matchDeltaWire_);
     if (verboseWire_)
@@ -93,10 +91,11 @@ DTDigiMatcher::matchWiresToSimTrack(const DTDigiCollection& digis)
 
       /// Constructor from a layerId and a wire number
       const DTWireId w_id(l_id, d->wire());
-
       detid_to_digis_[w_id].push_back(*d);
       layer_to_digis_[l_id].push_back(*d);
+      const DTSuperLayerId sl_id(l_id.superlayerId());
       superLayer_to_digis_[sl_id].push_back(*d);
+      const DTChamberId c_id(sl_id.chamberId());
       chamber_to_digis_[c_id].push_back(*d);
     }
   }
@@ -126,8 +125,8 @@ void DTDigiMatcher::matchThDigisToSimTrack(const L1MuDTChambThContainer& digis)
   for (const auto& d: *digis.getContainer()){
 
     DTChamberId detId(d.whNum(),d.scNum(),d.stNum());
-    // get the corresponding wire digis
 
+    // get the corresponding wire digis
     chamber_to_th_digis_[detId].push_back(d);
   }
 }
@@ -137,8 +136,8 @@ void DTDigiMatcher::matchPhDigisToSimTrack(const L1MuDTChambPhContainer& digis)
   for (const auto& d: *digis.getContainer()){
 
     DTChamberId detId(d.whNum(),d.scNum(),d.stNum());
-    // get the corresponding wire digis
 
+    // get the corresponding wire digis
     chamber_to_ph_digis_[detId].push_back(d);
   }
 }
@@ -204,14 +203,6 @@ DTDigiMatcher::digisInChamber(unsigned int detid) const
 
 
 int
-DTDigiMatcher::nTubesWithDigisInLayer(unsigned int detid) const
-{
-  set<int> tubes;
-  // FIXME
-  return tubes.size();
-}
-
-int
 DTDigiMatcher::nLayersWithDigisInSuperLayer(unsigned int detId) const
 {
   set<int> layers;
@@ -243,9 +234,8 @@ std::set<int>
 DTDigiMatcher::wireNumbersInDetId(unsigned int detid) const
 {
   set<int> result;
-  // for (const auto& d: digisInDetId(detid))
-  // {
-  //   result.insert( digi_channel(d) );
-  // }
+  for (const auto& d: digisInDetId(detid)) {
+    result.insert( d.wire() );
+  }
   return result;
 }

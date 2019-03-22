@@ -1,10 +1,8 @@
-#ifndef GEMRecHitsValidation_H
-#define GEMRecHitsValidation_H
+#ifndef Validation_MuonGEMRecHits_GEMRecHitsValidation_H
+#define Validation_MuonGEMRecHits_GEMRecHitsValidation_H
 
 #include "Validation/MuonGEMHits/interface/GEMBaseValidation.h"
-
-#include <DataFormats/GEMRecHit/interface/GEMRecHit.h>
-#include <DataFormats/GEMRecHit/interface/GEMRecHitCollection.h>
+#include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
 
 class GEMRecHitsValidation : public GEMBaseValidation
 {

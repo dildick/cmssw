@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 
 muonCSCStubPSet = cms.PSet(
     #csc CLCT, central BX 7
-    CLCT = cms.PSet(
+    cscCLCT = cms.PSet(
         verbose = cms.int32(0),
         inputTag = cms.InputTag("simCscTriggerPrimitiveDigis"),
         minBX = cms.int32(6),
@@ -10,7 +10,7 @@ muonCSCStubPSet = cms.PSet(
         minNHitsChamber = cms.int32(4),
     ),
     #csc ALCT, central BX 3 in CMSSW
-    ALCT = cms.PSet(
+    cscALCT = cms.PSet(
         verbose = cms.int32(0),
         inputTag = cms.InputTag("simCscTriggerPrimitiveDigis"),
         minBX = cms.int32(2),
@@ -18,7 +18,7 @@ muonCSCStubPSet = cms.PSet(
         minNHitsChamber = cms.int32(4),
     ),
     #csc LCT, central BX 8
-    LCT = cms.PSet(
+    cscLCT = cms.PSet(
         verbose = cms.int32(0),
         inputTag = cms.InputTag("simCscTriggerPrimitiveDigis"),
         minBX = cms.int32(7),
@@ -27,7 +27,7 @@ muonCSCStubPSet = cms.PSet(
         hsFromSimHitMean = cms.bool(True),
     ),
     #csc LCT, central BX 8
-    MPLCT = cms.PSet(
+    cscMPLCT = cms.PSet(
         verbose = cms.int32(0),
         inputTag = cms.InputTag("simCscTriggerPrimitiveDigis","MPCSORTED"),
         minBX = cms.int32(7),

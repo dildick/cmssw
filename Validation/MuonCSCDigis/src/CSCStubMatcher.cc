@@ -7,26 +7,26 @@ using namespace std;
 
 CSCStubMatcher::CSCStubMatcher(const edm::ParameterSet& pSet, edm::ConsumesCollector && iC)
 {
-  const auto& cscCLCT = pSet.getParameter<edm::ParameterSet>("CLCT");
+  const auto& cscCLCT = pSet.getParameter<edm::ParameterSet>("cscCLCT");
   minBXCLCT_ = cscCLCT.getParameter<int>("minBX");
   maxBXCLCT_ = cscCLCT.getParameter<int>("maxBX");
   verboseCLCT_ = cscCLCT.getParameter<int>("verbose");
   minNHitsChamberCLCT_ = cscCLCT.getParameter<int>("minNHitsChamber");
 
-  const auto& cscALCT = pSet.getParameter<edm::ParameterSet>("ALCT");
+  const auto& cscALCT = pSet.getParameter<edm::ParameterSet>("cscALCT");
   minBXALCT_ = cscALCT.getParameter<int>("minBX");
   maxBXALCT_ = cscALCT.getParameter<int>("maxBX");
   verboseALCT_ = cscALCT.getParameter<int>("verbose");
   minNHitsChamberALCT_ = cscALCT.getParameter<int>("minNHitsChamber");
 
-  const auto& cscLCT = pSet.getParameter<edm::ParameterSet>("LCT");
+  const auto& cscLCT = pSet.getParameter<edm::ParameterSet>("cscLCT");
   minBXLCT_ = cscLCT.getParameter<int>("minBX");
   maxBXLCT_ = cscLCT.getParameter<int>("maxBX");
   verboseLCT_ = cscLCT.getParameter<int>("verbose");
   minNHitsChamberLCT_ = cscLCT.getParameter<int>("minNHitsChamber");
   hsFromSimHitMean_ = cscLCT.getParameter<bool>("hsFromSimHitMean");
 
-  const auto& cscMPLCT = pSet.getParameter<edm::ParameterSet>("MPLCT");
+  const auto& cscMPLCT = pSet.getParameter<edm::ParameterSet>("cscMPLCT");
   minBXMPLCT_ = cscMPLCT.getParameter<int>("minBX");
   maxBXMPLCT_ = cscMPLCT.getParameter<int>("maxBX");
   verboseMPLCT_ = cscMPLCT.getParameter<int>("verbose");

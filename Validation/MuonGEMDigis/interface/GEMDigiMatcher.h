@@ -89,6 +89,10 @@ public:
   GlobalPoint getGlobalPointDigi(unsigned int rawId, const GEMDigi& d) const;
   GlobalPoint getGlobalPointPad(unsigned int rawId, const GEMPadDigi& tp) const;
 
+  // get the MuonHitMatcher
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher() {return muonHitMatcher_;}
+
+
 private:
 
   void matchDigisToSimTrack(const GEMDigiCollection&);
@@ -103,7 +107,7 @@ private:
   edm::Handle<GEMPadDigiCollection> gemPadsH_;
   edm::Handle<GEMCoPadDigiCollection> gemCoPadsH_;
 
-  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
 
   edm::ESHandle<GEMGeometry> gem_geom_;
   const GEMGeometry* gemGeometry_;

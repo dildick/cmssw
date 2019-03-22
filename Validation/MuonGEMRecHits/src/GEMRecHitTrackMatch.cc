@@ -3,8 +3,7 @@
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
-#include <DataFormats/GEMRecHit/interface/GEMRecHit.h>
-#include <DataFormats/GEMRecHit/interface/GEMRecHitCollection.h>
+#include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
 #include "DQMServices/Core/interface/DQMStore.h"
 #include <TMath.h>
 #include <TH1F.h>
@@ -32,15 +31,15 @@ void GEMRecHitTrackMatch::bookHistograms(DQMStore::IBooker& ibooker, edm::Run co
   setGeometry(geom);
   edm::LogInfo("GEMRecHitTrackMatch")<<"GEM RecHitTrackMatch :: successfully set the geometry"<<std::endl;
   edm::LogInfo("GEMRecHitTrackMatch")<<"GEM RecHitTrackMatch :: geom = "<<&geom<<std::endl;
-    
+
   ibooker.setCurrentFolder("MuonGEMRecHitsV/GEMRecHitsTask");
   edm::LogInfo("GEMRecHitTrackMatch")<<"ibooker set current folder\n";
-    
+
   const float PI=TMath::Pi();
 
   using namespace GEMDetLabel;
 
-  nstation = geom.regions()[0]->stations().size(); 
+  nstation = geom.regions()[0]->stations().size();
   for( unsigned int j=0 ; j<nstation ; j++) {
       string track_eta_name  = string("track_eta")+s_suffix.at(j);
       string track_eta_title = string("track_eta")+";SimTrack |#eta|;# of tracks";
@@ -100,19 +99,18 @@ void GEMRecHitTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetu
   //const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
   const edm::SimTrackContainer & sim_trks = *sim_tracks.product();
 
-  MySimTrack track_; 
+  MySimTrack track_;
   for (auto& t: sim_trks)
   {
-    if (!isSimTrackGood(t)) 
-    { continue; } 
-    
+    if (!isSimTrackGood(t))
+    { continue; }
+
     // match hits and rechits to this SimTrack
 
-    const SimHitMatcher& match_sh = SimHitMatcher( t, iEvent, geom, cfg_, simHitsToken_, simTracksToken_, simVerticesToken_);
     const GEMRecHitMatcher& match_rh = GEMRecHitMatcher( match_sh, iEvent, geom, cfg_ ,gem_recHitToken_);
 
     track_.pt = t.momentum().pt();
-    //std::cout << "SimTrack pt value :  " << track_.pt << "\n"; 
+    //std::cout << "SimTrack pt value :  " << track_.pt << "\n";
     track_.phi = t.momentum().phi();
     track_.eta = t.momentum().eta();
     std::fill( std::begin(track_.hitOdd), std::end(track_.hitOdd),false);
@@ -145,35 +143,35 @@ void GEMRecHitTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetu
       const GEMDetId id(d);
       track_.gem_rh[ id.station()-1][ (id.layer()-1)] = true;
     }
-    
+
     FillWithTrigger( track_eta, fabs(track_.eta)) ;
     FillWithTrigger( track_phi, fabs(track_.eta), track_.phi, track_.hitOdd, track_.hitEven);
 
 
     FillWithTrigger( rh_sh_eta, track_.gem_sh  , fabs( track_.eta) );
     FillWithTrigger( rh_eta,    track_.gem_rh  , fabs( track_.eta) );
-  
+
     // Separate station.
 
     FillWithTrigger( rh_sh_phi, track_.gem_sh  ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
     FillWithTrigger( rh_phi,    track_.gem_rh  ,fabs(track_.eta), track_.phi , track_.hitOdd, track_.hitEven);
-  
-   
-    /*  
+
+
+    /*
 
     // Calculation of the localXY efficiency
     GlobalPoint gp_track(match_sh.propagatedPositionGEM());
-    
+
     float track_angle = gp_track.phi().degrees();
     if (track_angle < 0.) track_angle += 360.;
     const int track_region = (gp_track.z() > 0 ? 1 : -1);
 
     // closest chambers in phi
     const auto mypair = getClosestChambers(track_region, track_angle);
- 
+
     GEMDetId detId_first(mypair.first);
     GEMDetId detId_second(mypair.second);
- 
+
     // assignment of local even and odd chambers (there is always an even and an odd chamber)
     bool firstIsOdd = detId_first.chamber() & 1;
 
@@ -186,7 +184,7 @@ void GEMRecHitTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetu
     LocalPoint p0(0.,0.,0.);
     GlobalPoint gp_even_partition = even_partition.toGlobal(p0);
     GlobalPoint gp_odd_partition = odd_partition.toGlobal(p0);
-    
+
     LocalPoint lp_track_even_partition = even_partition.toLocal(gp_track);
     LocalPoint lp_track_odd_partition = odd_partition.toLocal(gp_track);
 
@@ -230,16 +228,16 @@ void GEMRecHitTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetu
     dg_lx_odd->Fill( track_.gem_lx_odd);
     dg_ly_even->Fill( track_.gem_ly_even);
     dg_ly_odd->Fill( track_.gem_ly_odd);
-    
+
     if ( track_.has_gem_dg_l1 /2 >= 1 ) {
       dg_lx_even_l1->Fill ( track_.gem_lx_even);
       dg_ly_even_l1->Fill ( track_.gem_ly_even);
     }
-    if ( track_.has_gem_dg_l1 %2 == 1 ) { 
+    if ( track_.has_gem_dg_l1 %2 == 1 ) {
       dg_lx_odd_l1->Fill ( track_.gem_lx_odd);
       dg_ly_odd_l1->Fill ( track_.gem_ly_odd);
     }
-    if ( track_.has_gem_dg_l2 /2  >=1 ) { 
+    if ( track_.has_gem_dg_l2 /2  >=1 ) {
       dg_lx_even_l2->Fill ( track_.gem_lx_even);
       dg_ly_even_l2->Fill ( track_.gem_ly_even);
     }
