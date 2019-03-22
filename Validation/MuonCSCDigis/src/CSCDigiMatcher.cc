@@ -5,19 +5,19 @@ using namespace std;
 
 CSCDigiMatcher::CSCDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesCollector && iC)
 {
-  const auto& wireDigi = pset.getParameterSet("cscWireDigi");
+  const auto& wireDigi = pset.getParameterSet("wireDigi");
   verboseWG_ = wireDigi.getParameter<int>("verbose");
   minBXWire_ = wireDigi.getParameter<int>("minBX");
   maxBXWire_ = wireDigi.getParameter<int>("maxBX");
   matchDeltaWG_ = wireDigi.getParameter<int>("matchDeltaWG");
 
-  const auto& comparatorDigi = pset.getParameterSet("cscComparatorDigi");
+  const auto& comparatorDigi = pset.getParameterSet("comparatorDigi");
   verboseWG_ = comparatorDigi.getParameter<int>("verbose");
   minBXComparator_ = comparatorDigi.getParameter<int>("minBX");
   maxBXComparator_ = comparatorDigi.getParameter<int>("maxBX");
-  matchDeltaComparator_ = comparatorDigi.getParameter<int>("matchDeltaWG");
+  matchDeltaComparator_ = comparatorDigi.getParameter<int>("matchDeltaStrip");
 
-  const auto& stripDigi = pset.getParameterSet("cscStripDigi");
+  const auto& stripDigi = pset.getParameterSet("stripDigi");
   verboseStrip_ = stripDigi.getParameter<int>("verbose");
   minBXStrip_ = stripDigi.getParameter<int>("minBX");
   maxBXStrip_ = stripDigi.getParameter<int>("maxBX");

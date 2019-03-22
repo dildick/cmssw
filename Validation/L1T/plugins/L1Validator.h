@@ -1,25 +1,5 @@
-#ifndef Vallidation_L1T_L1Validator_h
-#define Vallidation_L1T_L1Validator_h
-
-// -*- C++ -*-
-//
-// Package:    L1T
-// Class:      L1Validator
-//
-/**\class L1T L1Validator.cc Validation/L1T/plugins/L1Validator.cc
-
- Description: [one line class summary]
-
- Implementation:
-     [Notes on implementation]
-*/
-//
-// Original Author:  Scott Wilbur
-//         Created:  Wed, 28 Aug 2013 09:42:55 GMT
-// $Id$
-//
-//
-
+#ifndef Validation_L1T_L1Validator_h
+#define Validation_L1T_L1Validator_h
 
 // system include files
 #include <memory>
@@ -66,7 +46,8 @@
 // class declaration
 //
 
-class L1Validator : public DQMEDAnalyzer {
+class L1Validator : public DQMEDAnalyzer
+{
   public:
     explicit L1Validator(const edm::ParameterSet&);
     ~L1Validator() override;

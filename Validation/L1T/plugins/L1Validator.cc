@@ -1,66 +1,20 @@
-// -*- C++ -*-
-//
-// Package:    L1T
-// Class:      L1Validator
-//
-/**
- * \class L1T L1Validator.cc Validation/L1T/plugins/L1Validator.cc
- *
- * Description: [one line class summary]
- *
- * Implementation:
- *    [Notes on implementation]
- */
-//
-// Original Author:  Scott Wilbur
-//         Created:  Wed, 28 Aug 2013 09:42:55 GMT
-// $Id$
-//
-//
-
 #include <string>
-
 #include "Validation/L1T/plugins/L1Validator.h"
-
 #include "FWCore/ServiceRegistry/interface/Service.h"
-
 #include "DataFormats/Math/interface/deltaR.h"
-
 #include "TFile.h"
 
-//defining as a macro instead of a function because inheritance doesn't work:
-#define FINDRECOPART(TYPE, COLLECTION1, COLLECTION2) \
-const TYPE *RecoPart=NULL; \
-double BestDist=999.; \
-for(uint i=0; i < COLLECTION1->size(); i++){ \
-  const TYPE *ThisPart = &COLLECTION1->at(i); \
-  double ThisDist = reco::deltaR(GenPart->eta(), GenPart->phi(), ThisPart->eta(), ThisPart->phi()); \
-  if(ThisDist < 1.0 && ThisDist < BestDist){ \
-    BestDist = ThisDist; \
-    RecoPart = ThisPart; \
-  } \
-} \
-if(COLLECTION1.product() != COLLECTION2.product()){ \
-  for(uint i=0; i < COLLECTION2->size(); i++){ \
-    const TYPE *ThisPart = &COLLECTION2->at(i); \
-    double ThisDist = reco::deltaR(GenPart->eta(), GenPart->phi(), ThisPart->eta(), ThisPart->phi()); \
-    if(ThisDist < 1.0 && ThisDist < BestDist){ \
-      BestDist = ThisDist; \
-      RecoPart = ThisPart; \
-    } \
-  } \
-}
-
-L1Validator::L1Validator(const edm::ParameterSet& iConfig){
+L1Validator::L1Validator(const edm::ParameterSet& iConfig)
+{
   _dirName = iConfig.getParameter<std::string>("dirName");
-  _GenSource = consumes<reco::GenParticleCollection> (iConfig.getParameter<edm::InputTag>("GenSource"));
-  _SimTrackSource = consumes<edm::SimTrackContainer> (iConfig.getParameter<edm::InputTag>("SimTrackSource"));
-  _SimVertexSource = consumes<edm::SimVertexContainer> (iConfig.getParameter<edm::InputTag>("SimVertexSource"));
+  _GenSource = consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("GenSource"));
+  _SimTrackSource = consumes<edm::SimTrackContainer>(iConfig.getParameter<edm::InputTag>("SimTrackSource"));
+  _SimVertexSource = consumes<edm::SimVertexContainer>(iConfig.getParameter<edm::InputTag>("SimVertexSource"));
 
-  _L1MuonBXSource = consumes<l1t::MuonBxCollection> (iConfig.getParameter<edm::InputTag>("L1MuonBXSource"));
-  _L1EGammaBXSource = consumes<l1t::EGammaBxCollection> (iConfig.getParameter<edm::InputTag>("L1EGammaBXSource"));
-  _L1TauBXSource = consumes<l1t::TauBxCollection> (iConfig.getParameter<edm::InputTag>("L1TauBXSource"));
-  _L1JetBXSource = consumes<l1t::JetBxCollection> (iConfig.getParameter<edm::InputTag>("L1JetBXSource"));
+  _L1MuonBXSource = consumes<l1t::MuonBxCollection>(iConfig.getParameter<edm::InputTag>("L1MuonBXSource"));
+  _L1EGammaBXSource = consumes<l1t::EGammaBxCollection>(iConfig.getParameter<edm::InputTag>("L1EGammaBXSource"));
+  _L1TauBXSource = consumes<l1t::TauBxCollection>(iConfig.getParameter<edm::InputTag>("L1TauBXSource"));
+  _L1JetBXSource = consumes<l1t::JetBxCollection>(iConfig.getParameter<edm::InputTag>("L1JetBXSource"));
   _srcToken = mayConsume<GenEventInfoProduct>( iConfig.getParameter<edm::InputTag>("srcToken") );
   _L1GenJetSource = consumes<reco::GenJetCollection>( iConfig.getParameter<edm::InputTag>("L1GenJetSource"));
 
@@ -77,7 +31,8 @@ void L1Validator::bookHistograms(DQMStore::IBooker &iBooker, edm::Run const &, e
   _Hists.Book(iBooker, _dirName);
 };
 
-void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
+void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
   using namespace edm;
   using namespace std;
   using namespace l1extra;
@@ -93,9 +48,33 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   iEvent.getByToken(_SimVertexSource, sim_vertices);
   const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
 
+  int trk_no=0;
+  std::cout << "Processing SimTracks " << sim_track.size() << std::endl;
+
   for (const auto& t: sim_track) {
+    std::cout << "Processing SimTrack " << trk_no+1 << std::endl;
+
+    /*
+    if (t.noVertex()) continue;
+    if (t.noGenpart()) continue;
+
+    // only muons
+    if (std::abs(t.type()) != 13) continue;
+
+    // pt selection
+    if (t.momentum().pt() < 2) continue;
+
+    const float eta(std::abs(t.momentum().eta()));
+    if (eta > 2.4) continue;
+    */
+    std::cout << "pt(GeV/c) = " << t.momentum().pt() << ", eta = " << t.momentum().eta()
+              << ", phi = " << t.momentum().phi() << ", Q = " << t.charge() << " PDGId = " << t.type() << std::endl;
+
     matcher_->match(t, sim_vert[t.vertIndex()]);
+
+
   }
+  return;
 
   Handle<GenParticleCollection> GenParticles;
   Handle<l1t::MuonBxCollection> MuonsBX;

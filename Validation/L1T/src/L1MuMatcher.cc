@@ -8,27 +8,43 @@
 
 L1MuMatcher::L1MuMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC)
 {
-  const auto& tfTrack = iPS.getParameter<edm::ParameterSet>("emtfTrack");
-  minBXEMTFTrack_ = tfTrack.getParameter<int>("minBX");
-  maxBXEMTFTrack_ = tfTrack.getParameter<int>("maxBX");
-  verboseEMTFTrack_ = tfTrack.getParameter<int>("verbose");
+  const auto& emtfTrack = iPS.getParameter<edm::ParameterSet>("emtfTrack");
+  minBXEMTFTrack_ = emtfTrack.getParameter<int>("minBX");
+  maxBXEMTFTrack_ = emtfTrack.getParameter<int>("maxBX");
+  verboseEMTFTrack_ = emtfTrack.getParameter<int>("verbose");
 
-  const auto& regionalMuonCand = iPS.getParameter<edm::ParameterSet>("regionalMuonCand");
-  minBXRegMuCand_ = regionalMuonCand.getParameter<int>("minBX");
-  maxBXRegMuCand_ = regionalMuonCand.getParameter<int>("maxBX");
-  verboseRegMuCand_ = regionalMuonCand.getParameter<int>("verbose");
-  deltaRRegMuCand_ = regionalMuonCand.getParameter<double>("deltaR");
-  deltaPtRelRegMuCand_ = regionalMuonCand.getParameter<double>("deltaPtRel");
+  const auto& bmtfCand = iPS.getParameter<edm::ParameterSet>("bmtfCand");
+  minBXBmtfCand_ = bmtfCand.getParameter<int>("minBX");
+  maxBXBmtfCand_ = bmtfCand.getParameter<int>("maxBX");
+  verboseBmtfCand_ = bmtfCand.getParameter<int>("verbose");
+  deltaRBmtfCand_ = bmtfCand.getParameter<double>("deltaR");
+  deltaPtRelBmtfCand_ = bmtfCand.getParameter<double>("deltaPtRel");
 
-  const auto& muon = iPS.getParameter<edm::ParameterSet>("L1Mu");
+  const auto& omtfCand = iPS.getParameter<edm::ParameterSet>("omtfCand");
+  minBXOmtfCand_ = omtfCand.getParameter<int>("minBX");
+  maxBXOmtfCand_ = omtfCand.getParameter<int>("maxBX");
+  verboseOmtfCand_ = omtfCand.getParameter<int>("verbose");
+  deltaROmtfCand_ = omtfCand.getParameter<double>("deltaR");
+  deltaPtRelOmtfCand_ = omtfCand.getParameter<double>("deltaPtRel");
+
+  const auto& emtfCand = iPS.getParameter<edm::ParameterSet>("emtfCand");
+  minBXEmtfCand_ = emtfCand.getParameter<int>("minBX");
+  maxBXEmtfCand_ = emtfCand.getParameter<int>("maxBX");
+  verboseEmtfCand_ = emtfCand.getParameter<int>("verbose");
+  deltaREmtfCand_ = emtfCand.getParameter<double>("deltaR");
+  deltaPtRelEmtfCand_ = emtfCand.getParameter<double>("deltaPtRel");
+
+  const auto& muon = iPS.getParameter<edm::ParameterSet>("gmt");
   minBXMuon_ = muon.getParameter<int>("minBX");
   maxBXMuon_ = muon.getParameter<int>("maxBX");
   verboseMuon_ = muon.getParameter<int>("verbose");
   deltaRMuon_ = muon.getParameter<double>("deltaR");
   deltaPtRelMuon_ = muon.getParameter<double>("deltaPtRel");
 
-  emtfTrackToken_ = iC.consumes<l1t::EMTFTrackCollection>(tfTrack.getParameter<edm::InputTag>("inputTag"));
-  regionalMuonCandToken_ = iC.consumes<BXVector<l1t::RegionalMuonCand> >(regionalMuonCand.getParameter<edm::InputTag>("inputTag"));
+  emtfTrackToken_ = iC.consumes<l1t::EMTFTrackCollection>(emtfTrack.getParameter<edm::InputTag>("inputTag"));
+  bmtfCandToken_ = iC.consumes<BXVector<l1t::RegionalMuonCand> >(bmtfCand.getParameter<edm::InputTag>("inputTag"));
+  omtfCandToken_ = iC.consumes<BXVector<l1t::RegionalMuonCand> >(omtfCand.getParameter<edm::InputTag>("inputTag"));
+  emtfCandToken_ = iC.consumes<BXVector<l1t::RegionalMuonCand> >(emtfCand.getParameter<edm::InputTag>("inputTag"));
   muonToken_ = iC.consumes<BXVector<l1t::Muon> >(muon.getParameter<edm::InputTag>("inputTag"));
 
   // initialize the stub matchers
@@ -43,8 +59,8 @@ void L1MuMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   gem_digi_matcher_->init(iEvent, iSetup);
   rpc_digi_matcher_->init(iEvent, iSetup);
 
-  iEvent.getByToken(emtfTrackToken_, hl1Tracks_);
-  iEvent.getByToken(regionalMuonCandToken_, hRegMuonCand_);
+  iEvent.getByToken(emtfTrackToken_, hEmtfTracks_);
+  iEvent.getByToken(emtfCandToken_, hEmtfCand_);
   iEvent.getByToken(muonToken_, hMuon_);
 }
 
@@ -56,8 +72,8 @@ void L1MuMatcher::match(const SimTrack& t, const SimVertex& v)
   rpc_digi_matcher_->match(t,v);
   gem_digi_matcher_->match(t,v);
 
-  matchEmtfTrackToSimTrack(*hl1Tracks_.product());
-  matchRegionalMuonCandToSimTrack(*hRegMuonCand_.product());
+  matchEmtfTrackToSimTrack(*hEmtfTracks_.product());
+  matchEmtfCandToSimTrack(*hEmtfCand_.product());
   matchMuonToSimTrack(*hMuon_.product());
 }
 
@@ -68,9 +84,21 @@ L1MuMatcher::emtfTracks() const
 }
 
 const std::vector<l1t::RegionalMuonCand>&
-L1MuMatcher::regionalMuonCands() const
+L1MuMatcher::bmtfCands() const
 {
-  return regionalMuonCands_;
+  return bmtfCands_;
+}
+
+const std::vector<l1t::RegionalMuonCand>&
+L1MuMatcher::omtfCands() const
+{
+  return omtfCands_;
+}
+
+const std::vector<l1t::RegionalMuonCand>&
+L1MuMatcher::emtfCands() const
+{
+  return emtfCands_;
 }
 
 const std::vector<l1t::Muon>&
@@ -86,9 +114,21 @@ L1MuMatcher::bestEmtfTrack() const
 }
 
 const l1t::RegionalMuonCand&
-L1MuMatcher::bestRegionalMuonCand() const
+L1MuMatcher::bestBmtfCand() const
 {
-  return bestRegionalMuonCand_;
+  return bestBmtfCand_;
+}
+
+const l1t::RegionalMuonCand&
+L1MuMatcher::bestOmtfCand() const
+{
+  return bestOmtfCand_;
+}
+
+const l1t::RegionalMuonCand&
+L1MuMatcher::bestEmtfCand() const
+{
+  return bestEmtfCand_;
 }
 
 const l1t::Muon&
@@ -101,7 +141,9 @@ void
 L1MuMatcher::clear()
 {
   emtfTracks_.clear();
-  regionalMuonCands_.clear();
+  bmtfCands_.clear();
+  omtfCands_.clear();
+  emtfCands_.clear();
   muons_.clear();
 }
 
@@ -147,17 +189,17 @@ L1MuMatcher::matchEmtfTrackToSimTrack(const l1t::EMTFTrackCollection& tracks)
   }
 }
 
-void L1MuMatcher::matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMuonCand>& regMuCands)
+void L1MuMatcher::matchEmtfCandToSimTrack(const BXVector<l1t::RegionalMuonCand>& regMuCands)
 {
   if (emtfTracks_.size()  ==  0) return;
 
-  float maxdPtRel = deltaPtRelRegMuCand_;
-  float maxdRRegMuCand = deltaRRegMuCand_;
+  float maxdPtRel = deltaPtRelEmtfCand_;
+  float maxdREmtfCand = deltaREmtfCand_;
 
   for (int bx = regMuCands.getFirstBX(); bx <= regMuCands.getLastBX(); bx++ ){
 
     // out of time muon
-    if ( bx < minBXRegMuCand_ or bx > maxBXRegMuCand_) continue;
+    if ( bx < minBXEmtfCand_ or bx > maxBXEmtfCand_) continue;
 
     for (auto cand = regMuCands.begin(bx); cand != regMuCands.end(bx); ++cand ){
 
@@ -165,7 +207,7 @@ void L1MuMatcher::matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMu
       const float cand_eta = cand->hwPt() * 0.010875;
       const float cand_phi = normalizedPhi((((cand->hwPhi() + cand->processor() * 96 + 576 + 24) % 576) / 576.) * 2.0 * 3.1415926);
 
-      if (verboseRegMuCand_)
+      if (verboseEmtfCand_)
         std::cout << "candidate regional muon " << cand_pt << " " << cand_eta << " " << cand_phi << std::endl;
 
       // all matching regional muon cands
@@ -175,7 +217,7 @@ void L1MuMatcher::matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMu
         const float trk_eta = trk.Eta();
         const float trk_phi = emtf::deg_to_rad(trk.Phi_glob());
 
-        if (verboseRegMuCand_)
+        if (verboseEmtfCand_)
           std::cout << "EMTF track "<< trk_pt  << " " << trk_eta << " " << trk_phi << std::endl;
 
         // calculate dR
@@ -185,8 +227,8 @@ void L1MuMatcher::matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMu
         const float dPtRel = std::abs(trk_pt - cand_pt)/cand_pt;
 
         // match by dR and delta pT
-        if (dR < deltaRRegMuCand_ and dPtRel < maxdPtRel){
-          regionalMuonCands_.push_back(*cand);
+        if (dR < deltaREmtfCand_ and dPtRel < maxdPtRel){
+          emtfCands_.push_back(*cand);
         }
       }
 
@@ -196,9 +238,9 @@ void L1MuMatcher::matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMu
       const float dR = deltaR(bestTrack_eta, bestTrack_phi, cand_eta, cand_phi);
 
       // find the best matching
-      if (dR < maxdRRegMuCand){
-        maxdRRegMuCand = dR;
-        bestRegionalMuonCand_ = *cand;
+      if (dR < maxdREmtfCand){
+        maxdREmtfCand = dR;
+        bestEmtfCand_ = *cand;
       }
     } // end loop RegionalMuonCand
   } // end loop BX
@@ -206,7 +248,7 @@ void L1MuMatcher::matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMu
 
 void L1MuMatcher::matchMuonToSimTrack(const BXVector<l1t::Muon>& muons)
 {
-  if (regionalMuonCands_.size()  ==  0) return;
+  if (emtfCands_.size()  ==  0) return;
   float maxdPtRel = deltaPtRelMuon_;
   float maxdRMuon = deltaRMuon_;
 
@@ -225,7 +267,7 @@ void L1MuMatcher::matchMuonToSimTrack(const BXVector<l1t::Muon>& muons)
         std::cout << "Muon " << muon_pt << " " << muon_eta << " " << muon_phi << std::endl;
 
       // all matching regional muon cands
-      for (const auto& cand : regionalMuonCands_) {
+      for (const auto& cand : emtfCands_) {
 
         const float cand_pt = cand.hwPt() * 0.5;
         const float cand_eta = cand.hwPt() * 0.010875;
@@ -246,9 +288,9 @@ void L1MuMatcher::matchMuonToSimTrack(const BXVector<l1t::Muon>& muons)
         }
       }
 
-      const float bestRegionalMuonCand_eta = bestRegionalMuonCand_.hwPt() * 0.010875;
-      const float bestRegionalMuonCand_phi(normalizedPhi((((bestRegionalMuonCand_.hwPhi() +
-                                                            bestRegionalMuonCand_.processor() * 96 + 576 + 24) % 576) / 576.) * 2.0 * 3.1415926));
+      const float bestRegionalMuonCand_eta = bestEmtfCand_.hwPt() * 0.010875;
+      const float bestRegionalMuonCand_phi(normalizedPhi((((bestEmtfCand_.hwPhi() +
+                                                            bestEmtfCand_.processor() * 96 + 576 + 24) % 576) / 576.) * 2.0 * 3.1415926));
 
       const float dR = deltaR(bestRegionalMuonCand_eta, bestRegionalMuonCand_phi, muon_eta, muon_phi);
 

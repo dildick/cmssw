@@ -31,12 +31,16 @@ class L1MuMatcher
 
   /// all matching
   const std::vector<l1t::EMTFTrack>& emtfTracks() const;
-  const std::vector<l1t::RegionalMuonCand>& regionalMuonCands() const;
+  const std::vector<l1t::RegionalMuonCand>& bmtfCands() const;
+  const std::vector<l1t::RegionalMuonCand>& omtfCands() const;
+  const std::vector<l1t::RegionalMuonCand>& emtfCands() const;
   const std::vector<l1t::Muon>& muons() const;
 
   /// best matching
   const l1t::EMTFTrack& bestEmtfTrack() const;
-  const l1t::RegionalMuonCand& bestRegionalMuonCand() const;
+  const l1t::RegionalMuonCand& bestBmtfCand() const;
+  const l1t::RegionalMuonCand& bestOmtfCand() const;
+  const l1t::RegionalMuonCand& bestEmtfCand() const;
   const l1t::Muon& bestMuon() const;
 
  private:
@@ -44,15 +48,19 @@ class L1MuMatcher
   void clear();
 
   void matchEmtfTrackToSimTrack(const l1t::EMTFTrackCollection&);
-  void matchRegionalMuonCandToSimTrack(const BXVector<l1t::RegionalMuonCand>&);
+  void matchEmtfCandToSimTrack(const BXVector<l1t::RegionalMuonCand>&);
   void matchMuonToSimTrack(const BXVector<l1t::Muon>&);
 
-  edm::Handle<l1t::EMTFTrackCollection> hl1Tracks_;
-  edm::Handle<BXVector<l1t::RegionalMuonCand>> hRegMuonCand_;
+  edm::Handle<l1t::EMTFTrackCollection> hEmtfTracks_;
+  edm::Handle<BXVector<l1t::RegionalMuonCand>> hBmtfCand_;
+  edm::Handle<BXVector<l1t::RegionalMuonCand>> hOmtfCand_;
+  edm::Handle<BXVector<l1t::RegionalMuonCand>> hEmtfCand_;
   edm::Handle<BXVector<l1t::Muon> > hMuon_;
 
   edm::EDGetTokenT<l1t::EMTFTrackCollection> emtfTrackToken_;
-  edm::EDGetTokenT< BXVector<l1t::RegionalMuonCand> > regionalMuonCandToken_;
+  edm::EDGetTokenT< BXVector<l1t::RegionalMuonCand> > bmtfCandToken_;
+  edm::EDGetTokenT< BXVector<l1t::RegionalMuonCand> > omtfCandToken_;
+  edm::EDGetTokenT< BXVector<l1t::RegionalMuonCand> > emtfCandToken_;
   edm::EDGetTokenT< BXVector<l1t::Muon> > muonToken_;
 
   std::unique_ptr<CSCStubMatcher> csc_stub_matcher_;
@@ -61,16 +69,26 @@ class L1MuMatcher
 
   // eta and phi are the same for
   // EMTF, RegionalMuonCand and L1Mu
-  float maxdRRegMuCand = 0.001;
+  float maxdREmtfCand = 0.001;
   float maxdRMuon = 0.001;
 
   int minBXEMTFTrack_, maxBXEMTFTrack_;
   int verboseEMTFTrack_;
 
-  int minBXRegMuCand_, maxBXRegMuCand_;
-  int verboseRegMuCand_;
-  double deltaRRegMuCand_;
-  double deltaPtRelRegMuCand_;
+  int minBXBmtfCand_, maxBXBmtfCand_;
+  int verboseBmtfCand_;
+  double deltaRBmtfCand_;
+  double deltaPtRelBmtfCand_;
+
+  int minBXOmtfCand_, maxBXOmtfCand_;
+  int verboseOmtfCand_;
+  double deltaROmtfCand_;
+  double deltaPtRelOmtfCand_;
+
+  int minBXEmtfCand_, maxBXEmtfCand_;
+  int verboseEmtfCand_;
+  double deltaREmtfCand_;
+  double deltaPtRelEmtfCand_;
 
   int minBXMuon_, maxBXMuon_;
   int verboseMuon_;
@@ -78,11 +96,15 @@ class L1MuMatcher
   double deltaPtRelMuon_;
 
   std::vector<l1t::EMTFTrack> emtfTracks_;
-  std::vector<l1t::RegionalMuonCand> regionalMuonCands_;
+  std::vector<l1t::RegionalMuonCand> bmtfCands_;
+  std::vector<l1t::RegionalMuonCand> omtfCands_;
+  std::vector<l1t::RegionalMuonCand> emtfCands_;
   std::vector<l1t::Muon> muons_;
 
   l1t::EMTFTrack bestEmtfTrack_;
-  l1t::RegionalMuonCand bestRegionalMuonCand_;
+  l1t::RegionalMuonCand bestBmtfCand_;
+  l1t::RegionalMuonCand bestOmtfCand_;
+  l1t::RegionalMuonCand bestEmtfCand_;
   l1t::Muon bestMuon_;
 };
 
