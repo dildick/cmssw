@@ -1,5 +1,5 @@
-#ifndef GEMCode_GEMValidation_ME0DigiMatcher_h
-#define GEMCode_GEMValidation_ME0DigiMatcher_h
+#ifndef Validation_MuonME0Validation_ME0DigiMatcher_h
+#define Validation_MuonME0Validation_ME0DigiMatcher_h
 
 /**\class DigiMatcher
 
@@ -8,9 +8,17 @@
  Original Author:  "Sven Dildick"
 */
 
-#include "GEMCode/GEMValidation/interface/DigiMatcher.h"
-
-#include "DataFormats/Common/interface/DetSetVector.h"
+#include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/Framework/interface/Event.h"
+#include "FWCore/Framework/interface/EventSetup.h"
+#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "FWCore/Framework/interface/ESHandle.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
+#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Geometry/Records/interface/MuonGeometryRecord.h"
+#include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
 
 #include <vector>
@@ -19,15 +27,21 @@
 
 typedef std::vector<ME0DigiPreReco> ME0DigiPreRecoContainer;
 
-class SimHitMatcher;
-
-class ME0DigiMatcher : public DigiMatcher
+class ME0DigiMatcher
 {
 public:
 
-  ME0DigiMatcher(const SimHitMatcher& sh, const edm::EDGetTokenT<ME0DigiPreRecoCollection>& me0DigiInput_);
+  // constructor
+  ME0DigiMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
 
-  ~ME0DigiMatcher();
+  // destructor
+  ~ME0DigiMatcher() {}
+
+  // initialize the event
+  void init(const edm::Event& e, const edm::EventSetup& eventSetup);
+
+  // do the matching
+  void match(const SimTrack& t, const SimVertex& v);
 
   // partition ME0 detIds with digis
   std::set<unsigned int> detIds() const;
@@ -53,11 +67,18 @@ public:
 
 private:
 
+  edm::EDGetTokenT<ME0DigiPreRecoCollection> me0DigiToken_;
+  edm::Handle<ME0DigiPreRecoCollection> me0DigisH_;
+
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
+
+  edm::ESHandle<ME0Geometry> me0_geom_;
+  const ME0Geometry* me0Geometry_;
+
   void matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digis);
 
   bool verboseDigi_;
-  bool runME0Digi_;
-  int minBXME0_, maxBXME0_;
+  int minBX_, maxBX_;
   int matchDeltaStrip_;
 
   std::map<unsigned int, ME0DigiPreRecoContainer> detid_to_digis_;

@@ -1,34 +1,53 @@
-#include "GEMCode/GEMValidation/interface/ME0DigiMatcher.h"
-#include "GEMCode/GEMValidation/interface/SimHitMatcher.h"
+#include "Validation/MuonME0Validation/interface/ME0DigiMatcher.h"
 
 using namespace std;
-using namespace matching;
 
-ME0DigiMatcher::ME0DigiMatcher(const SimHitMatcher& sh, const edm::EDGetTokenT<ME0DigiPreRecoCollection>& me0DigiInput_)
-: DigiMatcher(sh)
+ME0DigiMatcher::ME0DigiMatcher(edm::ParameterSet const& pset, edm::ConsumesCollector && iC)
 {
-  const auto& me0Digi_= conf().getParameter<edm::ParameterSet>("me0DigiPreReco");
-  minBXME0_ = me0Digi_.getParameter<int>("minBX");
-  maxBXME0_ = me0Digi_.getParameter<int>("maxBX");
-  matchDeltaStrip_ = me0Digi_.getParameter<int>("matchDeltaStrip");
-  verboseDigi_ = me0Digi_.getParameter<int>("verbose");
-  runME0Digi_ = me0Digi_.getParameter<bool>("run");
+  const auto& me0Digi= pset.getParameterSet("me0DigiPreReco");
+  minBX_ = me0Digi.getParameter<int>("minBX");
+  maxBX_ = me0Digi.getParameter<int>("maxBX");
+  matchDeltaStrip_ = me0Digi.getParameter<int>("matchDeltaStrip");
+  verboseDigi_ = me0Digi.getParameter<int>("verbose");
 
-  if (hasME0Geometry_) {
-    edm::Handle<ME0DigiPreRecoCollection> me0_digis;
-    if (gemvalidation::getByToken(me0DigiInput_, me0_digis, event()) and runME0Digi_) matchPreRecoDigisToSimTrack(*me0_digis.product());
-    else if (verboseDigi_) std::cout <<"Not running matchPreRecoDigisToSimTrack "<< std::endl;
+  // make a new simhits matcher
+  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+
+  me0DigiToken_ = iC.consumes<ME0DigiPreRecoCollection>(me0Digi.getParameter<edm::InputTag>("inputTag"));
+}
+
+// initialize the event
+void ME0DigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+  muonHitMatcher_->init(iEvent, iSetup);
+
+  iEvent.getByToken(me0DigiToken_, me0DigisH_);
+
+  iSetup.get<MuonGeometryRecord>().get(me0_geom_);
+  if (me0_geom_.isValid()) {
+    me0Geometry_ = &*me0_geom_;
+  } else {
+    std::cout << "+++ Info: ME0 geometry is unavailable. +++\n";
   }
 }
 
-ME0DigiMatcher::~ME0DigiMatcher()
-{}
+// do the matching
+void ME0DigiMatcher::match(const SimTrack& t, const SimVertex& v)
+{
+  // match simhits first
+  muonHitMatcher_->match(t,v);
 
+  // get the digi collections
+  const ME0DigiPreRecoCollection& me0Digis = *me0DigisH_.product();
+
+  // now match the digis
+  matchPreRecoDigisToSimTrack(me0Digis);
+}
 
 void
 ME0DigiMatcher::matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digis)
 {
-  const auto& det_ids = simhit_matcher_->detIdsME0();
+  const auto& det_ids = muonHitMatcher_->detIdsME0();
   for (const auto& id: det_ids)
   {
     ME0DetId p_id(id);
@@ -38,7 +57,7 @@ ME0DigiMatcher::matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digi
     for (auto d = digis_in_det.first; d != digis_in_det.second; ++d)
     {
       // check that the digi is within BX range
-     // if (d->tof() < minBXME0_ || d->tof() > maxBXME0_) continue;
+     // if (d->tof() < minBX_ || d->tof() > maxBX_) continue;
 
       // check that the pdgid is 13 for muon!
       if (std::abs(d->pdgid()) != 13 and std::abs(d->pdgid()) != 11) continue;
@@ -48,7 +67,7 @@ ME0DigiMatcher::matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digi
 
       bool match = false;
 
-      for (const auto& hit: simhit_matcher_->hitsInDetId(id)){
+      for (const auto& hit: muonHitMatcher_->hitsInDetId(id)){
 	if (verboseDigi_)
 	    cout << "\tCandidate ME0 simhit " << hit << " local (x,y)= " << hit.localPosition().x() << " " << hit.localPosition().y()<< " tof "<< hit.tof() << " pdgid " << hit.particleType() << endl;
         // check that the digi position matches a simhit position (within 5 sigma)
@@ -57,9 +76,9 @@ ME0DigiMatcher::matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digi
         //    d->y() - 5 * d->ey() < hit.localPosition().y() and
         //    d->y() + 5 * d->ey() > hit.localPosition().y() ) {
 	if (std::fabs(d->tof() - hit.tof()) > 50) continue;
-        // check that the digi position matches a simhit position (within 3 sigma)
-        if (std::fabs(d->x() - hit.localPosition().x()) < .5  and
-            std::fabs(d->y() - hit.localPosition().y()) < 2.5*6 ){
+  // check that the digi position matches a simhit position (within 3 sigma)
+  if (std::fabs(d->x() - hit.localPosition().x()) < .5  and
+      std::fabs(d->y() - hit.localPosition().y()) < 2.5*6 ){
           match = true;
           //cout << "\t...matches this digi!" << endl;
           break;

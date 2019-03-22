@@ -1,39 +1,58 @@
-#include "GEMCode/GEMValidation/interface/ME0RecHitMatcher.h"
-#include "GEMCode/GEMValidation/interface/ME0DigiMatcher.h"
+#include "Validation/MuonME0Validation/interface/ME0RecHitMatcher.h"
+#include "Validation/MuonME0Validation/interface/ME0DigiMatcher.h"
 
 using namespace std;
 
-
-ME0RecHitMatcher::ME0RecHitMatcher(const ME0DigiMatcher& dg,
-                                   const edm::EDGetTokenT<ME0RecHitCollection>& me0RecHitInput_,
-                                   const edm::EDGetTokenT<ME0SegmentCollection>& me0SegmentInput_)
-  : BaseMatcher(dg.trk(), dg.vtx(), dg.conf(), dg.event(), dg.eventSetup())
-  , digi_matcher_(&dg)
+ME0RecHitMatcher::ME0RecHitMatcher(const edm::ParameterSet& pset, edm::ConsumesCollector && iC)
 {
-  const auto& me0RecHit = conf().getParameter<edm::ParameterSet>("me0RecHit");
+  const auto& me0RecHit = pset.getParameter<edm::ParameterSet>("me0RecHit");
   maxBXME0RecHit_ = me0RecHit.getParameter<int>("maxBX");
   minBXME0RecHit_ = me0RecHit.getParameter<int>("minBX");
   verboseME0RecHit_ = me0RecHit.getParameter<int>("verbose");
-  runME0RecHit_ = me0RecHit.getParameter<bool>("run");
 
-  const auto& me0Segment = conf().getParameter<edm::ParameterSet>("me0Segment");
+  const auto& me0Segment = pset.getParameter<edm::ParameterSet>("me0Segment");
   maxBXME0Segment_ = me0Segment.getParameter<int>("maxBX");
   minBXME0Segment_ = me0Segment.getParameter<int>("minBX");
   verboseME0Segment_ = me0Segment.getParameter<int>("verbose");
-  runME0Segment_ = me0Segment.getParameter<bool>("run");
   minNHitsSegment_ = me0Segment.getParameter<int>("minNHits");
 
-  if (hasME0Geometry_) {
-    edm::Handle<ME0RecHitCollection> me0_rechits;
-    if (gemvalidation::getByToken(me0RecHitInput_, me0_rechits, event()) and runME0RecHit_) matchME0RecHitsToSimTrack(*me0_rechits.product());
-    else if (verboseME0RecHit_) std::cout <<"Not running matchME0RecHitsToSimTrack "<< std::endl;
+  // make a new digi matcher
+  me0DigiMatcher_.reset(new ME0DigiMatcher(pset, std::move(iC)));
 
-    edm::Handle<ME0SegmentCollection> me0_segments;
-    if (gemvalidation::getByToken(me0SegmentInput_, me0_segments, event()) and runME0Segment_){
-      matchME0SegmentsToSimTrack(*me0_segments.product());
-      matchME0SegmentsToSimTrackBydR(*me0_segments.product());
-    }else if (verboseME0Segment_) std::cout <<"Not running matchME0SegmentsToSimTrack "<< std::endl;
+  me0RecHitToken_ = iC.consumes<ME0RecHitCollection>(me0RecHit.getParameter<edm::InputTag>("inputTag"));
+  me0SegmentToken_ = iC.consumes<ME0SegmentCollection>(me0Segment.getParameter<edm::InputTag>("inputTag"));
+}
+
+
+void ME0RecHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+{
+  me0DigiMatcher_->init(iEvent, iSetup);
+
+  iEvent.getByToken(me0RecHitToken_, me0RecHitsH_);
+  iEvent.getByToken(me0SegmentToken_, me0SegmentsH_);
+
+  iSetup.get<MuonGeometryRecord>().get(me0_geom_);
+  if (me0_geom_.isValid()) {
+    me0Geometry_ = &*me0_geom_;
+  } else {
+    std::cout << "+++ Info: ME0 geometry is unavailable. +++\n";
   }
+}
+
+
+/// do the matching
+void ME0RecHitMatcher::match(const SimTrack& t, const SimVertex& v)
+{
+  // match simhits first
+  me0DigiMatcher_->match(t,v);
+
+  // get the digi collections
+  const ME0RecHitCollection& me0RecHits = *me0RecHitsH_.product();
+  const ME0SegmentCollection& me0Segments = *me0SegmentsH_.product();
+
+  // now match the rechits and segments
+  matchME0RecHitsToSimTrack(me0RecHits);
+  matchME0SegmentsToSimTrack(me0Segments);
 }
 
 
@@ -42,7 +61,7 @@ ME0RecHitMatcher::matchME0RecHitsToSimTrack(const ME0RecHitCollection& rechits)
 {
   if (verboseME0RecHit_) cout << "Matching simtrack to ME0 rechits" << endl;
   // fetch all detIds with digis
-  const auto& layer_ids = digi_matcher_->detIds();
+  const auto& layer_ids = me0DigiMatcher_->detIds();
   if (verboseME0RecHit_) cout << "Number of matched me0 layer_ids " << layer_ids.size() << endl;
 
   for (const auto& id: layer_ids) {
@@ -59,7 +78,7 @@ ME0RecHitMatcher::matchME0RecHitsToSimTrack(const ME0RecHitCollection& rechits)
 
       // match the rechit to the digis if the TOF, x and y are the same
       bool match = false;
-      ME0DigiPreRecoContainer digis = digi_matcher_->digisInDetId(id);
+      ME0DigiPreRecoContainer digis = me0DigiMatcher_->digisInDetId(id);
       for (const auto& digi: digis){
 	if (std::fabs(digi.tof() - rr->tof()) > 1) continue;
         if (std::fabs(digi.x() - rr->localPosition().x())<1 and
@@ -88,7 +107,7 @@ ME0RecHitMatcher::matchME0SegmentsToSimTrack(const ME0SegmentCollection& me0Segm
   if (verboseME0Segment_) cout << "Matching simtrack to segments" << endl;
   if (verboseME0Segment_)  dumpAllME0Segments(me0Segments);
   // fetch all chamberIds with digis
-  const auto& chamber_ids = digi_matcher_->superChamberIds();
+  const auto& chamber_ids = me0DigiMatcher_->superChamberIds();
   if (verboseME0Segment_) cout << "Number of matched me0 segments " << chamber_ids.size() << endl;
   for (const auto& id: chamber_ids) {
     ME0DetId p_id(id);
@@ -140,35 +159,6 @@ ME0RecHitMatcher::matchME0SegmentsToSimTrack(const ME0SegmentCollection& me0Segm
     superChamber_to_bestME0Segment_[ p.first] = findbestME0Segment(p.second);
 }
 
-void
-ME0RecHitMatcher::matchME0SegmentsToSimTrackBydR(const ME0SegmentCollection& segments)
-{
-  if (verboseME0Segment_) cout <<"\t matchME0SegmentsToSimTrackBydR "<< endl;
-  if (verboseME0Segment_) dumpAllME0Segments( segments );
-  const int endcap((trk().momentum().eta() > 0.) ? 1 : -1);
-  GlobalPoint gp_propagated(propagateToZ(AVERAGE_ME0_Z*endcap));
-  for(auto iC = segments.id_begin(); iC != segments.id_end(); ++iC){
-    const auto& ch_segs = segments.get(*iC);
-    for(auto iS = ch_segs.first; iS != ch_segs.second; ++iS){
-      const GlobalPoint& gpME0(globalPoint(*iS));
-      if (verboseME0Segment_)
-        cout <<"ME0Detid "<< iS->me0DetId()<<" segment "<< *iS << std::endl;
-      if (verboseME0Segment_)
-        cout <<"gp_propagated eta "<< gp_propagated.eta() <<" phi "<< gp_propagated.phi() <<" gpME0 eta "<< gpME0.eta()<<" phi "<< gpME0.phi() << endl;
-      float dPhi = gpME0.phi()- gp_propagated.phi();
-      float dEta = gpME0.eta() - gp_propagated.eta();
-      float dR = std::sqrt(dPhi*dPhi + dEta*dEta);
-      if (dR < 0.4){
-        if (verboseME0Segment_) cout << "\t matched "<< endl;
-        superChamber_to_me0Segment_bydR_[ iS->me0DetId().rawId() ].push_back(*iS);
-      }
-    }
-  }
-
-  for (const auto& p : superChamber_to_me0Segment_bydR_)
-    superChamber_to_bestME0Segment_bydR_[ p.first] = findbestME0Segment_bydR(p.second, gp_propagated);
-
-}
 
 void ME0RecHitMatcher::dumpAllME0Segments(const ME0SegmentCollection& segments) const
 {
@@ -214,16 +204,7 @@ ME0RecHitMatcher::superChamberIdsME0Segment() const
   return result;
 }
 
-std::set<unsigned int>
-ME0RecHitMatcher::superChamberIdsME0Segment_bydR() const
-{
-  std::set<unsigned int> result;
-  for (const auto& p: superChamber_to_me0Segment_bydR_) result.insert(p.first);
-  return result;
-}
-
-
-const ME0RecHitMatcher::ME0RecHitContainer&
+const ME0RecHitContainer&
 ME0RecHitMatcher::me0RecHitsInChamber(unsigned int detid) const
 {
   if (chamber_to_me0RecHit_.find(detid) == chamber_to_me0RecHit_.end()) return no_me0RecHits_;
@@ -231,7 +212,7 @@ ME0RecHitMatcher::me0RecHitsInChamber(unsigned int detid) const
 }
 
 
-const ME0RecHitMatcher::ME0RecHitContainer&
+const ME0RecHitContainer&
 ME0RecHitMatcher::me0RecHitsInSuperChamber(unsigned int detid) const
 {
   if (superChamber_to_me0RecHit_.find(detid) == superChamber_to_me0RecHit_.end()) return no_me0RecHits_;
@@ -239,20 +220,12 @@ ME0RecHitMatcher::me0RecHitsInSuperChamber(unsigned int detid) const
 }
 
 
-const ME0RecHitMatcher::ME0SegmentContainer&
+const ME0SegmentContainer&
 ME0RecHitMatcher::me0SegmentsInSuperChamber(unsigned int detid) const
 {
   if (superChamber_to_me0Segment_.find(detid) == superChamber_to_me0Segment_.end()) return no_me0Segments_;
   return superChamber_to_me0Segment_.at(detid);
 }
-
-const ME0RecHitMatcher::ME0SegmentContainer&
-ME0RecHitMatcher::me0SegmentsInSuperChamber_bydR(unsigned int detid) const
-{
-  if (superChamber_to_me0Segment_bydR_.find(detid) == superChamber_to_me0Segment_bydR_.end()) return no_me0Segments_;
-  return superChamber_to_me0Segment_bydR_.at(detid);
-}
-
 
 int
 ME0RecHitMatcher::nME0RecHitsInChamber(unsigned int detid) const
@@ -274,17 +247,10 @@ ME0RecHitMatcher::nME0SegmentsInSuperChamber(unsigned int detid) const
   return me0SegmentsInSuperChamber(detid).size();
 }
 
-int
-ME0RecHitMatcher::nME0SegmentsInSuperChamber_bydR(unsigned int detid) const
-{
-  return me0SegmentsInSuperChamber_bydR(detid).size();
-}
-
-
-const ME0RecHitMatcher::ME0RecHitContainer
+const ME0RecHitContainer
 ME0RecHitMatcher::me0RecHits() const
 {
-  ME0RecHitMatcher::ME0RecHitContainer result;
+  ME0RecHitContainer result;
   for (const auto& id: superChamberIdsME0RecHit()){
     const auto& segmentsInSuperChamber(me0RecHitsInSuperChamber(id));
     result.insert(result.end(), segmentsInSuperChamber.begin(), segmentsInSuperChamber.end());
@@ -293,23 +259,12 @@ ME0RecHitMatcher::me0RecHits() const
 }
 
 
-const ME0RecHitMatcher::ME0SegmentContainer
+const ME0SegmentContainer
 ME0RecHitMatcher::me0Segments() const
 {
-  ME0RecHitMatcher::ME0SegmentContainer result;
+  ME0SegmentContainer result;
   for (const auto& id: superChamberIdsME0Segment()){
     const auto& segmentsInSuperChamber(me0SegmentsInSuperChamber(id));
-    result.insert(result.end(), segmentsInSuperChamber.begin(), segmentsInSuperChamber.end());
-  }
-  return result;
-}
-
-const ME0RecHitMatcher::ME0SegmentContainer
-ME0RecHitMatcher::me0Segments_bydR() const
-{
-  ME0RecHitMatcher::ME0SegmentContainer result;
-  for (const auto& id: superChamberIdsME0Segment_bydR()){
-    const auto& segmentsInSuperChamber(me0SegmentsInSuperChamber_bydR(id));
     result.insert(result.end(), segmentsInSuperChamber.begin(), segmentsInSuperChamber.end());
   }
   return result;
@@ -408,16 +363,6 @@ ME0RecHitMatcher::bestME0Segment(unsigned int id)
 }
 
 ME0Segment
-ME0RecHitMatcher::bestME0Segment_bydR(unsigned int id) const
-{
-  if (superChamber_to_bestME0Segment_bydR_.find(id) == superChamber_to_bestME0Segment_bydR_.end()) return no_me0segment_;
-  else  {
-      ME0Segment segment(superChamber_to_bestME0Segment_bydR_.at(id));
-      return segment;
-  }
-}
-
-ME0Segment
 ME0RecHitMatcher::findbestME0Segment(ME0SegmentContainer allSegs) const
 {
   ME0Segment bestSegment;
@@ -433,39 +378,16 @@ ME0RecHitMatcher::findbestME0Segment(ME0SegmentContainer allSegs) const
   return bestSegment;
 }
 
-ME0Segment
-ME0RecHitMatcher::findbestME0Segment_bydR(ME0SegmentContainer allSegs, GlobalPoint gp_propagated) const
-{
-  ME0Segment bestSegment;
-  float mindR = 0.4;
-
-  for (const auto& seg: allSegs){
-    const GlobalPoint& gpME0(globalPoint(seg));
-    cout <<"gp_propagated eta "<< gp_propagated.eta() <<" phi "<< gp_propagated.phi() <<" gpME0 eta "<< gpME0.eta()<<" phi "<< gpME0.phi() << endl;
-    float dPhi = gpME0.phi()- gp_propagated.phi();
-    float dEta = gpME0.eta() - gp_propagated.eta();
-    float dR = std::sqrt(dPhi*dPhi + dEta*dEta);
-    if (dR < mindR){
-	bestSegment = seg;
-	mindR = dR;
-    }
-  }
-  if (mindR>=.4)cout <<"failed to bestSegment "<< endl;
-  return bestSegment;
-}
-
 GlobalPoint
 ME0RecHitMatcher::globalPoint(const ME0Segment& c) const
 {
-  return getME0Geometry()->idToDet(c.me0DetId())->surface().toGlobal(c.localPosition());
+  return me0Geometry_->idToDet(c.me0DetId())->surface().toGlobal(c.localPosition());
 }
 
 float
 ME0RecHitMatcher::me0DeltaPhi(ME0Segment Seg) const
 {
-  const auto& chamber = getME0Geometry()->chamber(Seg.me0DetId());
-  float dPhi = chamber->computeDeltaPhi(Seg.localPosition(), Seg.localDirection());
-  //std::cout <<"ME0detId "<< Seg.me0DetId()<<" Segment "<< Seg <<" dPhi here "<< dPhi << std::endl;
-  return dPhi;
+  const auto& chamber = me0Geometry_->chamber(Seg.me0DetId());
+  return chamber->computeDeltaPhi(Seg.localPosition(), Seg.localDirection());
 
 }
