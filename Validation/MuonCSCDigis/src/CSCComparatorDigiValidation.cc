@@ -1,4 +1,4 @@
-#include "Validation/MuonCSCDigis/src/CSCComparatorDigiValidation.h"
+#include "Validation/MuonCSCDigis/interface/CSCComparatorDigiValidation.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DQMServices/Core/interface/DQMStore.h"
