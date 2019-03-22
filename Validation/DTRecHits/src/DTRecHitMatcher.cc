@@ -63,16 +63,15 @@ void DTRecHitMatcher::match(const SimTrack& t, const SimVertex& v)
 void
 DTRecHitMatcher::matchDTRecHit1DPairsToSimTrack(const DTRecHitCollection& rechits)
 {
-  /*
   if (verboseDTRecHit1DPair_) cout << "Matching simtrack to DT rechits" << endl;
   // fetch all chamberIds with simhits
-  const auto& layer_ids = dtDigiMatcher_->layerIdsDT();
+  const auto& layer_ids = dtDigiMatcher_->layerIds();
 
   for (const auto& id: layer_ids) {
     DTLayerId p_id(id);
 
     // print all the wires in the DTChamber
-    const auto& hit_wires(dtDigiMatcher_->hitWiresInDTLayerId(id));
+    const auto& hit_wires(dtDigiMatcher_->muonHitMatcher()->hitWiresInDTLayerId(id));
     if (verboseDTRecHit1DPair_) {
       cout<<"hit wires dt from simhit"<<endl;
       for (const auto& wire: hit_wires) cout << "\t"<<DTWireId(wire) << endl;
@@ -116,7 +115,6 @@ DTRecHitMatcher::matchDTRecHit1DPairsToSimTrack(const DTRecHitCollection& rechit
     }
     cout<<endl;
   }
-  */
 }
 
 
@@ -129,16 +127,15 @@ DTRecHitMatcher::matchDTRecSegment2DsToSimTrack(const DTRecSegment2DCollection& 
 void
 DTRecHitMatcher::matchDTRecSegment4DsToSimTrack(const DTRecSegment4DCollection& dtRecSegment4Ds)
 {
-  /*
   if (verboseDTRecSegment4D_) cout << "Matching simtrack to segments" << endl;
   // fetch all chamberIds with simhits
-  const auto& chamber_ids = dtDigiMatcher_->chamberIdsDT();
+  const auto& chamber_ids = dtDigiMatcher_->chamberIds();
 
   for (const auto& id: chamber_ids) {
     DTChamberId p_id(id);
 
     // print all the wires in the DTChamber
-    const auto& hit_wires(dtDigiMatcher_->hitWiresInDTChamberId(id));
+    const auto& hit_wires(dtDigiMatcher_->muonHitMatcher()->hitWiresInDTChamberId(id));
     if (verboseDTRecSegment4D_) {
       cout<<"hit wires dt from simhit"<<endl;
       for (const auto& wire: hit_wires) cout << "\t"<<DTWireId(wire) << endl;
@@ -189,12 +186,11 @@ DTRecHitMatcher::matchDTRecSegment4DsToSimTrack(const DTRecSegment4DCollection& 
     cout << "Number of matching DTRecSegment4D: " << nDTRecSegment4Ds() << endl;
     for (const auto& id: chamberIdsDTRecSegment4D()) {
       for (const auto& rh: dtRecSegment4DInChamber(id)) {
-	cout << "\t" << id << " " << rh << endl;
+        cout << "\t" << id << " " << rh << endl;
       }
     }
     cout<<endl;
   }
-  */
 }
 
 

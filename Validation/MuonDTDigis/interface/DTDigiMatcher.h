@@ -60,6 +60,7 @@ public:
   // wire numbers from this simtrack in a detId
   std::set<int> wireNumbersInDetId(unsigned int) const;
 
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher() const {return muonHitMatcher_;}
 
 private:
 
@@ -75,7 +76,7 @@ private:
   edm::Handle<L1MuDTChambThContainer> dtThDigisH_;
   edm::Handle<L1MuDTChambPhContainer> dtPhDigisH_;
 
-  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
 
   edm::ESHandle<DTGeometry> dt_geom_;
   const DTGeometry* dtGeometry_;
