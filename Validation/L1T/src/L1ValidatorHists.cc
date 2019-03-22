@@ -1,36 +1,21 @@
 #include "Validation/L1T/interface/L1ValidatorHists.h"
-
-//#include <DataFormats/HepMCCandidate/interface/GenParticle.h>
-
 #include "DataFormats/Math/interface/deltaR.h"
 
-/*#define BOOKHISTS(TYPE) \
-TYPE ## _N_Pt = new TH2F(#TYPE "_N_Pt", #TYPE " Number", 20, 0, 200); \
-TYPE ## _N_Eta = new TH2F(#TYPE "_N_Eta", #TYPE " Number", 20, -4, 4); \
-TYPE ## _Eff_Pt = new TH2F(#TYPE "_Eff_Pt", #TYPE " Number", 20, 0, 200); \
-TYPE ## _Eff_Eta = new TH2F(#TYPE "_Eff_Eta", #TYPE " Number", 20, -4, 4); \
-TYPE ## _dR = new TH2F(#TYPE "_dR", #TYPE " Number", 20, 0, 1); \
-TYPE ## _dPt = new TH2F(#TYPE "_dPt", #TYPE " Number", 20, -1, 1);
-*/
-L1ValidatorHists::L1ValidatorHists(){
-//  Name[0]="IsoEG"; // Run I legacy
-//  Name[1]="NonIsoEG";
-//  Name[2]="CenJet";
-//  Name[3]="ForJet";
-//  Name[4]="TauJet";
-//  Name[5]="Muon";
+L1ValidatorHists::L1ValidatorHists()
+{
   Name[0]="Egamma";
   Name[1]="Jet";
   Name[2]="Tau";
   Name[3]="Muon";
 
 }
+
 L1ValidatorHists::~L1ValidatorHists(){}
 
 void L1ValidatorHists::Book(DQMStore::IBooker &iBooker, std::string dirname){
   NEvents=0;
 
-  float ptbins[14] = { 0,5,10,15,20,25,30,35, 40, 50, 60, 80, 120, 160}; 
+  float ptbins[14] = { 0,5,10,15,20,25,30,35, 40, 50, 60, 80, 120, 160};
   int Nptbin = 13;
 
   iBooker.setCurrentFolder(dirname + "/numerators_denominators");
@@ -118,16 +103,3 @@ void L1ValidatorHists::Write(){
     dPt_vs_Pt[i]->getTH2F()->Write();
   }
 }
-
-/*void L1ValidatorHists::NormalizeSlices(TH2F *Hist){
-  int NBinsX = Hist->GetNbinsX();
-  int NBinsY = Hist->GetNbinsY();
-  for(int i=0; i<NBinsX+2; i++){
-    float Total = Hist->Integral(i, i, 0, -1);
-    if(Total == 0) continue;
-    for(int j=0; j<NBinsY+2; j++){
-      Hist->SetBinContent(i,j, Hist->GetBinContent(i,j)/Total);
-    }
-  }
-}
-*/

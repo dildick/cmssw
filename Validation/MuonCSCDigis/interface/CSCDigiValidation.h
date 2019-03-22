@@ -1,5 +1,5 @@
-#ifndef CSCDigiValidation_H
-#define CSCDigiValidation_H
+#ifndef Validation_MuonCSCDigis_CSCDigiValidation_H
+#define Validation_MuonCSCDigis_CSCDigiValidation_H
 
 // user include files
 

@@ -1,5 +1,5 @@
-#ifndef GEMCheckGeometry_H
-#define GEMCheckGeometry_H
+#ifndef Validation_MuonGEMDigis_GEMCheckGeometry_H
+#define Validation_MuonGEMDigis_GEMCheckGeometry_H
 
 #include "DQMServices/Core/interface/DQMStore.h"
 #include "DQMServices/Core/interface/MonitorElement.h"
@@ -22,11 +22,11 @@ public:
 
   std::map< UInt_t , MonitorElement* > theStdPlots;
   std::map< UInt_t , MonitorElement* > the_st_dphi;
-  double GE11PhiBegin_; 
+  double GE11PhiBegin_;
   double GE11PhiStep_;
   double minPhi_;
   double maxPhi_;
-  bool detailPlot_; 
+  bool detailPlot_;
 };
 
 #endif

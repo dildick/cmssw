@@ -1,9 +1,8 @@
-#ifndef GEMCoPadDigiValidation_H
-#define GEMCoPadDigiValidation_H
+#ifndef Validation_MuonGEMDigis_GEMCoPadDigiValidation_H
+#define Validation_MuonGEMDigis_GEMCoPadDigiValidation_H
 
 #include "Validation/MuonGEMHits/interface/GEMBaseValidation.h"
 #include "DataFormats/GEMDigi/interface/GEMCoPadDigiCollection.h"
-
 
 class GEMCoPadDigiValidation : public GEMBaseValidation
 {
