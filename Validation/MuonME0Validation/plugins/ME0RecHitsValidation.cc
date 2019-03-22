@@ -1,4 +1,4 @@
-#include "Validation/MuonME0Validation/interface/ME0RecHitsValidation.h"
+#include "Validation/MuonME0Validation/plugins/ME0RecHitsValidation.h"
 #include <TMath.h>
 
 ME0RecHitsValidation::ME0RecHitsValidation(const edm::ParameterSet& cfg):  ME0BaseValidation(cfg)

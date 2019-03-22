@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 
-
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
+
 me0RecHitsValidation = DQMEDAnalyzer('ME0RecHitsValidation',
     verboseSimHit = cms.untracked.int32(1),
     simInputLabel = cms.InputTag('g4SimHits',"MuonME0Hits"),

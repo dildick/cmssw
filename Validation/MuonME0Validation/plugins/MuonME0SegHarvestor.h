@@ -1,5 +1,5 @@
-#ifndef MuonME0SegHarvestor_H
-#define MuonME0SegHarvestor_H
+#ifndef Validation_MuonME0Validation_MuonME0SegHarvestor_H
+#define Validation_MuonME0Validation_MuonME0SegHarvestor_H
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -22,11 +22,11 @@ public:
     explicit MuonME0SegHarvestor(const edm::ParameterSet&);
     /// destructor
     ~MuonME0SegHarvestor() override;
-    
+
     void dqmEndJob(DQMStore::IBooker &, DQMStore::IGetter &) override;
     void ProcessBooking( DQMStore::IBooker& , DQMStore::IGetter&, std::string nameHist, TH1F* num, TH1F* den );
     TProfile* ComputeEff(TH1F* num, TH1F* denum, std::string nameHist );
-    
+
 private:
     std::string dbe_path_;
 };

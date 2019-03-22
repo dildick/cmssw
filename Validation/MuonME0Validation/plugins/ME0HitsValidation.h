@@ -1,5 +1,5 @@
-#ifndef ME0HitsValidation_H
-#define ME0HitsValidation_H
+#ifndef Validation_MuonME0Validation_ME0HitsValidation_H
+#define Validation_MuonME0Validation_ME0HitsValidation_H
 
 #include "Validation/MuonME0Validation/interface/ME0BaseValidation.h"
 
@@ -24,7 +24,7 @@ public:
   MonitorElement* me0_sh_elossMu[2][6];
 
   Int_t npart;
-  
+
 
 };
 
