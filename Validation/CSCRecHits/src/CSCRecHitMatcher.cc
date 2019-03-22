@@ -57,17 +57,24 @@ void CSCRecHitMatcher::match(const SimTrack& t, const SimVertex& v)
 void
 CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechits)
 {
-  /*
   if (verboseCSCRecHit2D_) cout << "Matching simtrack to CSC rechits" << endl;
-  // fetch all chamberIds with simhits
-  const auto& layer_ids = cscDigiMatcher->detIdsCSC(0);
+
+  // fetch all layerIds with digis
+  const auto& strip_ids = cscDigiMatcher_->detIdsStrip();
+  const auto& wire_ids = cscDigiMatcher_->detIdsWire();
+
+  // merge the two collections
+  std::set<unsigned int> layer_ids;
+  layer_ids.insert(strip_ids.begin(), strip_ids.end());
+  layer_ids.insert(wire_ids.begin(), wire_ids.end());
+
   if (verboseCSCRecHit2D_) cout << "Number of matched csc layer_ids " << layer_ids.size() << endl;
 
   for (const auto& id: layer_ids) {
     CSCDetId p_id(id);
 
     // print all the wires in the CSCChamber
-    const auto& hit_wg(cscDigiMatcher->hitWiregroupsInDetId(id));
+    const auto& hit_wg(cscDigiMatcher_->wiregroupsInDetId(id));
     if (verboseCSCRecHit2D_) {
       cout<<"hit wg csc from simhit"<<endl;
       copy(hit_wg.begin(), hit_wg.end(), ostream_iterator<int>(cout, " "));
@@ -75,7 +82,7 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
     }
 
     // print all the strips in the CSCChamber
-    const auto& hit_strips(cscDigiMatcher->hitStripsInDetId(id));
+    const auto& hit_strips(cscDigiMatcher_->stripsInDetId(id));
     if (verboseCSCRecHit2D_) {
       cout<<"hit strip csc from simhit"<<endl;
       copy(hit_strips.begin(), hit_strips.end(), ostream_iterator<int>(cout, " "));
@@ -87,11 +94,15 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
     for (auto d = rechits_in_det.first; d != rechits_in_det.second; ++d) {
       if (verboseCSCRecHit2D_) cout<<"rechit "<<p_id<<" "<<*d;
 
+      // does the wire number match?
       const bool wireMatch(std::find(hit_wg.begin(), hit_wg.end(),d->hitWire())!=hit_wg.end());
+
+      // does the strip number match?
       bool stripMatch(false);
       for(size_t iS =0;iS< d->nStrips();++iS) {
-        if (std::find(hit_strips.begin(), hit_strips.end(),d->hitWire())!=hit_wg.end()) stripMatch = true;
+        if (std::find(hit_strips.begin(), hit_strips.end(), d->channels(iS))!=hit_strips.end()) stripMatch = true;
       }
+
       // this rechit was matched to a matching simhit
       if (wireMatch and stripMatch) {
         if (verboseCSCRecHit2D_) cout << "\t...was matched!" << endl;
@@ -100,17 +111,15 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
       }
     }
   }
-*/
 }
-
 
 void
 CSCRecHitMatcher::matchCSCSegmentsToSimTrack(const CSCSegmentCollection& cscSegments)
 {
-  /*
   if (verboseCSCSegment_) cout << "Matching simtrack to segments" << endl;
-  // fetch all chamberIds with simhits
-  const auto& chamber_ids = cscDigiMatcher->chamberIdsCSC(0);
+  // fetch all chamberIds with 2D rechits
+
+  const auto& chamber_ids = chamberIdsCSCRecHit2D();
   if (verboseCSCSegment_) cout << "Number of matched csc segments " << chamber_ids.size() << endl;
   for (const auto& id: chamber_ids) {
     CSCDetId p_id(id);
@@ -134,19 +143,18 @@ CSCRecHitMatcher::matchCSCSegmentsToSimTrack(const CSCSegmentCollection& cscSegm
       int rechitsFound = 0;
       if (verboseCSCSegment_) cout<< recHits.size() << " csc rechits from segment "<<endl;
       for (const auto& rh: recHits) {
-	const CSCRecHit2D* cscrh(dynamic_cast<const CSCRecHit2D*>(rh));
+        const CSCRecHit2D* cscrh(dynamic_cast<const CSCRecHit2D*>(rh));
        	if (isCSCRecHit2DMatched(*cscrh))
        	  ++rechitsFound;
       }
       if (rechitsFound==0) continue;
       if (verboseCSCSegment_) {
-	cout << "Found " << rechitsFound << " rechits out of " << cscRecHit2DsInChamber(id).size() << endl;
-	cout << "\t...was matched!" << endl;
+        cout << "Found " << rechitsFound << " rechits out of " << cscRecHit2DsInChamber(id).size() << endl;
+        cout << "\t...was matched!" << endl;
       }
       chamber_to_cscSegment_[ p_id.rawId() ].push_back(*d);
     }
   }
-  */
 }
 
 

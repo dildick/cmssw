@@ -1,6 +1,5 @@
 <library file="*.cc" name="ValidationMuonGEMRecHitsPlugin">
   <use name="FWCore/Framework"/>
-  <use name="Validation/MuonGEMHits"/>
   <use name="Validation/MuonGEMRecHits"/>
   <use name="DQMServices/Core"/>
   <use name="HepMC"/>

@@ -188,6 +188,13 @@ CSCDigiMatcher::detIdsComparator(int csc_type) const
 
 
 std::set<unsigned int>
+CSCDigiMatcher::detIdsStrip(int csc_type) const
+{
+  return selectDetIds(detid_to_strips_, csc_type);
+}
+
+
+std::set<unsigned int>
 CSCDigiMatcher::detIdsWire(int csc_type) const
 {
   return selectDetIds(detid_to_wires_, csc_type);
