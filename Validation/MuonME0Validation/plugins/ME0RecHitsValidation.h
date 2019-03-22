@@ -1,5 +1,5 @@
-#ifndef ME0RecHitsValidation_H
-#define ME0RecHitsValidation_H
+#ifndef Validation_MuonME0Validation_ME0RecHitsValidation_H
+#define Validation_MuonME0Validation_ME0RecHitsValidation_H
 
 #include "Validation/MuonME0Validation/interface/ME0BaseValidation.h"
 
