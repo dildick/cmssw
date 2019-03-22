@@ -1,4 +1,4 @@
-#include "Validation/CSCRecHits/src/CSCSegmentValidation.h"
+#include "Validation/CSCRecHits/interface/CSCSegmentValidation.h"
 #include <algorithm>
 #include "DQMServices/Core/interface/DQMStore.h"
 
@@ -35,7 +35,7 @@ void CSCSegmentValidation::bookHistograms(DQMStore::IBooker & iBooker)
   theTypePlot6HitsShowerSeg =   iBooker.book1D("CSCSegments6HitsShowerSeg", "", 100, 0, 10);
   for(int i = 0; i < 10; ++i)
   {
-    char title1[200], title2[200], title3[200], title4[200],  
+    char title1[200], title2[200], title3[200], title4[200],
          title5[200], title6[200], title7[200], title8[200];
     sprintf(title1, "CSCSegmentRdPhiResolution%d", i+1);
     sprintf(title2, "CSCSegmentRdPhiPull%d", i+1);
@@ -66,8 +66,8 @@ void CSCSegmentValidation::analyze(const edm::Event&e, const edm::EventSetup& ev
 
   theChamberSegmentMap.clear();
   unsigned nPerEvent = 0;
-  for(CSCSegmentCollection::const_iterator segmentItr = cscRecHits->begin(); 
-      segmentItr != cscRecHits->end(); segmentItr++) 
+  for(CSCSegmentCollection::const_iterator segmentItr = cscRecHits->begin();
+      segmentItr != cscRecHits->end(); segmentItr++)
   {
     ++nPerEvent;
     int detId = segmentItr->geographicalId().rawId();
@@ -79,11 +79,11 @@ void CSCSegmentValidation::analyze(const edm::Event&e, const edm::EventSetup& ev
 
     // do the resolution plots
     const PSimHit * hit = keyHit(detId);
-    if(hit != nullptr) 
+    if(hit != nullptr)
     {
       const CSCLayer * layer = findLayer(hit->detUnitId());
       plotResolution(*hit, *segmentItr, layer, chamberType);
-    }  
+    }
   }
 
   theNPerEventPlot->Fill(nPerEvent);
@@ -118,11 +118,11 @@ void CSCSegmentValidation::fillEfficiencyPlots()
       if(isShower) theTypePlot4HitsShower->Fill(chamberType);
       else         theTypePlot4HitsNoShower->Fill(chamberType);
 
-      if(hasSeg) 
+      if(hasSeg)
       {
         if(isShower) theTypePlot4HitsShowerSeg->Fill(chamberType);
         else         theTypePlot4HitsNoShowerSeg->Fill(chamberType);
-      } 
+      }
     }
 
     if(nLayersHit == 5)
@@ -186,7 +186,7 @@ void CSCSegmentValidation::plotResolution(const PSimHit & simHit, const CSCSegme
   double ddxdz = segmentDir.x()/segmentDir.z() - simHitDir.x()/simHitDir.z();
   double ddydz = segmentDir.y()/segmentDir.z() - simHitDir.y()/simHitDir.z();
   double sigmadxdz = sqrt(segment.localDirectionError().xx());
-  double sigmadydz = sqrt(segment.localDirectionError().yy()); 
+  double sigmadydz = sqrt(segment.localDirectionError().yy());
 
   theRdPhiResolutionPlots[chamberType-1]->Fill( rdphi );
   theRdPhiPullPlots[chamberType-1]->Fill( rdphi/sigmax );
@@ -204,7 +204,7 @@ void CSCSegmentValidation::fillLayerHitsPerChamber()
 {
   theLayerHitsPerChamber.clear();
   std::vector<int> layersHit = theSimHitMap->detsWithHits();
-  for(std::vector<int>::const_iterator layerItr = layersHit.begin(), 
+  for(std::vector<int>::const_iterator layerItr = layersHit.begin(),
       layersHitEnd = layersHit.end();
       layerItr != layersHitEnd;
       ++layerItr)
@@ -242,4 +242,4 @@ const PSimHit * CSCSegmentValidation::keyHit(int chamberId) const
     result = &(*hitItr);
   }
   return result;
-}   
+}

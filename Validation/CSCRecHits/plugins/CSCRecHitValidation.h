@@ -1,5 +1,5 @@
-#ifndef CSCRecHitValidation_h
-#define CSCRecHitValidation_h
+#ifndef Validation_CSCRecHits_CSCRecHitValidation_h
+#define Validation_CSCRecHits_CSCRecHitValidation_h
 
 // user include files
 
@@ -7,19 +7,20 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 
-#include <DQMServices/Core/interface/DQMStore.h>
-#include <DQMServices/Core/interface/MonitorElement.h>
-#include <DQMServices/Core/interface/DQMEDAnalyzer.h>
+#include "DQMServices/Core/interface/DQMStore.h"
+#include "DQMServices/Core/interface/MonitorElement.h"
+#include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "SimMuon/MCTruth/interface/PSimHitMap.h"
-#include "Validation/CSCRecHits/src/CSCRecHit2DValidation.h"
-#include "Validation/CSCRecHits/src/CSCSegmentValidation.h"
+#include "Validation/CSCRecHits/interface/CSCRecHit2DValidation.h"
+#include "Validation/CSCRecHits/interface/CSCSegmentValidation.h"
 
 
 
-class CSCRecHitValidation : public DQMEDAnalyzer {
-public:
+class CSCRecHitValidation : public DQMEDAnalyzer
+{
+ public:
   explicit CSCRecHitValidation(const edm::ParameterSet&);
   ~CSCRecHitValidation() override;
   void bookHistograms(DQMStore::IBooker &, edm::Run const &, edm::EventSetup const &) override;
