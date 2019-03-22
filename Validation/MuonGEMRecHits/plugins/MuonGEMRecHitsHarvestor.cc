@@ -9,18 +9,12 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "TTree.h"
-#include "TFile.h"
-#include "TGraphAsymmErrors.h"
-#include "FWCore/Framework/interface/EDAnalyzer.h"
 #include "FWCore/Utilities/interface/InputTag.h"
+#include "FWCore/MessageLogger/interface/MessageLogger.h"
 
 ///Data Format
-#include <DataFormats/GEMRecHit/interface/GEMRecHit.h>
-#include <DataFormats/GEMRecHit/interface/GEMRecHitCollection.h>
+#include "DataFormats/GEMRecHit/interface/GEMRecHitCollection.h"
 #include "DataFormats/MuonDetId/interface/GEMDetId.h"
-#include "DataFormats/GeometrySurface/interface/LocalError.h"
-#include "DataFormats/GeometryVector/interface/LocalPoint.h"
 #include "DataFormats/Scalers/interface/DcsStatus.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/Math/interface/deltaPhi.h"
@@ -30,22 +24,19 @@
 
 ///Geometry
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
-#include "Geometry/CommonDetUnit/interface/GeomDet.h"
-
 #include "Geometry/GEMGeometry/interface/GEMGeometry.h"
-#include "Geometry/GEMGeometry/interface/GEMEtaPartition.h"
 #include "Geometry/GEMGeometry/interface/GEMEtaPartitionSpecs.h"
 #include "Geometry/CommonTopologies/interface/StripTopology.h"
 
 #include "DQMServices/Core/interface/DQMStore.h"
 
-///Log messages
-#include "FWCore/MessageLogger/interface/MessageLogger.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "Validation/MuonGEMRecHits/plugins/MuonGEMRecHitsHarvestor.h"
 #include "Validation/MuonGEMHits/interface/GEMDetLabel.h"
 
+#include "TTree.h"
+#include "TFile.h"
+#include "TGraphAsymmErrors.h"
 
 MuonGEMRecHitsHarvestor::MuonGEMRecHitsHarvestor(const edm::ParameterSet& ps)
 {
@@ -101,11 +92,11 @@ void MuonGEMRecHitsHarvestor::ProcessBooking( DQMStore::IBooker& ibooker, DQMSto
     TString title2 = TString::Format("Eff. for a SimTrack to have an associated GEM RecHits in %s with a matched SimHit;%s;Eff.",suffix.Data(),x_axis_title.Data() );
     profile->SetTitle( title.Data());
     profile_sh->SetTitle( title2.Data() );
-    ibooker.bookProfile( profile->GetName(),profile); 
-    ibooker.bookProfile( profile_sh->GetName(),profile_sh); 
+    ibooker.bookProfile( profile->GetName(),profile);
+    ibooker.bookProfile( profile_sh->GetName(),profile_sh);
   }
   else {
-    std::cout<<"Can not found histogram of "<<dbe_label<<std::endl; 
+    std::cout<<"Can not found histogram of "<<dbe_label<<std::endl;
     if ( track_hist == nullptr) std::cout<<"track not found"<<std::endl;
     if ( sh_hist    == nullptr) std::cout<<"sh_hist not found"<<std::endl;
   }
@@ -113,19 +104,19 @@ void MuonGEMRecHitsHarvestor::ProcessBooking( DQMStore::IBooker& ibooker, DQMSto
 }
 
 
-void 
+void
 MuonGEMRecHitsHarvestor::dqmEndJob(DQMStore::IBooker& ibooker, DQMStore::IGetter& ig)
 {
   ig.setCurrentFolder(dbe_path_);
 
   using namespace GEMDetLabel;
- 
+
   TH1F* gem_trk_eta[s_suffix.size()];
-  TH1F* gem_trk_phi[s_suffix.size()][c_suffix.size()];  
+  TH1F* gem_trk_phi[s_suffix.size()][c_suffix.size()];
 
   TH1F* sh_eta[s_suffix.size()][l_suffix.size()];
   TH1F* sh_phi[s_suffix.size()][l_suffix.size()][c_suffix.size()];
-  
+
   for( unsigned int i = 0 ; i < s_suffix.size() ; i++) {
     TString eta_label = TString(dbe_path_)+"track_eta"+s_suffix[i];
     TString phi_label;
@@ -142,9 +133,9 @@ MuonGEMRecHitsHarvestor::dqmEndJob(DQMStore::IBooker& ibooker, DQMStore::IGetter
       }
       else std::cout<<"Can not found track_phi"<<std::endl;
     }
-    
+
     if ( ig.get(eta_label.Data()) != nullptr && ig.get(phi_label.Data()) !=nullptr ) {
-      for( unsigned int j = 0; j < l_suffix.size() ; j++) { 
+      for( unsigned int j = 0; j < l_suffix.size() ; j++) {
         TString suffix = TString( s_suffix[i] )+TString( l_suffix[j]);
         TString eta_label = TString(dbe_path_)+"rh_sh_eta"+suffix;
         if( ig.get(eta_label.Data()) !=nullptr ) {
@@ -152,7 +143,7 @@ MuonGEMRecHitsHarvestor::dqmEndJob(DQMStore::IBooker& ibooker, DQMStore::IGetter
           sh_eta[i][j]->Sumw2();
         }
         else std::cout<<"Can not found eta histogram : "<<eta_label<<std::endl;
-        ProcessBooking( ibooker, ig, "rh_eta", suffix, gem_trk_eta[i], sh_eta[i][j]); 
+        ProcessBooking( ibooker, ig, "rh_eta", suffix, gem_trk_eta[i], sh_eta[i][j]);
         for ( unsigned int k= 0 ; k < c_suffix.size() ; k++) {
           suffix = TString( s_suffix[i])+TString( l_suffix[j]) +TString(c_suffix[k]);
           TString phi_label = TString(dbe_path_)+"rh_sh_phi"+suffix;
