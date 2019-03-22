@@ -1,11 +1,11 @@
 import FWCore.ParameterSet.Config as cms
 
 muonHitMatcherPSet = cms.PSet(
-    simVertex = cms.PSet(
+    simTrack = cms.PSet(
         verbose = cms.int32(1),
         inputTag = cms.InputTag("g4SimHits"),
     ),
-    simTrack = cms.PSet(
+    simVertex = cms.PSet(
         verbose = cms.int32(1),
         inputTag = cms.InputTag("g4SimHits"),
     ),

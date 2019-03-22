@@ -79,6 +79,8 @@ public:
   // mean position of a rechit collection (all based on the first strip hit)
   GlobalPoint recHitMeanPosition(const GEMRecHitContainer& rechits) const;
 
+  std::shared_ptr<GEMDigiMatcher> gemDigiMatcher() const { return gemDigiMatcher_; }
+
 private:
 
   void matchRecHitsToSimTrack(const GEMRecHitCollection& recHits);
@@ -98,7 +100,7 @@ private:
 
   const GEMRecHitContainer no_recHits_;
 
-  std::unique_ptr<GEMDigiMatcher> gemDigiMatcher_;
+  std::shared_ptr<GEMDigiMatcher> gemDigiMatcher_;
 };
 
 #endif

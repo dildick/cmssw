@@ -16,11 +16,8 @@ GEMDigiTrackMatch::GEMDigiTrackMatch(const edm::ParameterSet& ps)
   : GEMTrackMatch(ps)
 {
   std::string simInputLabel_ = ps.getUntrackedParameter<std::string>("simInputLabel");
-  simHitsToken_ = consumes<edm::PSimHitContainer>(edm::InputTag(simInputLabel_,"MuonGEMHits"));
   simTracksToken_ = consumes< edm::SimTrackContainer >(ps.getParameter<edm::InputTag>("simTrackCollection"));
   simVerticesToken_ = consumes< edm::SimVertexContainer >(ps.getParameter<edm::InputTag>("simVertexCollection"));
-
-  cfg_ = ps;
 
   gemDigiMatcher_.reset(new GEMDigiMatcher(ps, consumesCollector()));
 }
@@ -97,21 +94,19 @@ GEMDigiTrackMatch::~GEMDigiTrackMatch() {  }
 
 void GEMDigiTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  // match simhits and digis
+  // setup digi matcher
   gemDigiMatcher_->init(iEvent, iSetup);
 
-  edm::Handle<edm::PSimHitContainer> simhits;
   edm::Handle<edm::SimTrackContainer> sim_tracks;
   edm::Handle<edm::SimVertexContainer> sim_vertices;
 
-  iEvent.getByToken(simHitsToken_, simhits);
   iEvent.getByToken(simTracksToken_, sim_tracks);
   iEvent.getByToken(simVerticesToken_, sim_vertices);
 
   const edm::SimVertexContainer& sim_vert = *sim_vertices.product();
   const edm::SimTrackContainer& sim_trks = *sim_tracks.product();
 
-  if ( !simhits.isValid() || !sim_tracks.isValid() || !sim_vertices.isValid()) return;
+  if (!sim_tracks.isValid() || !sim_vertices.isValid()) return;
 
   MySimTrack track_;
   for (const auto& t: sim_trks) {

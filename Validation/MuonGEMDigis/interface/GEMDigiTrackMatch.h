@@ -25,7 +25,6 @@ class GEMDigiTrackMatch : public GEMTrackMatch
 
  private:
 
-  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
   std::unique_ptr<GEMDigiMatcher> gemDigiMatcher_;
 
   MonitorElement* track_eta[3];
@@ -40,10 +39,6 @@ class GEMDigiTrackMatch : public GEMTrackMatch
   MonitorElement* dg_sh_phi[4][3][3];
   MonitorElement* pad_phi[4][3][3];
   MonitorElement* copad_phi[4][3][3];
-
-  edm::EDGetToken gem_digiToken_;
-  edm::EDGetToken gem_padToken_;
-  edm::EDGetToken gem_copadToken_;
 
   edm::ESHandle<GEMGeometry> hGeom;
   const GEMGeometry* geom;
