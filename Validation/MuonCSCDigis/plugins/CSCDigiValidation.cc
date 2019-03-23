@@ -1,4 +1,4 @@
-#include "Validation/MuonCSCDigis/interface/CSCDigiValidation.h"
+#include "Validation/MuonCSCDigis/plugins/CSCDigiValidation.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"

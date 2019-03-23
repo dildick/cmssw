@@ -13,7 +13,7 @@
 #include <TGraphAsymmErrors.h>
 #include <TProfile.h>
 
-#include "Validation/MuonME0Validation/interface/ME0RecHitsValidation.h"
+#include "Validation/MuonME0Validation/plugins/ME0RecHitsValidation.h"
 
 class MuonME0SegHarvestor : public DQMEDHarvester
 {

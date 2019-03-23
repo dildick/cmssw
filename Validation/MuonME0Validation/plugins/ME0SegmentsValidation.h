@@ -1,16 +1,11 @@
 #ifndef Validation_MuonME0Validation_ME0SegmentsValidation_H
 #define Validation_MuonME0Validation_ME0SegmentsValidation_H
 
-#include "Validation/MuonME0Validation/interface/ME0BaseValidation.h"
-
-#include <DataFormats/GEMRecHit/interface/ME0Segment.h>
-#include <DataFormats/GEMRecHit/interface/ME0SegmentCollection.h>
-
-#include "DataFormats/GEMDigi/interface/ME0DigiPreReco.h"
-#include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
+#include "Validation/MuonME0Validation/plugins/ME0BaseValidation.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
-#include <DataFormats/GEMRecHit/interface/ME0RecHit.h>
+#include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
+#include "DataFormats/GEMRecHit/interface/ME0SegmentCollection.h"
 #include "DataFormats/GEMRecHit/interface/ME0RecHitCollection.h"
 
 

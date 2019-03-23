@@ -1,9 +1,7 @@
 #ifndef Validation_MuonME0Validation_ME0HitsValidation_H
 #define Validation_MuonME0Validation_ME0HitsValidation_H
 
-#include "Validation/MuonME0Validation/interface/ME0BaseValidation.h"
-
-
+#include "Validation/MuonME0Validation/plugins/ME0BaseValidation.h"
 
 class ME0HitsValidation : public ME0BaseValidation
 {

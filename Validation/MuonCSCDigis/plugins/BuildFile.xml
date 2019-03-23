@@ -2,5 +2,6 @@
   <use   name="FWCore/Framework"/>
   <use   name="Validation/MuonCSCDigis"/>
   <use   name="Validation/MuonHits"/>
+  <use   name="DQMServices/Core"/>
   <flags   EDM_PLUGIN="1"/>
 </library>

@@ -1,11 +1,9 @@
 #ifndef Validation_MuonME0Validation_ME0DigisValidation_H
 #define Validation_MuonME0Validation_ME0DigisValidation_H
 
-#include "Validation/MuonME0Validation/interface/ME0BaseValidation.h"
-//Data Formats
+#include "Validation/MuonME0Validation/plugins/ME0BaseValidation.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreReco.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
-
 
 class ME0DigisValidation : public ME0BaseValidation
 {

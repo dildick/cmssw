@@ -1,28 +1,13 @@
-// -*- C++ -*-
-//
-// Package:    MuonME0Hits
-// Class:      MuonME0Hits
-// 
-/**\class Module.cc
-
- Description: Declaration of the ME0 plugins for the local validation
-
- Implementation:
-     [Notes on implementation]
-*/
-//
-// Original Author: Claudio Caputo, INFN Bari  
-//         Created:  14 Jan 2016 17:00:00 GMT
-// $Id$
-//
-//
-#include "Validation/MuonME0Validation/interface/ME0HitsValidation.h"
-#include "Validation/MuonME0Validation/interface/ME0DigisValidation.h"
-#include "Validation/MuonME0Validation/interface/ME0RecHitsValidation.h"
-#include "Validation/MuonME0Validation/interface/ME0SegmentsValidation.h"
-#include "FWCore/PluginManager/interface/ModuleDef.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
+
+#include "Validation/MuonME0Validation/plugins/ME0HitsValidation.h"
 DEFINE_FWK_MODULE (ME0HitsValidation) ;
+
+#include "Validation/MuonME0Validation/plugins/ME0DigisValidation.h"
 DEFINE_FWK_MODULE (ME0DigisValidation) ;
+
+#include "Validation/MuonME0Validation/plugins/ME0RecHitsValidation.h"
 DEFINE_FWK_MODULE (ME0RecHitsValidation) ;
+
+#include "Validation/MuonME0Validation/plugins/ME0SegmentsValidation.h"
 DEFINE_FWK_MODULE (ME0SegmentsValidation) ;
