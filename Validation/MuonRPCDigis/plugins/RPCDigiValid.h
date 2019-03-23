@@ -1,5 +1,5 @@
-#ifndef RPCDigiValid_h
-#define RPCDigiValid_h
+#ifndef Validation_MuonRPCDigis_RPCDigiValid_h
+#define Validation_MuonRPCDigis_RPCDigiValid_h
 
 #include "DQMServices/Core/interface/DQMEDAnalyzer.h"
 #include "DQMServices/Core/interface/MonitorElement.h"

@@ -1,4 +1,4 @@
-#include "Validation/MuonRPCDigis/interface/RPCDigiValid.h"
+#include "Validation/MuonRPCDigis/plugins/RPCDigiValid.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
 
