@@ -41,7 +41,7 @@ void DTSimHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 
       const auto& dt_det_ids = detIds();
       for (const auto& id: dt_det_ids) {
-        const auto& dt_simhits = hitsInDetId(id);
+        const auto& dt_simhits = MuonHitMatcher::hitsInDetId(id);
         const auto& dt_simhits_gp = simHitsMeanPosition(dt_simhits);
         cout<<"DTWireId "<<DTWireId(id)<<": nHits "<<dt_simhits.size()<<" eta "<<dt_simhits_gp.eta()<<" phi "<<dt_simhits_gp.phi()<<" nCh "<< chamber_to_hits_[id].size()<<endl;
       }
@@ -216,7 +216,7 @@ int
 DTSimHitMatcher::nSuperLayersWithHitsInChamber(unsigned int detid) const
 {
   set<int> sl_with_hits;
-  const auto& hits = hitsInChamber(detid);
+  const auto& hits = MuonHitMatcher::hitsInChamber(detid);
   for (const auto& h: hits) {
     if (MuonHitHelper::isDT(detid)) {
       const DTSuperLayerId idd(h.detUnitId());
@@ -270,7 +270,7 @@ DTSimHitMatcher::hitWiresInDTLayerId(unsigned int detid, int margin_n_wires) con
     int max_nwires = dynamic_cast<const DTGeometry*>(geometry_)->layer(id)->specificTopology().channels();
     for (int wn = 0; wn <= max_nwires; ++wn) {
       DTWireId wid(id,wn);
-      for (const auto& h: hitsInDetId(wid.rawId())) {
+      for (const auto& h: MuonHitMatcher::hitsInDetId(wid.rawId())) {
         if (verbose_) cout << "central DTWireId "<< wid << " simhit " <<h<< endl;
         int smin = wn - margin_n_wires;
         smin = (smin > 0) ? smin : 1;

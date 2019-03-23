@@ -26,7 +26,6 @@ GEMDigiMatcher::GEMDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
   gemDigiToken_ = iC.consumes<GEMDigiCollection>(gemDigi.getParameter<edm::InputTag>("inputTag"));
   gemPadToken_ = iC.consumes<GEMPadDigiCollection>(gemPad.getParameter<edm::InputTag>("inputTag"));
   gemCoPadToken_ = iC.consumes<GEMCoPadDigiCollection>(gemCoPad.getParameter<edm::InputTag>("inputTag"));
-
 }
 
 void GEMDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -71,7 +70,6 @@ GEMDigiMatcher::matchDigisToSimTrack(const GEMDigiCollection& digis)
   for (const auto& id: det_ids)
   {
     GEMDetId p_id(id);
-    GEMDetId superch_id(p_id.region(), p_id.ring(), p_id.station(), 0, p_id.chamber(), 0);
     const auto& hit_strips = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseDigi_)
     {
@@ -91,12 +89,9 @@ GEMDigiMatcher::matchDigisToSimTrack(const GEMDigiCollection& digis)
       if (hit_strips.find(d->strip()) == hit_strips.end()) continue;
       if (verboseDigi_) cout<<"...was matched!"<<endl;
 
-      //std::cout <<" strip "<< d->strip()<<" 2-strip pad "<<(d->strip()+1)/2 << " bx "<< d->bx() << std::endl;
       detid_to_digis_[id].push_back(*d);
       chamber_to_digis_[ p_id.chamberId().rawId() ].push_back(*d);
-      superchamber_to_digis_[ superch_id() ].push_back(*d);
-      //int pad_num = 1 + static_cast<int>( roll->padOfStrip(d->strip()) ); // d->strip() is int
-      //digi_map[ make_pair(pad_num, d->bx()) ].push_back( d->strip() );
+      superchamber_to_digis_[ p_id.superChamberId().rawId() ].push_back(*d);
     }
   }
 }
@@ -301,12 +296,16 @@ int
 GEMDigiMatcher::nLayersWithDigisInSuperChamber(unsigned int detid) const
 {
   set<int> layers;
-  const auto& digis = digisInSuperChamber(detid);
-  // for (const auto& d: digis)
-  // {
-  //   const GEMDetId& idd(digi_id(d));
-  //   layers.insert(idd.layer());
-  // }
+  GEMDetId sch_id(detid);
+  for (int iLayer=1; iLayer<=2; iLayer++){
+    GEMDetId ch_id(sch_id.region(),sch_id.ring(), sch_id.station(), iLayer, sch_id.chamber(), 0);
+    // get the digis in this chamber
+    const auto& digis = digisInChamber(ch_id.rawId());
+    // at least one digi in this layer!
+    if (digis.size()>0){
+      layers.insert(iLayer);
+    }
+  }
   return layers.size();
 }
 
@@ -315,12 +314,16 @@ int
 GEMDigiMatcher::nLayersWithPadsInSuperChamber(unsigned int detid) const
 {
   set<int> layers;
-  const auto& digis = padsInSuperChamber(detid);
-  // for (const auto& d: digis)
-  // {
-  //   const GEMDetId& idd(digi_id(d));
-  //   layers.insert(idd.layer());
-  // }
+  GEMDetId sch_id(detid);
+  for (int iLayer=1; iLayer<=2; iLayer++){
+    GEMDetId ch_id(sch_id.region(),sch_id.ring(), sch_id.station(), iLayer, sch_id.chamber(), 0);
+    // get the pads in this chamber
+    const auto& pads = padsInChamber(ch_id.rawId());
+    // at least one digi in this layer!
+    if (pads.size()>0){
+      layers.insert(iLayer);
+    }
+  }
   return layers.size();
 }
 

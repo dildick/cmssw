@@ -42,7 +42,7 @@ void RPCSimHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 
       const auto& ch_ids = chamberIds();
       for (const auto& id: ch_ids) {
-        const auto& simhits = hitsInChamber(id);
+        const auto& simhits = MuonHitMatcher::hitsInChamber(id);
         const auto& simhits_gp = simHitsMeanPosition(simhits);
         cout<<"RPCDetId "<<RPCDetId(id)<<": nHits "<<simhits.size()<<" eta "<<simhits_gp.eta()<<" phi "<<simhits_gp.phi()<<" nCh "<< chamber_to_hits_[id].size()<<endl;
         const auto& strips = hitStripsInDetId(id);
@@ -157,7 +157,7 @@ RPCSimHitMatcher::hitStripsInDetId(unsigned int detid, int margin_n_strips) cons
   RPCDetId id(detid);
   for (const auto& roll: dynamic_cast<const RPCGeometry*>(geometry_)->chamber(id)->rolls()) {
     int max_nstrips = roll->nstrips();
-    for (const auto& h: hitsInDetId(roll->id().rawId())) {
+    for (const auto& h: MuonHitMatcher::hitsInDetId(roll->id().rawId())) {
       const LocalPoint& lp = h.entryPoint();
       int central_strip = static_cast<int>(roll->topology().channel(lp));
       int smin = central_strip - margin_n_strips;
