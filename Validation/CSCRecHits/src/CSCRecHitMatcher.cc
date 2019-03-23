@@ -119,7 +119,7 @@ CSCRecHitMatcher::matchCSCSegmentsToSimTrack(const CSCSegmentCollection& cscSegm
   if (verboseCSCSegment_) cout << "Matching simtrack to segments" << endl;
   // fetch all chamberIds with 2D rechits
 
-  const auto& chamber_ids = chamberIdsCSCRecHit2D();
+  const auto& chamber_ids = chamberIdsRecHit2D();
   if (verboseCSCSegment_) cout << "Number of matched csc segments " << chamber_ids.size() << endl;
   for (const auto& id: chamber_ids) {
     CSCDetId p_id(id);
@@ -168,7 +168,7 @@ CSCRecHitMatcher::layerIdsCSCRecHit2D() const
 
 
 std::set<unsigned int>
-CSCRecHitMatcher::chamberIdsCSCRecHit2D() const
+CSCRecHitMatcher::chamberIdsRecHit2D() const
 {
   std::set<unsigned int> result;
   for (const auto& p: chamber_to_cscRecHit2D_) result.insert(p.first);
@@ -177,7 +177,7 @@ CSCRecHitMatcher::chamberIdsCSCRecHit2D() const
 
 
 std::set<unsigned int>
-CSCRecHitMatcher::chamberIdsCSCSegment() const
+CSCRecHitMatcher::chamberIdsSegment() const
 {
   std::set<unsigned int> result;
   for (const auto& p: chamber_to_cscSegment_) result.insert(p.first);
@@ -234,7 +234,7 @@ const CSCRecHit2DContainer
 CSCRecHitMatcher::cscRecHit2Ds() const
 {
   CSCRecHit2DContainer result;
-  for (const auto& id: chamberIdsCSCRecHit2D()){
+  for (const auto& id: chamberIdsRecHit2D()){
     const auto& segmentsInChamber(cscRecHit2DsInChamber(id));
     result.insert(result.end(), segmentsInChamber.begin(), segmentsInChamber.end());
   }
@@ -246,7 +246,7 @@ const CSCSegmentContainer
 CSCRecHitMatcher::cscSegments() const
 {
   CSCSegmentContainer result;
-  for (const auto& id: chamberIdsCSCSegment()){
+  for (const auto& id: chamberIdsSegment()){
     const auto& segmentsInChamber(cscSegmentsInChamber(id));
     result.insert(result.end(), segmentsInChamber.begin(), segmentsInChamber.end());
   }
@@ -290,7 +290,7 @@ int
 CSCRecHitMatcher::nCSCRecHit2Ds() const
 {
   int n = 0;
-  const auto& ids = chamberIdsCSCRecHit2D();
+  const auto& ids = chamberIdsRecHit2D();
   for (const auto& id: ids) n += cscRecHit2DsInChamber(id).size();
   return n;
 }
@@ -300,7 +300,7 @@ int
 CSCRecHitMatcher::nCSCSegments() const
 {
   int n = 0;
-  const auto& ids = chamberIdsCSCSegment();
+  const auto& ids = chamberIdsSegment();
   for (const auto& id: ids) n += cscSegmentsInChamber(id).size();
   return n;
 }

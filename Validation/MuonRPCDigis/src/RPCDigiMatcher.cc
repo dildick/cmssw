@@ -11,14 +11,14 @@ RPCDigiMatcher::RPCDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
   verboseDigi_ = rpcDigi.getParameter<int>("verbose");
 
   // make a new simhits matcher
-  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+  muonSimHitMatcher_.reset(new RPCSimHitMatcher(pset, std::move(iC)));
 
   rpcDigiToken_ = iC.consumes<RPCDigiCollection>(rpcDigi.getParameter<edm::InputTag>("inputTag"));
 }
 
 void RPCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  muonHitMatcher_->init(iEvent, iSetup);
+  muonSimHitMatcher_->init(iEvent, iSetup);
 
   iEvent.getByToken(rpcDigiToken_, rpcDigisH_);
 
@@ -34,7 +34,7 @@ void RPCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
 void RPCDigiMatcher::match(const SimTrack& t, const SimVertex& v)
 {
   // match simhits first
-  muonHitMatcher_->match(t,v);
+  muonSimHitMatcher_->match(t,v);
 
   // get the digi collections
   const RPCDigiCollection& rpcDigis = *rpcDigisH_.product();
@@ -48,11 +48,11 @@ void
 RPCDigiMatcher::matchDigisToSimTrack(const RPCDigiCollection& digis)
 {
   if (verboseDigi_) cout << "Matching simtrack to RPC digis" << endl;
-  const auto& det_ids = muonHitMatcher_->detIdsRPC();
+  const auto& det_ids = muonSimHitMatcher_->detIds();
   for (const auto& id: det_ids)
   {
     RPCDetId p_id(id);
-    const auto& hit_strips = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
+    const auto& hit_strips = muonSimHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseDigi_)
     {
       cout<<"hit_strips_fat ";

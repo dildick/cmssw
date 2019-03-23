@@ -71,7 +71,7 @@ DTRecHitMatcher::matchDTRecHit1DPairsToSimTrack(const DTRecHitCollection& rechit
     DTLayerId p_id(id);
 
     // print all the wires in the DTChamber
-    const auto& hit_wires(dtDigiMatcher_->muonHitMatcher()->hitWiresInDTLayerId(id));
+    const auto& hit_wires(dtDigiMatcher_->muonSimHitMatcher()->hitWiresInDTLayerId(id));
     if (verboseDTRecHit1DPair_) {
       cout<<"hit wires dt from simhit"<<endl;
       for (const auto& wire: hit_wires) cout << "\t"<<DTWireId(wire) << endl;
@@ -108,7 +108,7 @@ DTRecHitMatcher::matchDTRecHit1DPairsToSimTrack(const DTRecHitCollection& rechit
   }
   if (verboseDTRecHit1DPair_) {
     cout << "Number of matching DTRecHit1DPairs: " << nDTRecHit1DPairs() << endl;
-    for (const auto& id: chamberIdsDTRecHit1DPair()) {
+    for (const auto& id: chamberIdsRecHit1DPair()) {
       for (const auto& rh: dtRecHit1DPairInChamber(id)) {
         cout << "\t" << id << " " << rh << endl;
       }
@@ -135,7 +135,7 @@ DTRecHitMatcher::matchDTRecSegment4DsToSimTrack(const DTRecSegment4DCollection& 
     DTChamberId p_id(id);
 
     // print all the wires in the DTChamber
-    const auto& hit_wires(dtDigiMatcher_->muonHitMatcher()->hitWiresInDTChamberId(id));
+    const auto& hit_wires(dtDigiMatcher_->muonSimHitMatcher()->hitWiresInDTChamberId(id));
     if (verboseDTRecSegment4D_) {
       cout<<"hit wires dt from simhit"<<endl;
       for (const auto& wire: hit_wires) cout << "\t"<<DTWireId(wire) << endl;
@@ -184,7 +184,7 @@ DTRecHitMatcher::matchDTRecSegment4DsToSimTrack(const DTRecSegment4DCollection& 
   }
   if (verboseDTRecSegment4D_) {
     cout << "Number of matching DTRecSegment4D: " << nDTRecSegment4Ds() << endl;
-    for (const auto& id: chamberIdsDTRecSegment4D()) {
+    for (const auto& id: chamberIdsRecSegment4D()) {
       for (const auto& rh: dtRecSegment4DInChamber(id)) {
         cout << "\t" << id << " " << rh << endl;
       }
@@ -213,7 +213,7 @@ DTRecHitMatcher::superLayerIdsDTRecHit1DPair() const
 
 
 set<unsigned int>
-DTRecHitMatcher::chamberIdsDTRecHit1DPair() const
+DTRecHitMatcher::chamberIdsRecHit1DPair() const
 {
   set<unsigned int> result;
   for (const auto& p: chamber_to_dtRecHit1DPair_) result.insert(p.first);
@@ -231,7 +231,7 @@ DTRecHitMatcher::superLayerIdsDTRecSegment2D() const
 
 
 set<unsigned int>
-DTRecHitMatcher::chamberIdsDTRecSegment2D() const
+DTRecHitMatcher::chamberIdsRecSegment2D() const
 {
   set<unsigned int> result;
   for (const auto& p: chamber_to_dtRecSegment2D_) result.insert(p.first);
@@ -240,7 +240,7 @@ DTRecHitMatcher::chamberIdsDTRecSegment2D() const
 
 
 set<unsigned int>
-DTRecHitMatcher::chamberIdsDTRecSegment4D() const
+DTRecHitMatcher::chamberIdsRecSegment4D() const
 {
   set<unsigned int> result;
   for (const auto& p: chamber_to_dtRecSegment4D_) result.insert(p.first);
@@ -299,7 +299,7 @@ const DTRecHit1DPairContainer
 DTRecHitMatcher::dtRecHit1DPairs() const
 {
   DTRecHit1DPairContainer result;
-  for (const auto& id: chamberIdsDTRecHit1DPair()){
+  for (const auto& id: chamberIdsRecHit1DPair()){
     const auto& rechitsInChamber(dtRecHit1DPairInChamber(id));
     result.insert(result.end(), rechitsInChamber.begin(), rechitsInChamber.end());
   }
@@ -311,7 +311,7 @@ const DTRecSegment2DContainer
 DTRecHitMatcher::dtRecSegment2Ds() const
 {
   DTRecSegment2DContainer result;
-  for (const auto& id: chamberIdsDTRecSegment2D()){
+  for (const auto& id: chamberIdsRecSegment2D()){
     const auto& segmentsInChamber(dtRecSegment2DInChamber(id));
     result.insert(result.end(), segmentsInChamber.begin(), segmentsInChamber.end());
   }
@@ -323,7 +323,7 @@ const DTRecSegment4DContainer
 DTRecHitMatcher::dtRecSegment4Ds() const
 {
   DTRecSegment4DContainer result;
-  for (const auto& id: chamberIdsDTRecSegment4D()){
+  for (const auto& id: chamberIdsRecSegment4D()){
     const auto& segmentsInChamber(dtRecSegment4DInChamber(id));
     result.insert(result.end(), segmentsInChamber.begin(), segmentsInChamber.end());
   }
@@ -342,7 +342,7 @@ int
 DTRecHitMatcher::nDTRecHit1DPairs() const
 {
   int n = 0;
-  const auto& ids = chamberIdsDTRecHit1DPair();
+  const auto& ids = chamberIdsRecHit1DPair();
   for (const auto& id: ids) n += dtRecHit1DPairInChamber(id).size();
   return n;
 }
@@ -352,7 +352,7 @@ int
 DTRecHitMatcher::nDTRecSegment2Ds() const
 {
   int n = 0;
-  const auto& ids = chamberIdsDTRecSegment2D();
+  const auto& ids = chamberIdsRecSegment2D();
   for (const auto& id: ids) n += dtRecSegment2DInChamber(id).size();
   return n;
 }
@@ -362,7 +362,7 @@ int
 DTRecHitMatcher::nDTRecSegment4Ds() const
 {
   int n = 0;
-  const auto& ids = chamberIdsDTRecSegment4D();
+  const auto& ids = chamberIdsRecSegment4D();
   for (const auto& id: ids) n += dtRecSegment4DInChamber(id).size();
   return n;
 }

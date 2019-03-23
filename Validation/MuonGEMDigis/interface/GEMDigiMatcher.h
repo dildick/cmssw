@@ -8,7 +8,8 @@
  Author: Vadim Khotilovich, Sven Dildick (TAMU), Tao Huang (TAMU)
 */
 
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/GEMSimHitMatcher.h"
+#include "Geometry/GEMGeometry/interface/GEMGeometry.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMCoPadDigiCollection.h"
@@ -89,8 +90,8 @@ public:
   GlobalPoint getGlobalPointDigi(unsigned int rawId, const GEMDigi& d) const;
   GlobalPoint getGlobalPointPad(unsigned int rawId, const GEMPadDigi& tp) const;
 
-  // get the MuonHitMatcher
-  std::shared_ptr<MuonHitMatcher> muonHitMatcher() {return muonHitMatcher_;}
+  // get the GEMSimHitMatcher
+  std::shared_ptr<GEMSimHitMatcher> muonSimHitMatcher() {return muonSimHitMatcher_;}
 
 
 private:
@@ -107,7 +108,7 @@ private:
   edm::Handle<GEMPadDigiCollection> gemPadsH_;
   edm::Handle<GEMCoPadDigiCollection> gemCoPadsH_;
 
-  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::shared_ptr<GEMSimHitMatcher> muonSimHitMatcher_;
 
   edm::ESHandle<GEMGeometry> gem_geom_;
   const GEMGeometry* gemGeometry_;

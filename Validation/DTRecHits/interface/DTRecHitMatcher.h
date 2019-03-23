@@ -50,13 +50,13 @@ class DTRecHitMatcher
   // superlayer detIds with DTRecHit1DPair
   std::set<unsigned int> superLayerIdsDTRecHit1DPair() const;
   // chamber detIds with DTRecHit1DPair
-  std::set<unsigned int> chamberIdsDTRecHit1DPair() const;
+  std::set<unsigned int> chamberIdsRecHit1DPair() const;
   // superlayer detIds with DTRecSegment2D
   std::set<unsigned int> superLayerIdsDTRecSegment2D() const;
   // chamber detIds with DTRecSegment2D
-  std::set<unsigned int> chamberIdsDTRecSegment2D() const;
+  std::set<unsigned int> chamberIdsRecSegment2D() const;
   // chamber detIds with DTRecSegment4D
-  std::set<unsigned int> chamberIdsDTRecSegment4D() const;
+  std::set<unsigned int> chamberIdsRecSegment4D() const;
 
   //DT rechits from a particular layer, superlayer or chamber
   const DTRecHit1DPairContainer& dtRecHit1DPairInLayer(unsigned int) const;

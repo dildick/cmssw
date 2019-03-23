@@ -16,7 +16,7 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "SimDataFormats/Track/interface/SimTrackContainer.h"
 #include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/ME0SimHitMatcher.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 #include "Geometry/GEMGeometry/interface/ME0Geometry.h"
 #include "DataFormats/GEMDigi/interface/ME0DigiPreRecoCollection.h"
@@ -70,7 +70,7 @@ private:
   edm::EDGetTokenT<ME0DigiPreRecoCollection> me0DigiToken_;
   edm::Handle<ME0DigiPreRecoCollection> me0DigisH_;
 
-  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::shared_ptr<ME0SimHitMatcher> muonSimHitMatcher_;
 
   edm::ESHandle<ME0Geometry> me0_geom_;
   const ME0Geometry* me0Geometry_;

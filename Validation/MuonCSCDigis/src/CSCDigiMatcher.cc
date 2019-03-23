@@ -1,4 +1,3 @@
-
 #include "Validation/MuonCSCDigis/interface/CSCDigiMatcher.h"
 
 using namespace std;
@@ -24,7 +23,7 @@ CSCDigiMatcher::CSCDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
   matchDeltaStrip_ = stripDigi.getParameter<int>("matchDeltaStrip");
 
   // make a new simhits matcher
-  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+  muonSimHitMatcher_.reset(new CSCSimHitMatcher(pset, std::move(iC)));
 
   comparatorDigiInput_ = iC.consumes<CSCComparatorDigiCollection>(comparatorDigi.getParameter<edm::InputTag>("inputTag"));
   stripDigiInput_ = iC.consumes<CSCStripDigiCollection>(stripDigi.getParameter<edm::InputTag>("inputTag"));
@@ -34,7 +33,7 @@ CSCDigiMatcher::CSCDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
 
 void CSCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  muonHitMatcher_->init(iEvent, iSetup);
+  muonSimHitMatcher_->init(iEvent, iSetup);
 
   iEvent.getByToken(comparatorDigiInput_, comparatorDigisH_);
   iEvent.getByToken(stripDigiInput_, stripDigisH_);
@@ -45,7 +44,7 @@ void CSCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
 void CSCDigiMatcher::match(const SimTrack& t, const SimVertex& v)
 {
   // match simhits first
-  muonHitMatcher_->match(t,v);
+  muonSimHitMatcher_->match(t,v);
 
   // get the digi collections
   const CSCComparatorDigiCollection& comparators = *comparatorDigisH_.product();
@@ -71,12 +70,12 @@ CSCDigiMatcher::matchComparatorsToSimTrack(const CSCComparatorDigiCollection& co
     }
   }
 
-  const auto& det_ids = muonHitMatcher_->detIdsCSC(0);
+  const auto& det_ids = muonSimHitMatcher_->detIds(0);
   for (const auto& id: det_ids)
   {
     CSCDetId layer_id(id);
 
-    const auto& hit_comparators = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
+    const auto& hit_comparators = muonSimHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseComparator_)
     {
       cout<<"hit_comparators_fat, CSCid " << layer_id <<" ";
@@ -117,12 +116,12 @@ CSCDigiMatcher::matchStripsToSimTrack(const CSCStripDigiCollection& strips)
      }
  }
 
-  const auto& det_ids = muonHitMatcher_->detIdsCSC(0);
+  const auto& det_ids = muonSimHitMatcher_->detIds(0);
   for (const auto& id: det_ids)
   {
     CSCDetId layer_id(id);
 
-    const auto& hit_strips = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
+    const auto& hit_strips = muonSimHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseStrip_)
     {
       cout<<"hit_strips_fat, CSCid " << layer_id <<" ";
@@ -150,12 +149,12 @@ CSCDigiMatcher::matchStripsToSimTrack(const CSCStripDigiCollection& strips)
 void
 CSCDigiMatcher::matchWiresToSimTrack(const CSCWireDigiCollection& wires)
 {
-  const auto& det_ids = muonHitMatcher_->detIdsCSC(0);
+  const auto& det_ids = muonSimHitMatcher_->detIds(0);
   for (const auto& id: det_ids)
   {
     CSCDetId layer_id(id);
 
-    const auto& hit_wires = muonHitMatcher_->hitWiregroupsInDetId(id, matchDeltaWG_);
+    const auto& hit_wires = muonSimHitMatcher_->hitWiregroupsInDetId(id, matchDeltaWG_);
     if (verboseWG_)
     {
       cout<<"hit_wires ";

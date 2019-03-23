@@ -133,7 +133,7 @@ void GEMDigiTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup&
     }
 
     // ** GEM SimHits ** //
-    const auto& gem_sh_ids_ch = gemDigiMatcher_->muonHitMatcher()->chamberIdsGEM();
+    const auto& gem_sh_ids_ch = gemDigiMatcher_->muonSimHitMatcher()->chamberIds();
     for(const auto& d: gem_sh_ids_ch) {
       const GEMDetId id(d);
       if ( id.chamber() %2 ==0 ) track_.hitEven[id.station()-1] = true;

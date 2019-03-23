@@ -1,7 +1,7 @@
-#ifndef Validation_MuonHits_MuonHitMatcher_h
-#define Validation_MuonHits_MuonHitMatcher_h
+#ifndef Validation_MuonHits_MuonSimHitMatcher_h
+#define Validation_MuonHits_MuonSimHitMatcher_h
 
-/**\class MuonHitMatcher
+/**\class MuonSimHitMatcher
 
    Description: Matching of muon SimHit to SimTrack
 
@@ -30,15 +30,15 @@
 #include <map>
 #include <set>
 
-class MuonHitMatcher
+class MuonSimHitMatcher
 {
  public:
 
   // constructor
-  MuonHitMatcher(const edm::ParameterSet& iPS, edm::ConsumesCollector && iC);
+  MuonSimHitMatcher(const edm::ParameterSet& iPS, edm::ConsumesCollector && iC);
 
   // destructor
-  ~MuonHitMatcher() {}
+  ~MuonSimHitMatcher() {}
 
   // initialize the event
   void init(const edm::Event& e, const edm::EventSetup& eventSetup);

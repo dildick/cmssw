@@ -2,7 +2,7 @@
 #define Validation_MuonGEMHits_GEMSimTrackMatch_H
 
 #include "Validation/MuonGEMHits/interface/GEMTrackMatch.h"
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/GEMSimHitMatcher.h"
 
 class GEMSimTrackMatch : public GEMTrackMatch
 {
@@ -21,7 +21,7 @@ private:
   //MonitorElement* gem_lx[3][2];
   //MonitorElement* gem_ly[3][2];
 
-  std::unique_ptr<MuonHitMatcher> matcher_;
+  std::unique_ptr<GEMSimHitMatcher> matcher_;
 };
 
 #endif

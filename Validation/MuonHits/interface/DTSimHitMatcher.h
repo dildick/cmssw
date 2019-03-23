@@ -8,10 +8,10 @@
    Author: Sven Dildick (TAMU), Tao Huang (TAMU)
 */
 
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/MuonSimHitMatcher.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
 
-class DTSimHitMatcher : public MuonHitMatcher
+class DTSimHitMatcher : public MuonSimHitMatcher
 {
 public:
 

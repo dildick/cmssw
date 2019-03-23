@@ -1,10 +1,10 @@
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/MuonSimHitMatcher.h"
 
 #include <algorithm>
 
 using namespace std;
 
-MuonHitMatcher::MuonHitMatcher(const edm::ParameterSet& ps, edm::ConsumesCollector && iC)
+MuonSimHitMatcher::MuonSimHitMatcher(const edm::ParameterSet& ps, edm::ConsumesCollector && iC)
 {
   const auto& simVertex = ps.getParameterSet("simVertex");
   const auto& simTrack = ps.getParameterSet("simTrack");
@@ -15,7 +15,7 @@ MuonHitMatcher::MuonHitMatcher(const edm::ParameterSet& ps, edm::ConsumesCollect
 }
 
 /// initialize the event
-void MuonHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
+void MuonSimHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
   hasGeometry_ = true;
 
@@ -25,7 +25,7 @@ void MuonHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
 }
 
 /// do the matching
-void MuonHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
+void MuonSimHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 {
   simTracks_ = *simTracksH_.product();
   simVertices_ = *simVerticesH_.product();
@@ -47,7 +47,7 @@ void MuonHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 }
 
 std::vector<unsigned int>
-MuonHitMatcher::getIdsOfSimTrackShower(unsigned int initial_trk_id,
+MuonSimHitMatcher::getIdsOfSimTrackShower(unsigned int initial_trk_id,
     const edm::SimTrackContainer & simTracks, const edm::SimVertexContainer & simVertices)
 {
   vector<unsigned int> result;
@@ -86,13 +86,13 @@ MuonHitMatcher::getIdsOfSimTrackShower(unsigned int initial_trk_id,
 }
 
 const edm::PSimHitContainer&
-MuonHitMatcher::simHits(int sub) const
+MuonSimHitMatcher::simHits(int sub) const
 {
   return hits_;
 }
 
 const edm::PSimHitContainer&
-MuonHitMatcher::hitsInDetId(unsigned int detid) const
+MuonSimHitMatcher::hitsInDetId(unsigned int detid) const
 {
   if (detid_to_hits_.find(detid) == detid_to_hits_.end()) return no_hits_;
   return detid_to_hits_.at(detid);
@@ -100,7 +100,7 @@ MuonHitMatcher::hitsInDetId(unsigned int detid) const
 
 
 const edm::PSimHitContainer&
-MuonHitMatcher::hitsInChamber(unsigned int detid) const
+MuonSimHitMatcher::hitsInChamber(unsigned int detid) const
 {
   if (chamber_to_hits_.find(detid) == chamber_to_hits_.end()) return no_hits_;
   return chamber_to_hits_.at(detid);
@@ -108,7 +108,7 @@ MuonHitMatcher::hitsInChamber(unsigned int detid) const
 
 
 GlobalPoint
-MuonHitMatcher::simHitsMeanPosition(const edm::PSimHitContainer& sim_hits) const
+MuonSimHitMatcher::simHitsMeanPosition(const edm::PSimHitContainer& sim_hits) const
 {
   if (sim_hits.empty()) return GlobalPoint(); // point "zero"
 
@@ -129,7 +129,7 @@ MuonHitMatcher::simHitsMeanPosition(const edm::PSimHitContainer& sim_hits) const
 }
 
 GlobalVector
-MuonHitMatcher::simHitsMeanMomentum(const edm::PSimHitContainer& sim_hits) const
+MuonSimHitMatcher::simHitsMeanMomentum(const edm::PSimHitContainer& sim_hits) const
 {
   if (sim_hits.empty()) return GlobalVector(); // point "zero"
 

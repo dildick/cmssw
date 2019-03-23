@@ -46,7 +46,7 @@ public:
   void match(const SimTrack& t, const SimVertex& v);
 
   // chamber detIds with ME0RecHit
-  std::set<unsigned int> chamberIdsME0RecHit() const;
+  std::set<unsigned int> chamberIdsRecHit() const;
 
   // superChamber detIds with ME0RecHit
   std::set<unsigned int> superChamberIdsME0RecHit() const;

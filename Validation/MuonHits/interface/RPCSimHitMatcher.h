@@ -9,9 +9,9 @@
 */
 
 #include "Geometry/RPCGeometry/interface/RPCGeometry.h"
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/MuonSimHitMatcher.h"
 
-class RPCSimHitMatcher : public MuonHitMatcher
+class RPCSimHitMatcher : public MuonSimHitMatcher
 {
  public:
 

@@ -47,9 +47,9 @@ class CSCRecHitMatcher
   // layer detIds with CSCRecHit2D
   std::set<unsigned int> layerIdsCSCRecHit2D() const;
   // chamber detIds with CSCRecHit2D
-  std::set<unsigned int> chamberIdsCSCRecHit2D() const;
+  std::set<unsigned int> chamberIdsRecHit2D() const;
   // chamber detIds with CSCSegment
-  std::set<unsigned int> chamberIdsCSCSegment() const;
+  std::set<unsigned int> chamberIdsSegment() const;
 
   //CSC rechits from a particular layer or chamber
   const CSCRecHit2DContainer& cscRecHit2DsInLayer(unsigned int) const;

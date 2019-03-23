@@ -19,7 +19,7 @@ GEMSimTrackMatch::GEMSimTrackMatch(const edm::ParameterSet& ps) : GEMTrackMatch(
   cfg_ = ps;
 
   // new matcher
-  matcher_.reset(new MuonHitMatcher(ps, consumesCollector()));
+  matcher_.reset(new GEMSimHitMatcher(ps, consumesCollector()));
 }
 
 void GEMSimTrackMatch::bookHistograms(DQMStore::IBooker & ibooker, edm::Run const & run, edm::EventSetup const & iSetup)
@@ -119,7 +119,7 @@ void GEMSimTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
       matcher_->match(t, sim_vert[t.vertIndex()]);
 
       // check for hit chambers
-      const auto& gem_sh_ids_ch = matcher_->chamberIdsGEM();
+      const auto& gem_sh_ids_ch = matcher_->chamberIds();
 
       for(const auto& d: gem_sh_ids_ch)
       {

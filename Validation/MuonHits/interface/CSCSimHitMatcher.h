@@ -9,9 +9,9 @@
 */
 
 #include "Geometry/CSCGeometry/interface/CSCGeometry.h"
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/MuonSimHitMatcher.h"
 
-class CSCSimHitMatcher : public MuonHitMatcher
+class CSCSimHitMatcher : public MuonSimHitMatcher
 {
 public:
 

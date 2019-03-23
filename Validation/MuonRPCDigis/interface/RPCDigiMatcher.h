@@ -8,7 +8,8 @@
  Author: Vadim Khotilovich, Sven Dildick (TAMU), Tao Huang (TAMU)
 */
 
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/RPCSimHitMatcher.h"
+#include "Geometry/RPCGeometry/interface/RPCGeometry.h"
 #include "DataFormats/RPCDigi/interface/RPCDigiCollection.h"
 
 #include <vector>
@@ -62,7 +63,7 @@ private:
 
   edm::Handle<RPCDigiCollection> rpcDigisH_;
 
-  std::unique_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::unique_ptr<RPCSimHitMatcher> muonSimHitMatcher_;
 
   edm::ESHandle<RPCGeometry> rpc_geom_;
   const RPCGeometry* rpcGeometry_;

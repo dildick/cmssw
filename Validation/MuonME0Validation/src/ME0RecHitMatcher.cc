@@ -179,7 +179,7 @@ void ME0RecHitMatcher::dumpAllME0Segments(const ME0SegmentCollection& segments) 
 }
 
 std::set<unsigned int>
-ME0RecHitMatcher::chamberIdsME0RecHit() const
+ME0RecHitMatcher::chamberIdsRecHit() const
 {
   std::set<unsigned int> result;
   for (const auto& p: chamber_to_me0RecHit_) result.insert(p.first);

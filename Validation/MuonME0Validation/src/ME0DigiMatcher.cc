@@ -11,7 +11,7 @@ ME0DigiMatcher::ME0DigiMatcher(edm::ParameterSet const& pset, edm::ConsumesColle
   verboseDigi_ = me0Digi.getParameter<int>("verbose");
 
   // make a new simhits matcher
-  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+  muonSimHitMatcher_.reset(new ME0SimHitMatcher(pset, std::move(iC)));
 
   me0DigiToken_ = iC.consumes<ME0DigiPreRecoCollection>(me0Digi.getParameter<edm::InputTag>("inputTag"));
 }
@@ -19,7 +19,7 @@ ME0DigiMatcher::ME0DigiMatcher(edm::ParameterSet const& pset, edm::ConsumesColle
 // initialize the event
 void ME0DigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  muonHitMatcher_->init(iEvent, iSetup);
+  muonSimHitMatcher_->init(iEvent, iSetup);
 
   iEvent.getByToken(me0DigiToken_, me0DigisH_);
 
@@ -35,7 +35,7 @@ void ME0DigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
 void ME0DigiMatcher::match(const SimTrack& t, const SimVertex& v)
 {
   // match simhits first
-  muonHitMatcher_->match(t,v);
+  muonSimHitMatcher_->match(t,v);
 
   // get the digi collections
   const ME0DigiPreRecoCollection& me0Digis = *me0DigisH_.product();
@@ -47,7 +47,7 @@ void ME0DigiMatcher::match(const SimTrack& t, const SimVertex& v)
 void
 ME0DigiMatcher::matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digis)
 {
-  const auto& det_ids = muonHitMatcher_->detIdsME0();
+  const auto& det_ids = muonSimHitMatcher_->detIds();
   for (const auto& id: det_ids)
   {
     ME0DetId p_id(id);
@@ -67,7 +67,7 @@ ME0DigiMatcher::matchPreRecoDigisToSimTrack(const ME0DigiPreRecoCollection& digi
 
       bool match = false;
 
-      for (const auto& hit: muonHitMatcher_->hitsInDetId(id)){
+      for (const auto& hit: muonSimHitMatcher_->hitsInDetId(id)){
 	if (verboseDigi_)
 	    cout << "\tCandidate ME0 simhit " << hit << " local (x,y)= " << hit.localPosition().x() << " " << hit.localPosition().y()<< " tof "<< hit.tof() << " pdgid " << hit.particleType() << endl;
         // check that the digi position matches a simhit position (within 5 sigma)

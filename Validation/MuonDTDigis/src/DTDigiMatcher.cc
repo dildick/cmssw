@@ -24,7 +24,7 @@ DTDigiMatcher::DTDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesCollect
   verbosePhDigi_ = dtPhDigi.getParameter<int>("verbose");
 
   // make a new simhits matcher
-  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+  muonSimHitMatcher_.reset(new DTSimHitMatcher(pset, std::move(iC)));
 
   dtWireToken_ = iC.consumes<DTDigiCollection>(dtWire.getParameter<edm::InputTag>("inputTag"));
   dtThDigiToken_ = iC.consumes<L1MuDTChambThContainer>(dtThDigi.getParameter<edm::InputTag>("inputTag"));
@@ -33,7 +33,7 @@ DTDigiMatcher::DTDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesCollect
 
 void DTDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  muonHitMatcher_->init(iEvent, iSetup);
+  muonSimHitMatcher_->init(iEvent, iSetup);
 
   iEvent.getByToken(dtWireToken_, dtWiresH_);
   iEvent.getByToken(dtThDigiToken_, dtThDigisH_);
@@ -51,7 +51,7 @@ void DTDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup
 void DTDigiMatcher::match(const SimTrack& t, const SimVertex& v)
 {
   // match simhits first
-  muonHitMatcher_->match(t,v);
+  muonSimHitMatcher_->match(t,v);
 
   // get the digi collections
   const DTDigiCollection& dtWires = *dtWiresH_.product();
@@ -67,12 +67,12 @@ void DTDigiMatcher::match(const SimTrack& t, const SimVertex& v)
 void
 DTDigiMatcher::matchWiresToSimTrack(const DTDigiCollection& digis)
 {
-  const auto& det_ids = muonHitMatcher_->detIdsDT();
+  const auto& det_ids = muonSimHitMatcher_->detIds();
   for (const auto& id: det_ids)
   {
     const DTLayerId l_id(id);
 
-    const auto& hit_wires = muonHitMatcher_->hitWiresInDTLayerId(l_id, matchDeltaWire_);
+    const auto& hit_wires = muonSimHitMatcher_->hitWiresInDTLayerId(l_id, matchDeltaWire_);
     if (verboseWire_)
     {
       cout<<"hit_wires_fat ";

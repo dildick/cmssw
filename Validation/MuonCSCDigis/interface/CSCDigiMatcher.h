@@ -8,7 +8,8 @@
    Author: Sven Dildick (TAMU), Tao Huang (TAMU)
 */
 
-#include "Validation/MuonHits/interface/MuonHitMatcher.h"
+#include "Validation/MuonHits/interface/CSCSimHitMatcher.h"
+#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "DataFormats/CSCDigi/interface/CSCComparatorDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCStripDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCWireDigiCollection.h"
@@ -81,7 +82,7 @@ public:
   std::set<int> stripsInChamber(unsigned int, int max_gap_to_fill = 0) const;
   std::set<int> wiregroupsInChamber(unsigned int, int max_gap_to_fill = 0) const;
 
-  std::shared_ptr<MuonHitMatcher> muonHitMatcher() const {return muonHitMatcher_;}
+  std::shared_ptr<CSCSimHitMatcher> muonSimHitMatcher() const {return muonSimHitMatcher_;}
 
 private:
 
@@ -101,7 +102,7 @@ private:
   edm::Handle<CSCStripDigiCollection> stripDigisH_;
   edm::Handle<CSCWireDigiCollection> wireDigisH_;
 
-  std::shared_ptr<MuonHitMatcher> muonHitMatcher_;
+  std::shared_ptr<CSCSimHitMatcher> muonSimHitMatcher_;
 
   int minBXComparator_, maxBXComparator_;
   int minBXStrip_, maxBXStrip_;

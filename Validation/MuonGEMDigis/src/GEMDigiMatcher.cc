@@ -21,7 +21,7 @@ GEMDigiMatcher::GEMDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
   verboseCoPad_ = gemCoPad.getParameter<int>("verbose");
 
   // make a new simhits matcher
-  muonHitMatcher_.reset(new MuonHitMatcher(pset, std::move(iC)));
+  muonSimHitMatcher_.reset(new GEMSimHitMatcher(pset, std::move(iC)));
 
   gemDigiToken_ = iC.consumes<GEMDigiCollection>(gemDigi.getParameter<edm::InputTag>("inputTag"));
   gemPadToken_ = iC.consumes<GEMPadDigiCollection>(gemPad.getParameter<edm::InputTag>("inputTag"));
@@ -30,7 +30,7 @@ GEMDigiMatcher::GEMDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
 
 void GEMDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 {
-  muonHitMatcher_->init(iEvent, iSetup);
+  muonSimHitMatcher_->init(iEvent, iSetup);
 
   iEvent.getByToken(gemDigiToken_, gemDigisH_);
   iEvent.getByToken(gemPadToken_, gemPadsH_);
@@ -48,7 +48,7 @@ void GEMDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
 void GEMDigiMatcher::match(const SimTrack& t, const SimVertex& v)
 {
   // match simhits first
-  muonHitMatcher_->match(t,v);
+  muonSimHitMatcher_->match(t,v);
 
   // get the digi collections
   const GEMDigiCollection& gemDigis = *gemDigisH_.product();
@@ -66,11 +66,11 @@ void
 GEMDigiMatcher::matchDigisToSimTrack(const GEMDigiCollection& digis)
 {
   if (verboseDigi_) cout << "Matching simtrack to GEM digis" << endl;
-  const auto& det_ids = muonHitMatcher_->detIdsGEM();
+  const auto& det_ids = muonSimHitMatcher_->detIds();
   for (const auto& id: det_ids)
   {
     GEMDetId p_id(id);
-    const auto& hit_strips = muonHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
+    const auto& hit_strips = muonSimHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseDigi_)
     {
       cout<<"hit_strips_fat ";
@@ -100,13 +100,13 @@ GEMDigiMatcher::matchDigisToSimTrack(const GEMDigiCollection& digis)
 void
 GEMDigiMatcher::matchPadsToSimTrack(const GEMPadDigiCollection& pads)
 {
-  const auto& det_ids = muonHitMatcher_->detIdsGEM();
+  const auto& det_ids = muonSimHitMatcher_->detIds();
   for (const auto& id: det_ids)
   {
     GEMDetId p_id(id);
     GEMDetId superch_id(p_id.region(), p_id.ring(), p_id.station(), 0, p_id.chamber(), 0);
 
-    const auto& hit_pads = muonHitMatcher_->hitPadsInDetId(id);
+    const auto& hit_pads = muonSimHitMatcher_->hitPadsInDetId(id);
     const auto& pads_in_det = pads.get(p_id);
 
     if (verbosePad_)
@@ -137,13 +137,13 @@ GEMDigiMatcher::matchPadsToSimTrack(const GEMPadDigiCollection& pads)
 void
 GEMDigiMatcher::matchCoPadsToSimTrack(const GEMCoPadDigiCollection& co_pads)
 {
-  const auto& det_ids = muonHitMatcher_->detIdsGEMCoincidences();
+  const auto& det_ids = muonSimHitMatcher_->detIdsCoincidences();
   for (const auto& id: det_ids)
   {
     GEMDetId p_id(id);
     GEMDetId superch_id(p_id.region(), p_id.ring(), p_id.station(), 0, p_id.chamber(), 0);
 
-    const auto& hit_co_pads = muonHitMatcher_->hitCoPadsInDetId(id);
+    const auto& hit_co_pads = muonSimHitMatcher_->hitCoPadsInDetId(id);
     const auto& co_pads_in_det = co_pads.get(superch_id);
 
     if (verboseCoPad_)

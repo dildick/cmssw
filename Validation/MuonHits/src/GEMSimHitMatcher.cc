@@ -3,7 +3,7 @@
 using namespace std;
 
 GEMSimHitMatcher::GEMSimHitMatcher(const edm::ParameterSet& ps, edm::ConsumesCollector && iC)
-  : MuonHitMatcher(ps, std::move(iC))
+  : MuonSimHitMatcher(ps, std::move(iC))
 {
   simHitPSet_ = ps.getParameterSet("gemSimHit");
   verbose_ = simHitPSet_.getParameter<int>("verbose");
@@ -23,13 +23,13 @@ void GEMSimHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSe
     hasGeometry_ = false;
     std::cout << "+++ Info: GEM geometry is unavailable. +++\n";
   }
-  MuonHitMatcher::init(iEvent, iSetup);
+  MuonSimHitMatcher::init(iEvent, iSetup);
 }
 
 /// do the matching
 void GEMSimHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 {
-  MuonHitMatcher::match(track, vertex);
+  MuonSimHitMatcher::match(track, vertex);
 
   if (hasGeometry_) {
 
@@ -41,7 +41,7 @@ void GEMSimHitMatcher::match(const SimTrack& track, const SimVertex& vertex)
 
       const auto& gem_ch_ids = detIds();
       for (const auto& id: gem_ch_ids) {
-        const auto& gem_simhits = MuonHitMatcher::hitsInDetId(id);
+        const auto& gem_simhits = MuonSimHitMatcher::hitsInDetId(id);
         const auto& gem_simhits_gp = simHitsMeanPosition(gem_simhits);
         cout<<"gemchid "<<GEMDetId(id)<<": nHits "<<gem_simhits.size()<<" phi "<<gem_simhits_gp.phi()<<" nCh "<< chamber_to_hits_[id].size()<<endl;
         const auto& strips = hitStripsInDetId(id);
@@ -244,7 +244,7 @@ std::set<int>
 GEMSimHitMatcher::hitStripsInDetId(unsigned int detid, int margin_n_strips) const
 {
   set<int> result;
-  const auto& simhits = MuonHitMatcher::hitsInDetId(detid);
+  const auto& simhits = MuonSimHitMatcher::hitsInDetId(detid);
   GEMDetId id(detid);
   int max_nstrips = dynamic_cast<const GEMGeometry*>(geometry_)->etaPartition(id)->nstrips();
   for (const auto& h: simhits)
