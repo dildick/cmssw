@@ -1,0 +1,6 @@
+<library   file="*.cc" name="ValidationMuonRPCDigisPlugin">
+  <use   name="FWCore/Framework"/>
+  <use   name="Validation/MuonRPCDigis"/>
+  <use   name="clhep"/>
+  <flags   EDM_PLUGIN="1"/>
+</library>
