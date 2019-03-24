@@ -19,7 +19,6 @@ process.options = cms.untracked.PSet(
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000) )
 
 from Configuration.AlCa.GlobalTag import GlobalTag
-#process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 process.GlobalTag = GlobalTag(process.GlobalTag, '103X_upgrade2023_realistic_v2', '')
 
 process.source = cms.Source("PoolSource",
@@ -29,7 +28,7 @@ process.source = cms.Source("PoolSource",
         )
 )
 
-process.p = cms.Path(process.L1ValidatorANA)
+process.p = cms.Path(process.L1Validator)
 
 """
 

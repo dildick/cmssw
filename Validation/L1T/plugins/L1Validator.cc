@@ -49,12 +49,11 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
   const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
 
   int trk_no=0;
-  std::cout << "Processing SimTracks " << sim_track.size() << std::endl;
+  // std::cout << "Processing SimTracks " << sim_track.size() << std::endl;
 
   for (const auto& t: sim_track) {
-    std::cout << "Processing SimTrack " << trk_no+1 << std::endl;
+    trk_no++;
 
-    /*
     if (t.noVertex()) continue;
     if (t.noGenpart()) continue;
 
@@ -65,16 +64,15 @@ void L1Validator::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     if (t.momentum().pt() < 2) continue;
 
     const float eta(std::abs(t.momentum().eta()));
-    if (eta > 2.4) continue;
-    */
+    if (eta > 2.5) continue;
+
+    std::cout << "Processing SimTrack " << trk_no+1 << std::endl;
     std::cout << "pt(GeV/c) = " << t.momentum().pt() << ", eta = " << t.momentum().eta()
               << ", phi = " << t.momentum().phi() << ", Q = " << t.charge() << " PDGId = " << t.type() << std::endl;
 
     matcher_->match(t, sim_vert[t.vertIndex()]);
 
-
   }
-  return;
 
   Handle<GenParticleCollection> GenParticles;
   Handle<l1t::MuonBxCollection> MuonsBX;
@@ -310,4 +308,3 @@ void L1Validator::fillDescriptions(edm::ConfigurationDescriptions& descriptions)
 }
 
 //define this as a plug-in
-DEFINE_FWK_MODULE(L1Validator);

@@ -38,6 +38,7 @@
 
 #include "DQMServices/Core/interface/MonitorElement.h"
 #include "DQMServices/Core/interface/DQMEDAnalyzer.h"
+#include "FWCore/Framework/interface/ConsumesCollector.h"
 
 #include "Validation/L1T/interface/L1ValidatorHists.h"
 #include "Validation/L1T/interface/L1MuMatcher.h"
