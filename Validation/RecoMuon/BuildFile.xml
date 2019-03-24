@@ -15,4 +15,9 @@
 <use   name="CLHEP"/>
 <use   name="root"/>
 <use   name="DQMServices/Core"/>
+<use   name="Validation/CSCRecHits"/>
+<use   name="Validation/DTRecHits"/>
+<use   name="Validation/MuonGEMRecHits"/>
+<use   name="Validation/MuonME0Validation"/>
+<use   name="Validation/RPCRecHits"/>
 <flags   EDM_PLUGIN="1"/>

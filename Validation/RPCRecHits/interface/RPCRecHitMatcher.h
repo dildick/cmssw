@@ -1,5 +1,5 @@
-#ifndef Validation_MuonRPCRecHits_RPCRecHitMatcher_h
-#define Validation_MuonRPCRecHits_RPCRecHitMatcher_h
+#ifndef Validation_RPCRecHits_RPCRecHitMatcher_h
+#define Validation_RPCRecHits_RPCRecHitMatcher_h
 
 /**\class RPCRecHitMatcher
 

@@ -55,6 +55,7 @@ public:
   std::set<unsigned int> superChamberIds() const;
 
   // GEM recHits from a particular partition, chamber or superchamber
+  const GEMRecHitContainer& recHits() const {return recHits_;}
   const GEMRecHitContainer& recHitsInDetId(unsigned int) const;
   const GEMRecHitContainer& recHitsInChamber(unsigned int) const;
   const GEMRecHitContainer& recHitsInSuperChamber(unsigned int) const;
@@ -81,6 +82,12 @@ public:
 
   std::shared_ptr<GEMDigiMatcher> gemDigiMatcher() const { return gemDigiMatcher_; }
 
+  bool recHitInContainer(const GEMRecHit& rh, const GEMRecHitContainer& c) const;
+
+  bool isGEMRecHitMatched(const GEMRecHit& thisRh) const;
+
+  bool areGEMRecHitSame(const GEMRecHit& l, const GEMRecHit& r) const;
+
 private:
 
   void matchRecHitsToSimTrack(const GEMRecHitCollection& recHits);
@@ -99,6 +106,7 @@ private:
   std::map<unsigned int, GEMRecHitContainer> superchamber_to_recHits_;
 
   const GEMRecHitContainer no_recHits_;
+  GEMRecHitContainer recHits_;
 
   std::shared_ptr<GEMDigiMatcher> gemDigiMatcher_;
 };

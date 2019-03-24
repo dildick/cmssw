@@ -87,6 +87,7 @@ GEMRecHitMatcher::matchRecHitsToSimTrack(const GEMRecHitCollection& rechits)
       if (!stripFound) continue;
       if (verbose()) cout<<"oki"<<endl;
 
+      recHits_.push_back(*d);
       detid_to_recHits_[id].push_back(*d);
       chamber_to_recHits_[ p_id.chamberId().rawId() ].push_back(*d);
       superchamber_to_recHits_[ p_id.superChamberId().rawId() ].push_back(*d);
@@ -214,3 +215,22 @@ GEMRecHitMatcher::recHitMeanPosition(const GEMRecHitContainer& rechit) const
   return GlobalPoint(sumx/n, sumy/n, sumz/n);
 }
 
+bool
+GEMRecHitMatcher::recHitInContainer(const GEMRecHit& rh, const GEMRecHitContainer& c) const
+{
+  bool isSame = false;
+  for (const auto& thisRH: c) if (areGEMRecHitSame(thisRH,rh)) isSame = true;
+  return isSame;
+}
+
+bool
+GEMRecHitMatcher::isGEMRecHitMatched(const GEMRecHit& thisRh) const
+{
+  return recHitInContainer(thisRh, recHits());
+}
+
+bool
+GEMRecHitMatcher::areGEMRecHitSame(const GEMRecHit& l, const GEMRecHit& r) const
+{
+  return l.localPosition()==r.localPosition() and l.BunchX()==r.BunchX();
+}

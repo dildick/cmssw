@@ -205,11 +205,13 @@ RPCRecHitMatcher::recHitInContainer(const RPCRecHit& rh, const RPCRecHitContaine
   return isSame;
 }
 
+
 bool
 RPCRecHitMatcher::isRPCRecHitMatched(const RPCRecHit& thisRh) const
 {
   return recHitInContainer(thisRh, recHits());
 }
+
 
 bool
 RPCRecHitMatcher::areRPCRecHitSame(const RPCRecHit& l, const RPCRecHit& r) const
