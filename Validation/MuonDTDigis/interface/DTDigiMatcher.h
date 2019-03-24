@@ -8,7 +8,7 @@
  Original Author:  Sven Dildick
 */
 
-#include "Validation/MuonHits/interface/MuonSimHitMatcher.h"
+#include "Validation/MuonHits/interface/DTSimHitMatcher.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include "DataFormats/DTDigi/interface/DTDigiCollection.h"
 #include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
@@ -61,7 +61,7 @@ public:
   // wire numbers from this simtrack in a detId
   std::set<int> wireNumbersInDetId(unsigned int) const;
 
-  std::shared_ptr<MuonSimHitMatcher> muonSimHitMatcher() const {return muonSimHitMatcher_;}
+  std::shared_ptr<DTSimHitMatcher> muonSimHitMatcher() const {return muonSimHitMatcher_;}
 
 private:
 
@@ -77,7 +77,7 @@ private:
   edm::Handle<L1MuDTChambThContainer> dtThDigisH_;
   edm::Handle<L1MuDTChambPhContainer> dtPhDigisH_;
 
-  std::shared_ptr<MuonSimHitMatcher> muonSimHitMatcher_;
+  std::shared_ptr<DTSimHitMatcher> muonSimHitMatcher_;
 
   edm::ESHandle<DTGeometry> dt_geom_;
   const DTGeometry* dtGeometry_;

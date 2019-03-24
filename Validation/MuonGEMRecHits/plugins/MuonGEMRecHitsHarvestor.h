@@ -1,5 +1,5 @@
-#ifndef MuonGEMDigisHarvestor_H
-#define MuonGEMDigisHarvestor_H
+#ifndef Validation_MuonGEMRecHits_MuonGEMDigisHarvestor_H
+#define Validation_MuonGEMRecHits_MuonGEMDigisHarvestor_H
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"
@@ -10,7 +10,7 @@
 #include "SimMuon/MCTruth/interface/PSimHitMap.h"
 #include "Geometry/GEMGeometry/interface/GEMGeometry.h"
 
-#include "Validation/MuonGEMRecHits/interface/GEMRecHitsValidation.h"
+#include "Validation/MuonGEMRecHits/plugins/GEMRecHitsValidation.h"
 #include <TEfficiency.h>
 #include <TGraphAsymmErrors.h>
 #include <TProfile.h>

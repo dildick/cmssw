@@ -1,5 +1,5 @@
-#ifndef MuonGEMDigisHarvestor_H
-#define MuonGEMDigisHarvestor_H
+#ifndef Validation_MuonGEMDigis_MuonGEMDigisHarvestor_H
+#define Validation_MuonGEMDigis_MuonGEMDigisHarvestor_H
 
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/ESHandle.h"

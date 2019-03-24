@@ -5,6 +5,7 @@
 <use   name="SimDataFormats/TrackingAnalysis" />
 <use   name="Geometry/Records"/>
 <use   name="Geometry/RPCGeometry"/>
+<use   name="Validation/MuonRPCDigis"/>
 <use   name="root"/>
 <use   name="DQMServices/Core"/>
 <flags   EDM_PLUGIN="1"/>
