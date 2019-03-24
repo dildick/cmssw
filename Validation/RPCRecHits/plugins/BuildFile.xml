@@ -1,0 +1,6 @@
+<library   file="*.cc" name="ValidationRPCRecHitsPlugin">
+  <use   name="FWCore/Framework"/>
+  <use   name="Validation/RPCRecHits"/>
+  <use   name="clhep"/>
+  <flags   EDM_PLUGIN="1"/>
+</library>
