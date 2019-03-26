@@ -11,7 +11,7 @@ CSCDigiMatcher::CSCDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
   matchDeltaWG_ = wireDigi.getParameter<int>("matchDeltaWG");
 
   const auto& comparatorDigi = pset.getParameterSet("cscComparatorDigi");
-  verboseWG_ = comparatorDigi.getParameter<int>("verbose");
+  verboseComparator_ = comparatorDigi.getParameter<int>("verbose");
   minBXComparator_ = comparatorDigi.getParameter<int>("minBX");
   maxBXComparator_ = comparatorDigi.getParameter<int>("maxBX");
   matchDeltaComparator_ = comparatorDigi.getParameter<int>("matchDeltaStrip");
