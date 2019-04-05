@@ -76,9 +76,9 @@ TProfile* MuonME0SegHarvestor::ComputeEff(TH1F* num, TH1F* denum, std::string na
 
 void MuonME0SegHarvestor::ProcessBooking( DQMStore::IBooker& ibooker, DQMStore::IGetter& ig, std::string nameHist, TH1F* num, TH1F* den )
 {
-    
+
   if( num !=nullptr && den !=nullptr ) {
-      
+
     TProfile* profile = ComputeEff(num, den, nameHist);
 
     TString x_axis_title = TString(num->GetXaxis()->GetTitle());
@@ -86,27 +86,27 @@ void MuonME0SegHarvestor::ProcessBooking( DQMStore::IBooker& ibooker, DQMStore::
 
     profile->SetTitle( title.Data());
     ibooker.bookProfile( profile->GetName(),profile);
-      
+
     delete profile;
-      
+
   }
   else {
-      
+
     edm::LogWarning("MuonME0SegHarvestor")<<"Can not find histograms";
     if ( num == nullptr) edm::LogWarning("MuonME0SegHarvestor")<<"num not found";
     if ( den == nullptr) edm::LogWarning("MuonME0SegHarvestor")<<"den not found";
-      
+
   }
   return;
-    
+
 }
 
 
-void 
+void
 MuonME0SegHarvestor::dqmEndJob(DQMStore::IBooker& ibooker, DQMStore::IGetter& ig)
 {
   ig.setCurrentFolder(dbe_path_);
-    
+
   TString eta_label_den = TString(dbe_path_)+"me0_simsegment_eta";
   TString eta_label_num = TString(dbe_path_)+"me0_matchedsimsegment_eta";
   TString pt_label_den = TString(dbe_path_)+"me0_simsegment_pt";
@@ -115,53 +115,49 @@ MuonME0SegHarvestor::dqmEndJob(DQMStore::IBooker& ibooker, DQMStore::IGetter& ig
   TString phi_label_num = TString(dbe_path_)+"me0_matchedsimsegment_phi";
 
   if( ig.get(eta_label_num.Data()) !=nullptr && ig.get(eta_label_den.Data()) !=nullptr ) {
-        
+
       TH1F* num_vs_eta = (TH1F*)ig.get(eta_label_num.Data())->getTH1F()->Clone();
       num_vs_eta->Sumw2();
       TH1F *den_vs_eta = (TH1F*)ig.get(eta_label_den.Data())->getTH1F()->Clone();
       den_vs_eta->Sumw2();
-      
+
       ProcessBooking( ibooker, ig, "me0segment_eff_vs_eta", num_vs_eta, den_vs_eta );
-      
+
       delete num_vs_eta;
       delete den_vs_eta;
-      
+
   }
   else edm::LogWarning("MuonME0SegHarvestor")<<"Can not find histograms: "<<eta_label_num<<" or "<<eta_label_den;
- 
+
   if( ig.get(pt_label_num.Data()) !=nullptr && ig.get(pt_label_den.Data()) !=nullptr ) {
-        
+
       TH1F* num_vs_pt = (TH1F*)ig.get(pt_label_num.Data())->getTH1F()->Clone();
       num_vs_pt->Sumw2();
       TH1F *den_vs_pt = (TH1F*)ig.get(pt_label_den.Data())->getTH1F()->Clone();
       den_vs_pt->Sumw2();
-      
+
       ProcessBooking( ibooker, ig, "me0segment_eff_vs_pt", num_vs_pt, den_vs_pt );
-      
+
       delete num_vs_pt;
       delete den_vs_pt;
-      
+
   }
   else edm::LogWarning("MuonME0SegHarvestor")<<"Can not find histograms: "<<pt_label_num<<" or "<<pt_label_den;
 
   if( ig.get(phi_label_num.Data()) !=nullptr && ig.get(phi_label_den.Data()) !=nullptr ) {
-        
+
       TH1F* num_vs_phi = (TH1F*)ig.get(phi_label_num.Data())->getTH1F()->Clone();
       num_vs_phi->Sumw2();
       TH1F *den_vs_phi = (TH1F*)ig.get(phi_label_den.Data())->getTH1F()->Clone();
       den_vs_phi->Sumw2();
-      
+
       ProcessBooking( ibooker, ig, "me0segment_eff_vs_phi", num_vs_phi, den_vs_phi );
-      
+
       delete num_vs_phi;
       delete den_vs_phi;
-      
+
   }
   else edm::LogWarning("MuonME0SegHarvestor")<<"Can not find histograms: "<<phi_label_num<<" or "<<phi_label_den;
 
-    
+
 }
-
-
-//define this as a plug-in
-DEFINE_FWK_MODULE(MuonME0SegHarvestor);

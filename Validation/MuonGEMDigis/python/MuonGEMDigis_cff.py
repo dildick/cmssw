@@ -1,5 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from DQMServices.Core.DQMEDAnalyzer import DQMEDAnalyzer
+from Validation.MuonHits.muonSimHitMatcherPSet import muonSimHitMatcherPSet
 from Validation.MuonGEMDigis.muonGEMDigiPSet import muonGEMDigiPSet
 
 gemStripValidation = DQMEDAnalyzer('GEMStripDigiValidation',
@@ -35,6 +36,9 @@ gemCoPadValidation = DQMEDAnalyzer('GEMCoPadDigiValidation',
 )
 
 gemDigiTrackValidation = DQMEDAnalyzer('GEMDigiTrackMatch',
+  simTrack = muonSimHitMatcherPSet.simTrack,
+  simVertex = muonSimHitMatcherPSet.simVertex,
+  gemSimHit = muonSimHitMatcherPSet.gemSimHit,
   gemStripDigi = muonGEMDigiPSet.gemStripDigi,
   gemPadDigi = muonGEMDigiPSet.gemPadDigi,
   gemCoPadDigi = muonGEMDigiPSet.gemCoPadDigi,
