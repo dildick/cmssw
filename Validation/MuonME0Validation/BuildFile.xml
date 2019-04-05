@@ -14,6 +14,7 @@
 <use name="SimDataFormats/Track"/>
 <use name="CommonTools/UtilAlgos"/>
 <use name="DQMServices/Core"/>
+<use name="Validation/MuonHits"/>
 <use name="rootcore"/>
 <export>
    <lib name="1"/>
