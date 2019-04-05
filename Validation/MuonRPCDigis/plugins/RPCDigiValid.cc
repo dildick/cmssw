@@ -1,4 +1,4 @@
-#include "Validation/MuonRPCDigis/interface/RPCDigiValid.h"
+#include "Validation/MuonRPCDigis/plugins/RPCDigiValid.h"
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "SimDataFormats/CrossingFrame/interface/MixCollection.h"
 
@@ -287,4 +287,3 @@ void RPCDigiValid::bookHistograms(DQMStore::IBooker& booker, edm::Run const& run
   hDigiTimeIRPC   = booker.book1D("DigiTimeIRPC"  , "IRPC Digi time;Digi time (ns)", 100, -12.5, 12.5);
   hDigiTimeNoIRPC = booker.book1D("DigiTimeNoIRPC", "non-IRPC Digi time;Digi time (ns)", 100, -12.5, 12.5);
 }
-

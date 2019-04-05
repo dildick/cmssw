@@ -1,10 +1,8 @@
-#ifndef GEMStripDigiValidation_H
-#define GEMStripDigiValidation_H
+#ifndef Validation_MuonGEMDigis_GEMStripDigiValidation_H
+#define Validation_MuonGEMDigis_GEMStripDigiValidation_H
 
 
 #include "Validation/MuonGEMHits/interface/GEMBaseValidation.h"
-
-//#include "DataFormats/Common/interface/Handle.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 
 class GEMStripDigiValidation : public GEMBaseValidation
@@ -28,7 +26,7 @@ public:
   // Simple plots
   std::unordered_map< UInt_t , MonitorElement* > theStrip_dcEta;
   std::unordered_map< UInt_t , MonitorElement* > theStrip_simple_zr;
-  
+
   edm::EDGetToken InputTagToken_;
   int nBinXY_;
   bool detailPlot_;

@@ -1,9 +1,8 @@
-#ifndef CSCCLCTDigiValidation_H
-#define CSCCLCTDigiValidation_H
+#ifndef Validation_MuonCSCDigis_CSCCLCTDigiValidation_H
+#define Validation_MuonCSCDigis_CSCCLCTDigiValidation_H
 
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 
-#include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigiCollection.h"
 #include "Validation/MuonCSCDigis/interface/CSCBaseValidation.h"
 #include "DQMServices/Core/interface/DQMStore.h"

@@ -1,4 +1,4 @@
-#include "Validation/MuonCSCDigis/src/CSCALCTDigiValidation.h"
+#include "Validation/MuonCSCDigis/interface/CSCALCTDigiValidation.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
