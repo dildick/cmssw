@@ -21,7 +21,7 @@ GEMDigiMatcher::GEMDigiMatcher(const SimHitMatcher& sh, const edm::Event& e, con
   e.getByToken(gem_padToken, gem_pads_);
   e.getByToken(gem_copadToken, gem_co_pads_);
   if ( !gem_digis_.isValid() ) return ;
-       
+
   init(e);
 }
 
@@ -33,7 +33,7 @@ GEMDigiMatcher::init(const edm::Event& e)
 {
   matchDigisToSimTrack(*gem_digis_.product());
   if ( gem_pads_.isValid())  matchPadsToSimTrack(*gem_pads_.product());
-  if ( gem_co_pads_.isValid())  matchCoPadsToSimTrack(*gem_co_pads_.product()); 
+  if ( gem_co_pads_.isValid())  matchCoPadsToSimTrack(*gem_co_pads_.product());
 }
 
 
@@ -69,9 +69,6 @@ GEMDigiMatcher::matchDigisToSimTrack(const GEMDigiCollection& digis)
       detid_to_digis_[id].push_back(mydigi);
       chamber_to_digis_[ p_id.chamberId().rawId() ].push_back(mydigi);
       superchamber_to_digis_[ superch_id() ].push_back(mydigi);
-
-      //int pad_num = 1 + static_cast<int>( roll->padOfStrip(d->strip()) ); // d->strip() is int
-      //digi_map[ make_pair(pad_num, d->bx()) ].push_back( d->strip() );
     }
   }
 }

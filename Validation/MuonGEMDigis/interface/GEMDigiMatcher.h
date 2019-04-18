@@ -1,5 +1,5 @@
-#ifndef GEMValidation_GEMDigiMatcher_h
-#define GEMValidation_GEMDigiMatcher_h
+#ifndef Validation_MuonGEMDigis_GEMDigiMatcher_h
+#define Validation_MuonGEMDigis_GEMDigiMatcher_h
 
 /**\class DigiMatcher
 
@@ -8,8 +8,6 @@
  Original Author:  "Vadim Khotilovich"
 */
 
-#include "GenericDigi.h"
-
 #include "FWCore/Utilities/interface/InputTag.h"
 #include "FWCore/Framework/interface/Event.h"
 #include "FWCore/Framework/interface/EventSetup.h"
@@ -17,13 +15,12 @@
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 
-#include "DataFormats/Common/interface/DetSetVector.h"
 #include "DataFormats/GEMDigi/interface/GEMDigiCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMPadDigiCollection.h"
 #include "DataFormats/GEMDigi/interface/GEMCoPadDigiCollection.h"
 
-#include <SimDataFormats/Track/interface/SimTrackContainer.h>
-#include <SimDataFormats/Vertex/interface/SimVertexContainer.h>
+#include "SimDataFormats/Track/interface/SimTrackContainer.h"
+#include "SimDataFormats/Vertex/interface/SimVertexContainer.h"
 
 #include <vector>
 #include <map>
@@ -31,13 +28,12 @@
 
 class SimHitMatcher;
 class GEMGeometry;
-class GEMDigiMatcher 
+class GEMDigiMatcher
 {
-  using DigiContainer = matching::DigiContainer;
 public:
 
   GEMDigiMatcher(const SimHitMatcher& sh, const edm::Event& , const GEMGeometry& geom, const edm::ParameterSet& cfg, edm::EDGetToken& ,edm::EDGetToken& ,edm::EDGetToken& );
-  
+
   ~GEMDigiMatcher();
 
   // partition GEM detIds with digis
@@ -56,8 +52,6 @@ public:
 
   // partition detIds with coincidence pads
   std::set<unsigned int> detIdsWithCoPads() const;
-
-
 
   // GEM digis from a particular partition, chamber or superchamber
   const DigiContainer& digisInDetId(unsigned int) const;
