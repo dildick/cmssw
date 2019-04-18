@@ -11,24 +11,10 @@ DTDigiMatcher::DTDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesCollect
   matchDeltaWire_ = dtWire.getParameter<int>("matchDeltaWire");
   verboseWire_ = dtWire.getParameter<int>("verbose");
 
-  const auto& dtThDigi = pset.getParameterSet("dtThDigi");
-  minBXDT_ = dtThDigi.getParameter<int>("minBX");
-  maxBXDT_ = dtThDigi.getParameter<int>("maxBX");
-  matchDeltaThDigi_ = dtThDigi.getParameter<int>("matchDeltaThDigi");
-  verboseThDigi_ = dtThDigi.getParameter<int>("verbose");
-
-  const auto& dtPhDigi = pset.getParameterSet("dtPhDigi");
-  minBXDT_ = dtPhDigi.getParameter<int>("minBX");
-  maxBXDT_ = dtPhDigi.getParameter<int>("maxBX");
-  matchDeltaPhDigi_ = dtPhDigi.getParameter<int>("matchDeltaPhDigi");
-  verbosePhDigi_ = dtPhDigi.getParameter<int>("verbose");
-
   // make a new simhits matcher
   muonSimHitMatcher_.reset(new DTSimHitMatcher(pset, std::move(iC)));
 
   dtWireToken_ = iC.consumes<DTDigiCollection>(dtWire.getParameter<edm::InputTag>("inputTag"));
-  dtThDigiToken_ = iC.consumes<L1MuDTChambThContainer>(dtThDigi.getParameter<edm::InputTag>("inputTag"));
-  dtPhDigiToken_ = iC.consumes<L1MuDTChambPhContainer>(dtPhDigi.getParameter<edm::InputTag>("inputTag"));
 }
 
 void DTDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup)
@@ -36,8 +22,6 @@ void DTDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup
   muonSimHitMatcher_->init(iEvent, iSetup);
 
   iEvent.getByToken(dtWireToken_, dtWiresH_);
-  iEvent.getByToken(dtThDigiToken_, dtThDigisH_);
-  iEvent.getByToken(dtPhDigiToken_, dtPhDigisH_);
 
   iSetup.get<MuonGeometryRecord>().get(dt_geom_);
   if (dt_geom_.isValid()) {
@@ -55,13 +39,9 @@ void DTDigiMatcher::match(const SimTrack& t, const SimVertex& v)
 
   // get the digi collections
   const DTDigiCollection& dtWires = *dtWiresH_.product();
-  const L1MuDTChambThContainer& dtThDigis = *dtThDigisH_.product();
-  const L1MuDTChambPhContainer& dtPhDigis = *dtPhDigisH_.product();
 
   // now match the digis
   matchWiresToSimTrack(dtWires);
-  matchThDigisToSimTrack(dtThDigis);
-  matchPhDigisToSimTrack(dtPhDigis);
 }
 
 void
@@ -119,28 +99,6 @@ DTDigiMatcher::selectDetIds(const std::map<unsigned int, DTDigiContainer>& digis
   return result;
 }
 
-
-void DTDigiMatcher::matchThDigisToSimTrack(const L1MuDTChambThContainer& digis)
-{
-  for (const auto& d: *digis.getContainer()){
-
-    DTChamberId detId(d.whNum(),d.scNum(),d.stNum());
-
-    // get the corresponding wire digis
-    chamber_to_th_digis_[detId].push_back(d);
-  }
-}
-
-void DTDigiMatcher::matchPhDigisToSimTrack(const L1MuDTChambPhContainer& digis)
-{
-  for (const auto& d: *digis.getContainer()){
-
-    DTChamberId detId(d.whNum(),d.scNum(),d.stNum());
-
-    // get the corresponding wire digis
-    chamber_to_ph_digis_[detId].push_back(d);
-  }
-}
 
 std::set<unsigned int>
 DTDigiMatcher::detIds(int dt_type) const

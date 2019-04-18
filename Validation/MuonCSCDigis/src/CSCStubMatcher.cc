@@ -211,7 +211,6 @@ CSCStubMatcher::matchLCTsToSimTrack(const CSCCorrelatedLCTDigiCollection& lcts)
                  std::inserter(cathode_and_anode_ids, cathode_and_anode_ids.end())
                  );
 
-  int n_minLayers = 0;
   for (const auto& id: cathode_and_anode_ids) {
     int iLct = -1;
 

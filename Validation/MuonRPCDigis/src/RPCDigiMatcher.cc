@@ -26,7 +26,8 @@ void RPCDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetu
   if (rpc_geom_.isValid()) {
     rpcGeometry_ = &*rpc_geom_;
   } else {
-    std::cout << "+++ Info: RPC geometry is unavailable. +++\n";
+    edm::LogWarning("RPCDigiMatcher")
+        << "+++ Info: RPC geometry is unavailable. +++\n";
   }
 }
 
@@ -71,7 +72,6 @@ RPCDigiMatcher::matchDigisToSimTrack(const RPCDigiCollection& digis)
       if (hit_strips.find(d->strip()) == hit_strips.end()) continue;
       if (verboseDigi_) cout<<"...was matched!"<<endl;
 
-      //std::cout <<" strip "<< d->strip()<<" 2-strip pad "<<(d->strip()+1)/2 << " bx "<< d->bx() << std::endl;
       detid_to_digis_[id].push_back(*d);
       chamber_to_digis_[ p_id.chamberId().rawId() ].push_back(*d);
     }

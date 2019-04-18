@@ -272,7 +272,7 @@ CSCDigiMatcher::wireDigisInChamber(unsigned int detid) const
 int
 CSCDigiMatcher::nLayersWithComparatorInChamber(unsigned int detid) const
 {
-  int nLayers;
+  int nLayers = 0;
   CSCDetId chamberId(detid);
   for (int i=1;i<=6;++i) {
     CSCDetId layerId(chamberId.endcap(), chamberId.station(), chamberId.ring(), chamberId.chamber(), i);
@@ -287,7 +287,7 @@ CSCDigiMatcher::nLayersWithComparatorInChamber(unsigned int detid) const
 int
 CSCDigiMatcher::nLayersWithStripInChamber(unsigned int detid) const
 {
-  int nLayers;
+  int nLayers = 0;
   CSCDetId chamberId(detid);
   for (int i=1;i<=6;++i) {
     CSCDetId layerId(chamberId.endcap(), chamberId.station(), chamberId.ring(), chamberId.chamber(), i);
@@ -302,7 +302,7 @@ CSCDigiMatcher::nLayersWithStripInChamber(unsigned int detid) const
 int
 CSCDigiMatcher::nLayersWithWireInChamber(unsigned int detid) const
 {
-  int nLayers;
+  int nLayers = 0;
   CSCDetId chamberId(detid);
   for (int i=1;i<=6;++i) {
     CSCDetId layerId(chamberId.endcap(), chamberId.station(), chamberId.ring(), chamberId.chamber(), i);

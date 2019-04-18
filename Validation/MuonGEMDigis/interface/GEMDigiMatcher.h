@@ -43,6 +43,15 @@ public:
   std::set<unsigned int> detIdsDigi(int gem_type = MuonHitHelper::GEM_ALL) const;
   std::set<unsigned int> detIdsPad(int gem_type = MuonHitHelper::GEM_ALL) const;
 
+  // chamber detIds with digis
+  std::set<unsigned int> chamberIdsDigi(int gem_type = MuonHitHelper::GEM_ALL) const;
+  std::set<unsigned int> chamberIdsPad(int gem_type = MuonHitHelper::GEM_ALL) const;
+
+  // superchamber detIds with digis
+  std::set<unsigned int> superChamberIdsDigi(int gem_type = MuonHitHelper::GEM_ALL) const;
+  std::set<unsigned int> superChamberIdsPad(int gem_type = MuonHitHelper::GEM_ALL) const;
+  std::set<unsigned int> superChamberIdsCoPad(int gem_type = MuonHitHelper::GEM_ALL) const;
+
   // GEM digis from a particular partition, chamber or superchamber
   const GEMDigiContainer& digisInDetId(unsigned int) const;
   const GEMDigiContainer& digisInChamber(unsigned int) const;

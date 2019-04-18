@@ -11,8 +11,6 @@
 #include "Validation/MuonHits/interface/DTSimHitMatcher.h"
 #include "Geometry/DTGeometry/interface/DTGeometry.h"
 #include "DataFormats/DTDigi/interface/DTDigiCollection.h"
-#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambThContainer.h"
-#include "DataFormats/L1DTTrackFinder/interface/L1MuDTChambPhContainer.h"
 
 #include <vector>
 #include <map>
@@ -23,8 +21,6 @@ class DTDigiMatcher
 public:
 
   typedef std::vector<DTDigi> DTDigiContainer;
-  typedef std::vector<L1MuDTChambThDigi> L1MuDTChambThDigiContainer;
-  typedef std::vector<L1MuDTChambPhDigi> L1MuDTChambPhDigiContainer;
 
   // constructor
   DTDigiMatcher(edm::ParameterSet const& iPS, edm::ConsumesCollector && iC);
@@ -66,16 +62,10 @@ public:
 private:
 
   void matchWiresToSimTrack(const DTDigiCollection&);
-  void matchThDigisToSimTrack(const L1MuDTChambThContainer&);
-  void matchPhDigisToSimTrack(const L1MuDTChambPhContainer&);
 
   edm::EDGetTokenT<DTDigiCollection> dtWireToken_;
-  edm::EDGetTokenT<L1MuDTChambThContainer> dtThDigiToken_;
-  edm::EDGetTokenT<L1MuDTChambPhContainer> dtPhDigiToken_;
 
   edm::Handle<DTDigiCollection> dtWiresH_;
-  edm::Handle<L1MuDTChambThContainer> dtThDigisH_;
-  edm::Handle<L1MuDTChambPhContainer> dtPhDigisH_;
 
   std::shared_ptr<DTSimHitMatcher> muonSimHitMatcher_;
 
@@ -88,23 +78,12 @@ private:
   int minBXDT_, maxBXDT_;
   int matchDeltaWire_;
 
-  bool verboseThDigi_;
-  int matchDeltaThDigi_;
-
-  bool verbosePhDigi_;
-  int matchDeltaPhDigi_;
-
   std::map<unsigned int, DTDigiContainer> detid_to_digis_;
   std::map<unsigned int, DTDigiContainer> layer_to_digis_;
   std::map<unsigned int, DTDigiContainer> superLayer_to_digis_;
   std::map<unsigned int, DTDigiContainer> chamber_to_digis_;
 
-  std::map<unsigned int, L1MuDTChambThDigiContainer> chamber_to_th_digis_;
-  std::map<unsigned int, L1MuDTChambPhDigiContainer> chamber_to_ph_digis_;
-
   DTDigiContainer no_dt_digis_;
-  L1MuDTChambThDigiContainer no_dt_th_digis;
-  L1MuDTChambThDigiContainer no_dt_ph_digis;
 };
 
 #endif
