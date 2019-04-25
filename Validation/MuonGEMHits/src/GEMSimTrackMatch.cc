@@ -14,28 +14,30 @@ GEMSimTrackMatch::GEMSimTrackMatch(const edm::ParameterSet& ps) : GEMTrackMatch(
   std::string simInputLabel_ = ps.getUntrackedParameter<std::string>("simInputLabel");
 
   simHitsToken_ = consumes<edm::PSimHitContainer>(edm::InputTag(simInputLabel_,"MuonGEMHits"));
-  simTracksToken_ = consumes< edm::SimTrackContainer >(ps.getParameter<edm::InputTag>("simTrackCollection"));
-  simVerticesToken_ = consumes< edm::SimVertexContainer >(ps.getParameter<edm::InputTag>("simVertexCollection"));
+  simTracksToken_ = consumes<edm::SimTrackContainer>(ps.getParameter<edm::InputTag>("simTrackCollection"));
+  simVerticesToken_ = consumes<edm::SimVertexContainer>(ps.getParameter<edm::InputTag>("simVertexCollection"));
   detailPlot_ = ps.getParameter<bool>("detailPlot");
 
   cfg_ = ps;
+
+  gemSimHitMatcher_.reset(new GEMSimHitMatcher(ps, consumesCollector()));
 }
 
-void GEMSimTrackMatch::bookHistograms(DQMStore::IBooker & ibooker, edm::Run const & run, edm::EventSetup const & iSetup) 
+void GEMSimTrackMatch::bookHistograms(DQMStore::IBooker & ibooker, edm::Run const & run, edm::EventSetup const & iSetup)
 {
   // Mandantory
   edm::ESHandle<GEMGeometry> hGeom;
   iSetup.get<MuonGeometryRecord>().get(hGeom);
   const GEMGeometry& geom = *hGeom;
   setGeometry(geom);
-    
+
   ibooker.setCurrentFolder("MuonGEMHitsV/GEMHitsTask");
   LogDebug("GEMSimTrackMatch")<<"ibooker set current folder\n";
 
   const float PI=TMath::Pi();
 
-  nstation = geom.regions()[0]->stations().size(); 
-  if ( detailPlot_) { 
+  nstation = geom.regions()[0]->stations().size();
+  if ( detailPlot_) {
     for( unsigned int j=0 ; j<nstation ; j++) {
       string track_eta_name  = string("track_eta")+s_suffix[j];
       string track_eta_title = string("track_eta")+";SimTrack |#eta|;# of tracks";
@@ -85,21 +87,26 @@ void GEMSimTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   edm::Handle<edm::SimTrackContainer> sim_tracks;
   edm::Handle<edm::SimVertexContainer> sim_vertices;
 
+  // initialize a new event for the matcher
+  gemSimHitMatcher_->init(iEvent, iSetup);
+
   iEvent.getByToken(simHitsToken_, simhits);
   iEvent.getByToken(simTracksToken_, sim_tracks);
   iEvent.getByToken(simVerticesToken_, sim_vertices);
   if ( !simhits.isValid() || !sim_tracks.isValid() || !sim_vertices.isValid()) return;
 
-  //const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
+  const edm::SimVertexContainer & sim_vert = *sim_vertices.product();
   const edm::SimTrackContainer & sim_trks = *sim_tracks.product();
-
 
   if ( detailPlot_) {
 
-    for (auto& t: sim_trks)
+    for (const auto& t: sim_trks)
     {
-      if (!isSimTrackGood(t)) 
-      { continue; } 
+      if (!isSimTrackGood(t))
+      { continue; }
+
+      // match simhits first
+      gemSimHitMatcher_->match(t,sim_vert[t.vertIndex()]);
 
       track_.pt = t.momentum().pt();
       track_.phi = t.momentum().phi();
@@ -112,18 +119,15 @@ void GEMSimTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
         }
       }
 
-      // match hits to this SimTrack
-      const SimHitMatcher match_sh = SimHitMatcher( t, iEvent, geom, cfg_, simHitsToken_, simTracksToken_, simVerticesToken_ );
-
       // check for hit chambers
-      const auto gem_sh_ids_ch = match_sh.chamberIdsGEM();
+      const auto& gem_sh_ids_ch = gemSimHitMatcher_->chamberIds();
 
-      for(auto d: gem_sh_ids_ch)
+      for(const auto& d: gem_sh_ids_ch)
       {
         const GEMDetId id(d);
-        if ( id.chamber() %2 ==0 ) track_.hitEven[id.station()-1] = true;
-        else if ( id.chamber() %2 ==1 ) track_.hitOdd[id.station()-1] = true;
-        else { std::cout<<"Error to get chamber id"<<std::endl;}
+        bool isEven(id.chamber() %2 ==0);
+        if ( isEven ) track_.hitEven[id.station()-1] = true;
+        else          track_.hitOdd[id.station()-1] = true;
         track_.gem_sh[ id.station()-1][ (id.layer()-1)] = true;
       }
       FillWithTrigger( track_eta, fabs(track_.eta)) ;
@@ -133,4 +137,3 @@ void GEMSimTrackMatch::analyze(const edm::Event& iEvent, const edm::EventSetup& 
     }
   }
 }
-

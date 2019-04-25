@@ -66,7 +66,7 @@ CSCDigiMatcher::matchComparatorsToSimTrack(const CSCComparatorDigiCollection& co
     const auto& range =(*detUnitIt).second;
     for (auto digiIt =  range.first; digiIt!=range.second; ++digiIt){
       if (id.station() == 1 and (id.ring() == 1 or id.ring() ==4 ))
-        if (verboseComparator_) cout <<"CSCid "<< id <<" Comparator digi (comparator, comparator, Tbin ) "<< (*digiIt) << endl;
+        if (verboseComparator_) edm::LogInfo("CSCDigiMatcher") <<"CSCid "<< id <<" Comparator digi (comparator, comparator, Tbin ) "<< (*digiIt) ;
     }
   }
 
@@ -78,15 +78,15 @@ CSCDigiMatcher::matchComparatorsToSimTrack(const CSCComparatorDigiCollection& co
     const auto& hit_comparators = muonSimHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseComparator_)
     {
-      cout<<"hit_comparators_fat, CSCid " << layer_id <<" ";
+      edm::LogInfo("CSCDigiMatcher")<<"hit_comparators_fat, CSCid " << layer_id <<" ";
       copy(hit_comparators.begin(), hit_comparators.end(), ostream_iterator<int>(cout, " "));
-      cout<<endl;
+      edm::LogInfo("CSCDigiMatcher")<<endl;
     }
 
     const auto& comp_digis_in_det = comparators.get(layer_id);
     for (auto c = comp_digis_in_det.first; c != comp_digis_in_det.second; ++c)
     {
-      if (verboseComparator_) cout<<"sdigi "<<layer_id<<" (comparator, comparator, Tbin ) "<<*c<<endl;
+      if (verboseComparator_) edm::LogInfo("CSCDigiMatcher")<<"sdigi "<<layer_id<<" (comparator, comparator, Tbin ) "<<*c<<endl;
 
       // check that the first BX for this digi wasn't too early or too late
       if (c->getTimeBin() < minBXComparator_ || c->getTimeBin() > maxBXComparator_) continue;
@@ -95,7 +95,7 @@ CSCDigiMatcher::matchComparatorsToSimTrack(const CSCComparatorDigiCollection& co
       // check that it matches a comparator that was hit by SimHits from our track
       if (hit_comparators.find(comparator) == hit_comparators.end()) continue;
 
-      if (verboseComparator_) cout<< "Matched comparator "<< *c << endl;
+      if (verboseComparator_) edm::LogInfo("CSCDigiMatcher")<< "Matched comparator "<< *c ;
       detid_to_comparators_[id].push_back(*c);
       chamber_to_comparators_[ layer_id.chamberId().rawId() ].push_back(*c);
     }
@@ -112,7 +112,7 @@ CSCDigiMatcher::matchStripsToSimTrack(const CSCStripDigiCollection& strips)
      const auto& range =(*detUnitIt).second;
      for (auto digiIt =  range.first; digiIt!=range.second; ++digiIt){
        if (id.station() == 1 and (id.ring() == 1 or id.ring() ==4 ))
-         if (verboseStrip_) cout <<"CSCid "<< id <<" Strip digi (strip, strip, Tbin ) "<< (*digiIt) << endl;
+         if (verboseStrip_) edm::LogInfo("CSCDigiMatcher") <<"CSCid "<< id <<" Strip digi (strip, strip, Tbin ) "<< (*digiIt) ;
      }
  }
 
@@ -124,21 +124,22 @@ CSCDigiMatcher::matchStripsToSimTrack(const CSCStripDigiCollection& strips)
     const auto& hit_strips = muonSimHitMatcher_->hitStripsInDetId(id, matchDeltaStrip_);
     if (verboseStrip_)
     {
-      cout<<"hit_strips_fat, CSCid " << layer_id <<" ";
-      copy(hit_strips.begin(), hit_strips.end(), ostream_iterator<int>(cout, " "));
-      cout<<endl;
+      edm::LogInfo("CSCDigiMatcher")<<"hit_strips_fat, CSCid " << layer_id <<" ";
+      for (const auto& p : hit_strips) {
+        edm::LogInfo("CSCDigiMatcher") << p;
+      }
     }
 
     const auto& strip_digis_in_det = strips.get(layer_id);
     for (auto c = strip_digis_in_det.first; c != strip_digis_in_det.second; ++c)
     {
-      if (verboseStrip_) cout<<"sdigi "<<layer_id<<" (strip, Tbin ) "<<*c<<endl;
+      if (verboseStrip_) edm::LogInfo("CSCDigiMatcher")<<"sdigi "<<layer_id<<" (strip, Tbin ) "<<*c;
 
       int strip = c->getStrip(); // strips are counted from 1
       // check that it matches a strip that was hit by SimHits from our track
       if (hit_strips.find(strip) == hit_strips.end()) continue;
 
-      if (verboseStrip_) cout<< "Matched strip "<< *c << endl;
+      if (verboseStrip_) edm::LogInfo("CSCDigiMatcher")<< "Matched strip "<< *c ;
       detid_to_strips_[id].push_back(*c);
       chamber_to_strips_[ layer_id.chamberId().rawId() ].push_back(*c);
     }
@@ -157,9 +158,10 @@ CSCDigiMatcher::matchWiresToSimTrack(const CSCWireDigiCollection& wires)
     const auto& hit_wires = muonSimHitMatcher_->hitWiregroupsInDetId(id, matchDeltaWG_);
     if (verboseWG_)
     {
-      cout<<"hit_wires ";
-      copy(hit_wires.begin(), hit_wires.end(), ostream_iterator<int>(cout, " "));
-      cout<<endl;
+      edm::LogInfo("CSCDigiMatcher")<<"hit_wires ";
+      for (const auto& p : hit_wires) {
+        edm::LogInfo("CSCDigiMatcher") << p;
+      }
     }
 
     const auto& wire_digis_in_det = wires.get(layer_id);
@@ -172,7 +174,7 @@ CSCDigiMatcher::matchWiresToSimTrack(const CSCWireDigiCollection& wires)
       // check that it matches a strip that was hit by SimHits from our track
       if (hit_wires.find(wg) == hit_wires.end()) continue;
 
-      if (verboseStrip_) cout<< "Matched wire digi "<< *w << endl;
+      if (verboseStrip_) edm::LogInfo("CSCDigiMatcher")<< "Matched wire digi "<< *w ;
       detid_to_wires_[id].push_back(*w);
       chamber_to_wires_[ layer_id.chamberId().rawId() ].push_back(*w);
     }
@@ -406,14 +408,10 @@ CSCDigiMatcher::comparatorsInChamber(unsigned int detid, int max_gap_to_fill) co
     int prev = -111;
     for (const auto& s: result)
     {
-      //cout<<"gap "<<s<<" - "<<prev<<" = "<<s - prev<<"  added 0";
       if (s - prev > 1 && s - prev - 1 <= max_gap_to_fill)
       {
-        //int sz = result.size();
         for (int fill_s = prev+1; fill_s < s; ++fill_s) result.insert(fill_s);
-        //cout<<result.size() - sz;
       }
-      //cout<<" elems"<<endl;
       prev = s;
     }
   }
@@ -436,14 +434,10 @@ CSCDigiMatcher::stripsInChamber(unsigned int detid, int max_gap_to_fill) const
     int prev = -111;
     for (const auto& s: result)
     {
-      //cout<<"gap "<<s<<" - "<<prev<<" = "<<s - prev<<"  added 0";
       if (s - prev > 1 && s - prev - 1 <= max_gap_to_fill)
       {
-        //int sz = result.size();
         for (int fill_s = prev+1; fill_s < s; ++fill_s) result.insert(fill_s);
-        //cout<<result.size() - sz;
       }
-      //cout<<" elems"<<endl;
       prev = s;
     }
   }
