@@ -1,4 +1,4 @@
-#include "Validation/MuonGEMRecHits/interface/GEMRecHitsValidation.h"
+#include "Validation/MuonGEMRecHits/plugins/GEMRecHitsValidation.h"
 #include "DataFormats/Common/interface/Handle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
@@ -13,10 +13,10 @@ GEMRecHitsValidation::GEMRecHitsValidation(const edm::ParameterSet& cfg): GEMBas
   detailPlot_ = cfg.getParameter<bool>("detailPlot");
 }
 
-MonitorElement* GEMRecHitsValidation::BookHist1D( DQMStore::IBooker& ibooker, const char* name, const char* label, unsigned int region_num, unsigned int station_num, unsigned int layer_num, const unsigned int Nbin, const Float_t xMin, const Float_t xMax) {                                                                            
+MonitorElement* GEMRecHitsValidation::BookHist1D( DQMStore::IBooker& ibooker, const char* name, const char* label, unsigned int region_num, unsigned int station_num, unsigned int layer_num, const unsigned int Nbin, const Float_t xMin, const Float_t xMax) {
   string hist_name  = name+getSuffixName( region_num, station_num+1, layer_num+1);
   string hist_label = label+string(" : ")+getSuffixTitle( region_num, station_num+1, layer_num+1);
-  return ibooker.book1D( hist_name, hist_label,Nbin,xMin,xMax ); 
+  return ibooker.book1D( hist_name, hist_label,Nbin,xMin,xMax );
 }
 
 MonitorElement* GEMRecHitsValidation::BookHist1D( DQMStore::IBooker& ibooker, const char* name, const char* label, unsigned int region_num, const unsigned int Nbin, const Float_t xMin, const Float_t xMax) {
@@ -27,7 +27,7 @@ MonitorElement* GEMRecHitsValidation::BookHist1D( DQMStore::IBooker& ibooker, co
 
 void GEMRecHitsValidation::bookHistograms(DQMStore::IBooker & ibooker, edm::Run const & Run, edm::EventSetup const & iSetup ) {
   const GEMGeometry* GEMGeometry_ = initGeometry(iSetup);
-  if ( GEMGeometry_ == nullptr) return ;  
+  if ( GEMGeometry_ == nullptr) return ;
 
   LogDebug("GEMRecHitsValidation")<<"Geometry is acquired from MuonGeometryRecord\n";
   ibooker.setCurrentFolder("MuonGEMRecHitsV/GEMRecHitsTask");
@@ -67,7 +67,7 @@ void GEMRecHitsValidation::bookHistograms(DQMStore::IBooker & ibooker, edm::Run 
       }
     }
   }
-  
+
   for( unsigned int region_num = 0 ; region_num <nRegion() ; region_num++ ) {
     gem_region_pullX[region_num] = BookHist1D(ibooker,"pullX","Pull Of X",region_num,100,-50,50);
     gem_region_pullY[region_num] = BookHist1D(ibooker,"pullY","Pull Of Y",region_num,100,-50,50);
@@ -97,7 +97,7 @@ void GEMRecHitsValidation::analyze(const edm::Event& e,
     const edm::EventSetup& iSetup)
 {
   const GEMGeometry* GEMGeometry_  = initGeometry(iSetup);
-  if ( GEMGeometry_ == nullptr) return; 
+  if ( GEMGeometry_ == nullptr) return;
 
   edm::Handle<GEMRecHitCollection> gemRecHits;
   edm::Handle<edm::PSimHitContainer> gemSimHits;
@@ -186,7 +186,7 @@ void GEMRecHitsValidation::analyze(const edm::Event& e,
 
       if(cond1 and cond2 and cond3){
         LogDebug("GEMRecHitsValidation")<< " Region : " << rh_region << "\t Station : " << rh_station
-          << "\t Layer : "<< rh_layer << "\n Radius: " << rh_g_R << "\t X : " << rh_g_X << "\t Y : "<< rh_g_Y << "\t Z : " << rh_g_Z << std::endl;	
+          << "\t Layer : "<< rh_layer << "\n Radius: " << rh_g_R << "\t X : " << rh_g_X << "\t Y : "<< rh_g_Y << "\t Z : " << rh_g_Z << std::endl;
 
         int region_num=0 ;
         if ( rh_region ==-1 ) region_num = 0 ;
@@ -223,5 +223,7 @@ void GEMRecHitsValidation::analyze(const edm::Event& e,
       }
     } //End loop on RecHits
   } //End loop on SimHits
-
 }
+
+#include "FWCore/Framework/interface/MakerMacros.h"
+DEFINE_FWK_MODULE (GEMRecHitsValidation) ;

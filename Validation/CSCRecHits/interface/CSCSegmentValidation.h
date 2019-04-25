@@ -1,8 +1,7 @@
-#ifndef CSCSegmentValidation_h
-#define CSCSegmentValidation_h
+#ifndef Validation_CSCRecHits_CSCSegmentValidation_h
+#define Validation_CSCRecHits_CSCSegmentValidation_h
 
 #include "Validation/MuonCSCDigis/interface/CSCBaseValidation.h"
-#include "DataFormats/CSCRecHit/interface/CSCSegment.h"
 #include "DataFormats/CSCRecHit/interface/CSCSegmentCollection.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "Geometry/CSCGeometry/interface/CSCLayer.h"
@@ -11,7 +10,7 @@
 
 class CSCSegmentValidation : public CSCBaseValidation
 {
-public:
+ public:
   CSCSegmentValidation(const edm::InputTag & inputTag,
                        edm::ConsumesCollector && iC);
   ~CSCSegmentValidation() override;

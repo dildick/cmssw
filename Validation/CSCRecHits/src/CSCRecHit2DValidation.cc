@@ -1,4 +1,4 @@
-#include "Validation/CSCRecHits/src/CSCRecHit2DValidation.h"
+#include "Validation/CSCRecHits/interface/CSCRecHit2DValidation.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 #include "DQMServices/Core/interface/DQMStore.h"
 
@@ -59,8 +59,8 @@ void CSCRecHit2DValidation::analyze(const edm::Event&e, const edm::EventSetup& e
 
   unsigned nPerEvent = 0;
 
-  for(CSCRecHit2DCollection::const_iterator recHitItr = cscRecHits->begin(); 
-      recHitItr != cscRecHits->end(); recHitItr++) 
+  for(CSCRecHit2DCollection::const_iterator recHitItr = cscRecHits->begin();
+      recHitItr != cscRecHits->end(); recHitItr++)
   {
     ++nPerEvent;
     int detId = (*recHitItr).cscDetId().rawId();
@@ -81,7 +81,7 @@ void CSCRecHit2DValidation::analyze(const edm::Event&e, const edm::EventSetup& e
     float localPhi = axisThruChamber.phi().degrees();
     //thePhiPlots[chamberType-1]->Fill(axisThruChamber.phi().degrees());
     theScatterPlots[chamberType-1]->Fill( localPhi, localY);
-  }    
+  }
   theNPerEventPlot->Fill(nPerEvent);
 return;
   // fill sim hits

@@ -1,8 +1,7 @@
-#ifndef CSCRecHit2DValidation_h
-#define CSCRecHit2DValidation_h
+#ifndef Validation_CSCRecHits_CSCRecHit2DValidation_h
+#define Validation_CSCRecHits_CSCRecHit2DValidation_h
 
 #include "Validation/MuonCSCDigis/interface/CSCBaseValidation.h"
-#include "DataFormats/CSCRecHit/interface/CSCRecHit2D.h"
 #include "DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h"
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "Geometry/CSCGeometry/interface/CSCLayer.h"

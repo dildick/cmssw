@@ -1,10 +1,6 @@
-#include "Validation/CSCRecHits/src/CSCRecHitValidation.h"
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
+#include "Validation/CSCRecHits/plugins/CSCRecHitValidation.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
-#include "Geometry/CSCGeometry/interface/CSCGeometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
-#include <DataFormats/CSCRecHit/interface/CSCRecHit2DCollection.h>
-#include "DQMServices/Core/interface/DQMStore.h"
 
 
 CSCRecHitValidation::CSCRecHitValidation(const edm::ParameterSet & ps)
@@ -30,7 +26,7 @@ CSCRecHitValidation::~CSCRecHitValidation()
 void CSCRecHitValidation::bookHistograms(DQMStore::IBooker & iBooker, edm::Run const & iRun, edm::EventSetup const &)
 {
   iBooker.setCurrentFolder("CSCRecHitsV/CSCRecHitTask");
-  
+
   the2DValidation->bookHistograms(iBooker);
   theSegmentValidation->bookHistograms(iBooker);
 }
