@@ -27,7 +27,8 @@ void GEMRecHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (gem_geom_.isValid()) {
     gemGeometry_ = &*gem_geom_;
   } else {
-    std::cout << "+++ Info: GEM geometry is unavailable. +++\n";
+    edm::LogWarning("GEMRecHitMatcher")
+        << "+++ Info: GEM geometry is unavailable. +++\n";
   }
 }
 
@@ -51,15 +52,16 @@ GEMRecHitMatcher::matchRecHitsToSimTrack(const GEMRecHitCollection& rechits)
   const auto& det_ids = gemDigiMatcher_->detIdsDigi();
 
   // loop on those ids
-  for (auto id: det_ids)
+  for (const auto& id: det_ids)
   {
     // now check the digis in this detid
     const auto& hit_digis = gemDigiMatcher_->stripNumbersInDetId(id);
     if (verbose())
     {
-      cout<<"hit_digis_fat ";
-      copy(hit_digis.begin(), hit_digis.end(), ostream_iterator<int>(cout, " "));
-      cout<<endl;
+      edm::LogInfo("GEMRecHitMatcher")<<"hit_digis_fat ";
+      for (const auto& p : hit_digis) {
+        edm::LogInfo("GEMRecHitMatcher") << p;
+      }
     }
 
     GEMDetId p_id(id);
@@ -67,7 +69,7 @@ GEMRecHitMatcher::matchRecHitsToSimTrack(const GEMRecHitCollection& rechits)
 
     for (auto d = rechits_in_det.first; d != rechits_in_det.second; ++d)
     {
-      if (verbose()) cout<<"recHit "<<p_id<<" "<<*d<<endl;
+      if (verbose()) edm::LogInfo("GEMRecHitMatcher")<<"recHit "<<p_id<<" "<<*d<<endl;
 
       // check that the rechit is within BX range
       if (d->BunchX() < minBX_ || d->BunchX() > maxBX_) continue;
@@ -80,12 +82,11 @@ GEMRecHitMatcher::matchRecHitsToSimTrack(const GEMRecHitCollection& rechits)
       for(int i = firstStrip; i < (firstStrip + cls); i++){
 
         if (hit_digis.find(i) != hit_digis.end()) stripFound = true;
-        //std::cout<<i<<" "<<firstStrip<<" "<<cls<<" "<<stripFound<<std::endl;
       }
 
       // this rechit did not correspond with any previously matched digi
       if (!stripFound) continue;
-      if (verbose()) cout<<"oki"<<endl;
+      if (verbose()) edm::LogInfo("GEMRecHitMatcher")<<"ok"<<endl;
 
       detid_to_recHits_[id].push_back(*d);
       chamber_to_recHits_[ p_id.chamberId().rawId() ].push_back(*d);
@@ -213,4 +214,3 @@ GEMRecHitMatcher::recHitMeanPosition(const GEMRecHitContainer& rechit) const
   if (n == 0) return GlobalPoint();
   return GlobalPoint(sumx/n, sumy/n, sumz/n);
 }
-

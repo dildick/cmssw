@@ -35,7 +35,8 @@ void CSCRecHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (csc_geom_.isValid()) {
     cscGeometry_ = &*csc_geom_;
   } else {
-    std::cout << "+++ Info: CSC geometry is unavailable. +++\n";
+    edm::LogWarning("CSCSimHitMatcher")
+        << "+++ Info: CSC geometry is unavailable. +++\n";
   }
 }
 
@@ -57,7 +58,7 @@ void CSCRecHitMatcher::match(const SimTrack& t, const SimVertex& v)
 void
 CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechits)
 {
-  if (verboseCSCRecHit2D_) cout << "Matching simtrack to CSC rechits" << endl;
+  if (verboseCSCRecHit2D_) edm::LogInfo("CSCRecHitMatcher") << "Matching simtrack to CSC rechits";
 
   // fetch all layerIds with digis
   const auto& strip_ids = cscDigiMatcher_->detIdsStrip();
@@ -68,7 +69,7 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
   layer_ids.insert(strip_ids.begin(), strip_ids.end());
   layer_ids.insert(wire_ids.begin(), wire_ids.end());
 
-  if (verboseCSCRecHit2D_) cout << "Number of matched csc layer_ids " << layer_ids.size() << endl;
+  if (verboseCSCRecHit2D_) edm::LogInfo("CSCRecHitMatcher") << "Number of matched csc layer_ids " << layer_ids.size();
 
   for (const auto& id: layer_ids) {
     CSCDetId p_id(id);
@@ -76,23 +77,25 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
     // print all the wires in the CSCChamber
     const auto& hit_wg(cscDigiMatcher_->wiregroupsInDetId(id));
     if (verboseCSCRecHit2D_) {
-      cout<<"hit wg csc from simhit"<<endl;
-      copy(hit_wg.begin(), hit_wg.end(), ostream_iterator<int>(cout, " "));
-      cout<<endl;
+      edm::LogInfo("CSCRecHitMatcher")<<"hit wg csc from simhit"<<endl;
+      for (const auto& p : hit_wg) {
+        edm::LogInfo("CSCRecHitMatcher") << p;
+      }
     }
 
     // print all the strips in the CSCChamber
     const auto& hit_strips(cscDigiMatcher_->stripsInDetId(id));
     if (verboseCSCRecHit2D_) {
-      cout<<"hit strip csc from simhit"<<endl;
-      copy(hit_strips.begin(), hit_strips.end(), ostream_iterator<int>(cout, " "));
-      cout<<endl;
+      edm::LogInfo("CSCRecHitMatcher")<<"hit strip csc from simhit"<<endl;
+      for (const auto& p : hit_strips) {
+        edm::LogInfo("CSCRecHitMatcher") << p;
+      }
     }
 
     // get the rechits
     const auto& rechits_in_det = rechits.get(p_id);
     for (auto d = rechits_in_det.first; d != rechits_in_det.second; ++d) {
-      if (verboseCSCRecHit2D_) cout<<"rechit "<<p_id<<" "<<*d;
+      if (verboseCSCRecHit2D_) edm::LogInfo("CSCRecHitMatcher")<<"rechit "<<p_id<<" "<<*d;
 
       // does the wire number match?
       const bool wireMatch(std::find(hit_wg.begin(), hit_wg.end(),d->hitWire())!=hit_wg.end());
@@ -105,7 +108,7 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
 
       // this rechit was matched to a matching simhit
       if (wireMatch and stripMatch) {
-        if (verboseCSCRecHit2D_) cout << "\t...was matched!" << endl;
+        if (verboseCSCRecHit2D_) edm::LogInfo("CSCRecHitMatcher") << "\t...was matched!";
         layer_to_cscRecHit2D_[id].push_back(*d);
         chamber_to_cscRecHit2D_[p_id.chamberId().rawId()].push_back(*d);
       }
@@ -116,32 +119,33 @@ CSCRecHitMatcher::matchCSCRecHit2DsToSimTrack(const CSCRecHit2DCollection& rechi
 void
 CSCRecHitMatcher::matchCSCSegmentsToSimTrack(const CSCSegmentCollection& cscSegments)
 {
-  if (verboseCSCSegment_) cout << "Matching simtrack to segments" << endl;
+  if (verboseCSCSegment_) edm::LogInfo("CSCRecHitMatcher") << "Matching simtrack to segments";
   // fetch all chamberIds with 2D rechits
 
   const auto& chamber_ids = chamberIdsCSCRecHit2D();
-  if (verboseCSCSegment_) cout << "Number of matched csc segments " << chamber_ids.size() << endl;
+  if (verboseCSCSegment_) edm::LogInfo("CSCRecHitMatcher") << "Number of matched csc segments " << chamber_ids.size();
   for (const auto& id: chamber_ids) {
     CSCDetId p_id(id);
 
     // print all CSCRecHit2D in the CSCChamber
     const auto& csc_rechits(cscRecHit2DsInChamber(id));
     if (verboseCSCSegment_) {
-      cout<<"hit csc rechits" <<endl;
-      for (const auto& rh: csc_rechits) cout << "\t"<< rh << endl;
-      cout<<endl;
+      edm::LogInfo("CSCRecHitMatcher")<<"hit csc rechits" <<endl;
+      for (const auto& p : csc_rechits) {
+        edm::LogInfo("CSCRecHitMatcher") << p;
+      }
     }
 
     // get the segments
     const auto& segments_in_det = cscSegments.get(p_id);
     for (auto d = segments_in_det.first; d != segments_in_det.second; ++d) {
-      if (verboseCSCSegment_) cout<<"segment "<<p_id<<" "<<*d<<endl;
+      if (verboseCSCSegment_) edm::LogInfo("CSCRecHitMatcher")<<"segment "<<p_id<<" "<<*d<<endl;
 
       //access the rechits
       const auto& recHits(d->recHits());
 
       int rechitsFound = 0;
-      if (verboseCSCSegment_) cout<< recHits.size() << " csc rechits from segment "<<endl;
+      if (verboseCSCSegment_) edm::LogInfo("CSCRecHitMatcher")<< recHits.size() << " csc rechits from segment "<<endl;
       for (const auto& rh: recHits) {
         const CSCRecHit2D* cscrh(dynamic_cast<const CSCRecHit2D*>(rh));
        	if (isCSCRecHit2DMatched(*cscrh))
@@ -149,8 +153,8 @@ CSCRecHitMatcher::matchCSCSegmentsToSimTrack(const CSCSegmentCollection& cscSegm
       }
       if (rechitsFound==0) continue;
       if (verboseCSCSegment_) {
-        cout << "Found " << rechitsFound << " rechits out of " << cscRecHit2DsInChamber(id).size() << endl;
-        cout << "\t...was matched!" << endl;
+        edm::LogInfo("CSCRecHitMatcher") << "Found " << rechitsFound << " rechits out of " << cscRecHit2DsInChamber(id).size();
+        edm::LogInfo("CSCRecHitMatcher") << "\t...was matched!";
       }
       chamber_to_cscSegment_[ p_id.rawId() ].push_back(*d);
     }

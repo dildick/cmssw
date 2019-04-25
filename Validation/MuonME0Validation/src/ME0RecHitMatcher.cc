@@ -35,7 +35,8 @@ void ME0RecHitMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSe
   if (me0_geom_.isValid()) {
     me0Geometry_ = &*me0_geom_;
   } else {
-    std::cout << "+++ Info: ME0 geometry is unavailable. +++\n";
+    edm::LogWarning("ME0RecHitMatcher")
+        << "+++ Info: GEM geometry is unavailable. +++\n";
   }
 }
 
@@ -59,10 +60,10 @@ void ME0RecHitMatcher::match(const SimTrack& t, const SimVertex& v)
 void
 ME0RecHitMatcher::matchME0RecHitsToSimTrack(const ME0RecHitCollection& rechits)
 {
-  if (verboseME0RecHit_) cout << "Matching simtrack to ME0 rechits" << endl;
+  if (verboseME0RecHit_) edm::LogWarning("ME0RecHitMatcher") << "Matching simtrack to ME0 rechits" << endl;
   // fetch all detIds with digis
   const auto& layer_ids = me0DigiMatcher_->detIds();
-  if (verboseME0RecHit_) cout << "Number of matched me0 layer_ids " << layer_ids.size() << endl;
+  if (verboseME0RecHit_) edm::LogWarning("ME0RecHitMatcher") << "Number of matched me0 layer_ids " << layer_ids.size() << endl;
 
   for (const auto& id: layer_ids) {
     ME0DetId p_id(id);
@@ -74,13 +75,13 @@ ME0RecHitMatcher::matchME0RecHitsToSimTrack(const ME0RecHitCollection& rechits)
       // check that the rechit is within BX range
       //if (rr->tof() < minBXME0RecHit_ || rr->tof() > maxBXME0RecHit_) continue;
 
-      if (verboseME0RecHit_) cout<<"rechit "<<p_id<<" "<<*rr << endl;;
+      if (verboseME0RecHit_) edm::LogWarning("ME0RecHitMatcher")<<"rechit "<<p_id<<" "<<*rr << endl;;
 
       // match the rechit to the digis if the TOF, x and y are the same
       bool match = false;
       ME0DigiPreRecoContainer digis = me0DigiMatcher_->digisInDetId(id);
       for (const auto& digi: digis){
-	if (std::fabs(digi.tof() - rr->tof()) > 1) continue;
+        if (std::fabs(digi.tof() - rr->tof()) > 1) continue;
         if (std::fabs(digi.x() - rr->localPosition().x())<1 and
             std::fabs(digi.y() - rr->localPosition().y())<1 ) {
           match = true;
@@ -89,10 +90,10 @@ ME0RecHitMatcher::matchME0RecHitsToSimTrack(const ME0RecHitCollection& rechits)
 
       // this rechit was matched to a matching digi
       if (match) {
-        if (verboseME0RecHit_) cout << "\t...was matched!" << endl;
-	layer_to_me0RecHit_[id].push_back(*rr);
-	ME0DetId ch_id(p_id.region(), p_id.layer(), p_id.chamber(), 0);
-	if (verboseME0RecHit_) cout <<"layerid "<< p_id <<" chamberid "<< ch_id <<" superId "<< p_id.chamberId() << endl;
+        if (verboseME0RecHit_) edm::LogWarning("ME0RecHitMatcher") << "\t...was matched!" << endl;
+        layer_to_me0RecHit_[id].push_back(*rr);
+        ME0DetId ch_id(p_id.region(), p_id.layer(), p_id.chamber(), 0);
+        if (verboseME0RecHit_) edm::LogWarning("ME0RecHitMatcher") <<"layerid "<< p_id <<" chamberid "<< ch_id <<" superId "<< p_id.chamberId() << endl;
         chamber_to_me0RecHit_[ch_id.rawId()].push_back(*rr);
         superChamber_to_me0RecHit_[p_id.chamberId().rawId()].push_back(*rr);
       }
@@ -104,54 +105,55 @@ ME0RecHitMatcher::matchME0RecHitsToSimTrack(const ME0RecHitCollection& rechits)
 void
 ME0RecHitMatcher::matchME0SegmentsToSimTrack(const ME0SegmentCollection& me0Segments)
 {
-  if (verboseME0Segment_) cout << "Matching simtrack to segments" << endl;
+  if (verboseME0Segment_) edm::LogWarning("ME0RecHitMatcher") << "Matching simtrack to segments" << endl;
   if (verboseME0Segment_)  dumpAllME0Segments(me0Segments);
   // fetch all chamberIds with digis
   const auto& chamber_ids = me0DigiMatcher_->superChamberIds();
-  if (verboseME0Segment_) cout << "Number of matched me0 segments " << chamber_ids.size() << endl;
+  if (verboseME0Segment_) edm::LogWarning("ME0RecHitMatcher") << "Number of matched me0 segments " << chamber_ids.size() << endl;
   for (const auto& id: chamber_ids) {
     ME0DetId p_id(id);
 
     // print all ME0RecHit in the ME0SuperChamber
     const auto& me0_rechits(me0RecHitsInSuperChamber(id));
     if (verboseME0Segment_) {
-      cout<<"hit me0 rechits" <<endl;
-      for (const auto& rh: me0_rechits) cout << "\t"<< rh.me0Id() <<" "<< rh << endl;
-      cout<<endl;
+      edm::LogWarning("ME0RecHitMatcher")<<"hit me0 rechits" <<endl;
+      for (const auto& p : me0_rechits) {
+        edm::LogInfo("ME0RecHitMatcher") << p;
+      }
     }
 
     // get the segments
     bool FoundME0Segment = false;
     const auto& segments_in_det = me0Segments.get(p_id);
     for (auto d = segments_in_det.first; d != segments_in_det.second; ++d) {
-      if (verboseME0Segment_) cout<<"segment "<<p_id<<" "<<*d  <<endl;
+      if (verboseME0Segment_) edm::LogWarning("ME0RecHitMatcher")<<"segment "<<p_id<<" "<<*d  <<endl;
 
       //access the rechits
       const auto& recHits(d->recHits());
 
       int rechitsFound = 0;
-      if (verboseME0Segment_) cout << "\t has " << recHits.size() << " me0 rechits"<<endl;
+      if (verboseME0Segment_) edm::LogWarning("ME0RecHitMatcher") << "\t has " << recHits.size() << " me0 rechits"<<endl;
       for (const auto& rh: recHits) {
         const ME0RecHit* me0rh(dynamic_cast<const ME0RecHit*>(rh));
-        if (verboseME0Segment_) cout << "Candidate rechit " << *me0rh << endl;
+        if (verboseME0Segment_) edm::LogWarning("ME0RecHitMatcher") << "Candidate rechit " << *me0rh << endl;
        	if (isME0RecHitMatched(*me0rh)) {
-          if (verboseME0Segment_) cout << "\t...was matched earlier to SimTrack!" << endl;
+          if (verboseME0Segment_) edm::LogWarning("ME0RecHitMatcher") << "\t...was matched earlier to SimTrack!" << endl;
        	  ++rechitsFound;
         }
       }
       if (rechitsFound<minNHitsSegment_) continue;
       FoundME0Segment  = true;
       if (verboseME0Segment_) {
-        cout << "Found " << rechitsFound << " rechits out of " << me0RecHitsInSuperChamber(id).size() << endl;
-        cout << "\t...was matched!" << endl;
+        edm::LogWarning("ME0RecHitMatcher") << "Found " << rechitsFound << " rechits out of " << me0RecHitsInSuperChamber(id).size() << endl;
+        edm::LogWarning("ME0RecHitMatcher") << "\t...was matched!" << endl;
       }
       superChamber_to_me0Segment_[ p_id.rawId() ].push_back(*d);
     }
     if ((not(FoundME0Segment) and nLayersWithRecHitsInSuperChamber(id)>= minNHitsSegment_)){
-	  cout <<"Failed to find Segment "<< endl;
-	  cout<<"Matched nlayer  "<< nLayersWithRecHitsInSuperChamber(id) <<" hit me0 rechits" <<endl;
-	  for (const auto& rh: me0_rechits) cout << "\t"<< rh.me0Id() <<" "<< rh << endl;
-	  cout<<endl;
+	  edm::LogWarning("ME0RecHitMatcher") <<"Failed to find Segment "<< endl;
+	  edm::LogWarning("ME0RecHitMatcher")<<"Matched nlayer  "<< nLayersWithRecHitsInSuperChamber(id) <<" hit me0 rechits" <<endl;
+	  for (const auto& rh: me0_rechits) edm::LogWarning("ME0RecHitMatcher") << "\t"<< rh.me0Id() <<" "<< rh << endl;
+	  edm::LogWarning("ME0RecHitMatcher")<<endl;
     }
   }
 
@@ -162,17 +164,17 @@ ME0RecHitMatcher::matchME0SegmentsToSimTrack(const ME0SegmentCollection& me0Segm
 
 void ME0RecHitMatcher::dumpAllME0Segments(const ME0SegmentCollection& segments) const
 {
-    cout <<"dumpt all ME0 Segments" << endl;
+    edm::LogWarning("ME0RecHitMatcher") <<"dumpt all ME0 Segments" << endl;
     for(auto iC = segments.id_begin(); iC != segments.id_end(); ++iC){
       const auto& ch_segs = segments.get(*iC);
       for(auto iS = ch_segs.first; iS != ch_segs.second; ++iS){
         const GlobalPoint& gpME0(globalPoint(*iS));
-        cout <<"ME0Detid "<< iS->me0DetId()<<" segment "<< *iS <<" gp eta "<< gpME0.eta() <<" phi "<< gpME0.phi() << std::endl;
+        edm::LogWarning("ME0RecHitMatcher") <<"ME0Detid "<< iS->me0DetId()<<" segment "<< *iS <<" gp eta "<< gpME0.eta() <<" phi "<< gpME0.phi() << std::endl;
         const auto& recHits(iS->recHits());
-        cout << "\t has " << recHits.size() << " me0 rechits"<<endl;
+        edm::LogWarning("ME0RecHitMatcher") << "\t has " << recHits.size() << " me0 rechits"<<endl;
         for (const auto& rh: recHits) {
           const ME0RecHit* me0rh(dynamic_cast<const ME0RecHit*>(rh));
-          cout <<"detid "<< me0rh->me0Id()<<" rechit "<< *me0rh << endl;
+          edm::LogWarning("ME0RecHitMatcher") <<"detid "<< me0rh->me0Id()<<" rechit "<< *me0rh << endl;
         }
       }
     }
