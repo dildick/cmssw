@@ -7,4 +7,5 @@
 <use   name="Geometry/RPCGeometry"/>
 <use   name="root"/>
 <use   name="DQMServices/Core"/>
+<use   name="Validation/MuonRPCDigis"/>
 <flags   EDM_PLUGIN="1"/>

@@ -1,10 +1,9 @@
-#include "Validation/RPCRecHits/interface/RPCPointVsRecHit.h"
+#include "Validation/RPCRecHits/plugins/RPCPointVsRecHit.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
 
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
-#include "Geometry/RPCGeometry/interface/RPCRoll.h"
 #include "Geometry/RPCGeometry/interface/RPCGeometry.h"
 #include "Geometry/Records/interface/MuonGeometryRecord.h"
 
@@ -240,4 +239,3 @@ void RPCPointVsRecHit::bookHistograms(DQMStore::IBooker& booker,
 
 
 DEFINE_FWK_MODULE(RPCPointVsRecHit);
-

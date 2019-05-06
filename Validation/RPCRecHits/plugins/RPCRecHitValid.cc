@@ -1,17 +1,12 @@
-#include "Validation/RPCRecHits/interface/RPCRecHitValid.h"
+#include "Validation/RPCRecHits/plugins/RPCRecHitValid.h"
 #include "FWCore/Framework/interface/MakerMacros.h"
-
 #include "FWCore/Framework/interface/ESHandle.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
-
 #include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
-#include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonDetId/interface/MuonSubdetId.h"
-#include "Geometry/CommonDetUnit/interface/GeomDet.h"
 #include "Geometry/CommonDetUnit/interface/TrackingGeometry.h"
 #include "Geometry/CommonTopologies/interface/StripTopology.h"
-#include "Geometry/RPCGeometry/interface/RPCRoll.h"
 #include "Geometry/RPCGeometry/interface/RPCRollSpecs.h"
 #include "Geometry/RPCGeometry/interface/RPCGeometry.h"
 #include "Geometry/RPCGeometry/interface/RPCGeomServ.h"
@@ -860,4 +855,3 @@ void RPCRecHitValid::analyze(const edm::Event& event, const edm::EventSetup& eve
 }
 
 DEFINE_FWK_MODULE(RPCRecHitValid);
-
