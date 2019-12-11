@@ -21,7 +21,8 @@ CSCCLCTDigi::CSCCLCTDigi(const int valid,
                          const int cfeb,
                          const int bx,
                          const int trknmb,
-                         const int fullbx)
+                         const int fullbx,
+                         const int compCode)
     : valid_(valid),
       quality_(quality),
       pattern_(pattern),
@@ -32,7 +33,8 @@ CSCCLCTDigi::CSCCLCTDigi(const int valid,
       bx_(bx),
       trknmb_(trknmb),
       //fullbx_(0)
-      fullbx_(fullbx) {
+      fullbx_(fullbx),
+      compCode_(compCode) {
   //valid_     = valid;
   //quality_   = quality;
   //pattern_   = pattern;
@@ -42,12 +44,30 @@ CSCCLCTDigi::CSCCLCTDigi(const int valid,
   //cfeb_      = cfeb;
   //bx_        = bx;
   //trknmb_    = trknmb;
+  hits_.resize(6);
+  for (auto& p : hits_) {
+    p.resize(11);
+  }
 }
 
 /// Default
 CSCCLCTDigi::CSCCLCTDigi()
-    : valid_(0), quality_(0), pattern_(0), striptype_(0), bend_(0), strip_(0), cfeb_(0), bx_(0), trknmb_(0), fullbx_(0) {
+    : valid_(0),
+      quality_(0),
+      pattern_(0),
+      striptype_(0),
+      bend_(0),
+      strip_(0),
+      cfeb_(0),
+      bx_(0),
+      trknmb_(0),
+      fullbx_(0),
+      compCode_(-1) {
   //  clear(); // set contents to zero
+  hits_.resize(6);
+  for (auto& p : hits_) {
+    p.resize(11);
+  }
 }
 
 /// Clears this CLCT.
@@ -62,6 +82,20 @@ void CSCCLCTDigi::clear() {
   bx_ = 0;
   trknmb_ = 0;
   fullbx_ = 0;
+  compCode_ = -1;
+  hits_.clear();
+  hits_.resize(6);
+  for (auto& p : hits_) {
+    p.resize(11);
+  }
+}
+
+int CSCCLCTDigi::getKeyStrip() const {
+  if (compCode_ == -1) {
+    return cfeb_ * 64 + strip_;
+  } else {
+    return cfeb_ * 32 + strip_;
+  }
 }
 
 bool CSCCLCTDigi::operator>(const CSCCLCTDigi& rhs) const {
@@ -96,7 +130,7 @@ bool CSCCLCTDigi::operator==(const CSCCLCTDigi& rhs) const {
   bool returnValue = false;
   if (isValid() == rhs.isValid() && getQuality() == rhs.getQuality() && getPattern() == rhs.getPattern() &&
       getKeyStrip() == rhs.getKeyStrip() && getStripType() == rhs.getStripType() && getBend() == getBend() &&
-      getBX() == rhs.getBX()) {
+      getBX() == rhs.getBX() && getCompCode() == rhs.getCompCode()) {
     returnValue = true;
   }
   return returnValue;
@@ -122,7 +156,8 @@ void CSCCLCTDigi::print() const {
                                 << getQuality() << " Pattern = " << std::setw(1) << getPattern()
                                 << " Bend = " << std::setw(1) << bend << " Strip type = " << std::setw(1) << stripType
                                 << " CFEB ID = " << std::setw(1) << getCFEB() << " BX = " << std::setw(1) << getBX()
-                                << " Full BX= " << std::setw(1) << getFullBX();
+                                << " Full BX= " << std::setw(1) << getFullBX() << " Comp Code= " << std::setw(1)
+                                << getCompCode();
   } else {
     edm::LogVerbatim("CSCDigi") << "Not a valid Cathode LCT.";
   }
@@ -132,5 +167,5 @@ std::ostream& operator<<(std::ostream& o, const CSCCLCTDigi& digi) {
   return o << "CSC CLCT #" << digi.getTrknmb() << ": Valid = " << digi.isValid() << " Quality = " << digi.getQuality()
            << " Pattern = " << digi.getPattern() << " StripType = " << digi.getStripType()
            << " Bend = " << digi.getBend() << " Strip = " << digi.getStrip() << " KeyStrip = " << digi.getKeyStrip()
-           << " CFEB = " << digi.getCFEB() << " BX = " << digi.getBX();
+           << " CFEB = " << digi.getCFEB() << " BX = " << digi.getBX() << " Comp Code " << digi.getCompCode();
 }

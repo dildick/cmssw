@@ -11,9 +11,13 @@
 
 #include <cstdint>
 #include <iosfwd>
+#include <vector>
 
 class CSCCLCTDigi {
 public:
+
+  typedef std::vector<std::vector<uint16_t>> ComparatorContainer;
+
   /// Constructors
   CSCCLCTDigi(const int valid,
               const int quality,
@@ -24,7 +28,8 @@ public:
               const int cfeb,
               const int bx,
               const int trknmb = 0,
-              const int fullbx = 0);
+              const int fullbx = 0,
+              const int compCode = -1);
   /// default
   CSCCLCTDigi();
 
@@ -82,19 +87,21 @@ public:
   /// return track number (1,2)
   int getTrknmb() const { return trknmb_; }
 
-  /// Convert strip_ and cfeb_ to keyStrip. Each CFEB has up to 16 strips
-  /// (32 halfstrips). There are 5 cfebs.  The "strip_" variable is one
-  /// of 32 halfstrips on the keylayer of a single CFEB, so that
-  /// Distrip   = (cfeb*32 + strip)/4.
-  /// Halfstrip = (cfeb*32 + strip).
-  /// Always return halfstrip number since this is what is stored in
-  /// the correlated LCT digi.  For distrip patterns, the convention is
-  /// the same as for persistent strip numbers: low halfstrip of a distrip.
-  /// SV, June 15th, 2006.
-  int getKeyStrip() const {
-    int keyStrip = cfeb_ * 32 + strip_;
-    return keyStrip;
-  }
+
+  /*Convert strip_ and cfeb_ to keyStrip. Each (D)CFEB has up to
+    - 16 strips
+    - 32 half-strips
+    - 64 quart-strips.
+    There are up to 7 (D)CFEBs.
+
+    The "strip_" variable is one of 32 half-strips or 64
+    quart-strips on the keylayer of a single (D)CFEB, so that:
+    - half-strip  = (cfeb_ * 32 + strip_)
+    - quart-strip = (cfeb_ * 64 + strip_).
+    Return the corresponding half-strip/quart-strip number
+    depending on whether the fit to comparator digis was done.
+  */
+  int getKeyStrip() const;
 
   /// Set track number (1,2) after sorting CLCTs.
   void setTrknmb(const uint16_t number) { trknmb_ = number; }
@@ -104,6 +111,16 @@ public:
 
   /// Set 12-bit full BX.
   void setFullBX(const uint16_t fullbx) { fullbx_ = fullbx; }
+
+  // 12-bit comparator code
+  int getCompCode() const { return compCode_; }
+
+  void setCompCode(const uint16_t code) { compCode_ = code; }
+
+  // comparator hits in this CLCT
+  ComparatorContainer getHits() const { return hits_; }
+
+  void setHits(const ComparatorContainer& hits) { hits_ = hits; }
 
   /// True if the left-hand side has a larger "quality".  Full definition
   /// of "quality" depends on quality word itself, pattern type, and strip
@@ -130,6 +147,12 @@ private:
   uint16_t bx_;
   uint16_t trknmb_;
   uint16_t fullbx_;
+
+  // 12-bit comparator code
+  int16_t compCode_;
+
+  // which hits are in this CLCT?
+  ComparatorContainer hits_;
 };
 
 std::ostream& operator<<(std::ostream& o, const CSCCLCTDigi& digi);
