@@ -38,7 +38,7 @@ CSCUpgradeCathodeLCTProcessor::CSCUpgradeCathodeLCTProcessor() : CSCCathodeLCTPr
 
 // SLHC version, add the feature of localized dead time zone for pretrigger
 bool CSCUpgradeCathodeLCTProcessor::preTrigger(
-    const unsigned int pulse[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS],
+    const PulseArray pulse,
     const int start_bx,
     int& first_bx) {
   if (isSLHC_ and !use_dead_time_zoning) {

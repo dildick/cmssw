@@ -124,7 +124,7 @@ vector<CSCCathodeLayerInfo> CSCCathodeLCTAnalyzer::lctDigis(const CSCCLCTDigi& c
     int strip;
     for (int i_layer = 0; i_layer < CSCConstants::NUM_LAYERS; i_layer++) {
       for (int i_strip = 0; i_strip < CSCConstants::CLCT_PATTERN_WIDTH; i_strip++) {
-        strip = clct_keystrip + key_stagger + CSCPatternBank::clct_pattern_offset[i_strip];
+        strip = clct_keystrip + key_stagger + CSCPatternBank::clct_pattern_offset_[i_strip];
         if (strip >= 0 && strip < CSCConstants::NUM_HALF_STRIPS) {
           digiId = hfstripDigis[strip];
           // halfstripDigis contains the digi numbers

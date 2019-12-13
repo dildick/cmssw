@@ -532,7 +532,7 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
 
   // 2 possible LCTs per CSC x 7 LCT quantities
   int keystrip_data[CSCConstants::MAX_CLCTS_PER_PROCESSOR][CLCT_NUM_QUANTITIES] = {{0}};
-  unsigned int pulse[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS];
+  PulseArray pulse;
 
   // Fire half-strip one-shots for hit_persist bx's (4 bx's by default).
   pulseExtension(halfstrip, maxHalfStrips, pulse);
@@ -706,9 +706,9 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
 
 // Common to all versions.
 void CSCCathodeLCTProcessor::pulseExtension(
-    const std::vector<int> time[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS],
+                                            const std::vector<int> time[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS],
     const int nStrips,
-    unsigned int pulse[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS]) {
+    PulseArray pulse) {
   static const unsigned int bits_in_pulse = 8 * sizeof(pulse[0][0]);
 
   // Clear pulse array.  This array will be used as a bit representation of
@@ -751,10 +751,9 @@ void CSCCathodeLCTProcessor::pulseExtension(
 }  // pulseExtension.
 
 // TMB-07 version.
-bool CSCCathodeLCTProcessor::preTrigger(
-    const unsigned int pulse[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS],
-    const int start_bx,
-    int& first_bx) {
+bool CSCCathodeLCTProcessor::preTrigger(const PulseArray pulse,
+                                        const int start_bx,
+                                        int& first_bx) {
   if (infoV > 1)
     LogTrace("CSCCathodeLCTProcessor") << "....................PreTrigger...........................";
 
@@ -811,10 +810,9 @@ bool CSCCathodeLCTProcessor::preTrigger(
 }  // preTrigger -- TMB-07 version.
 
 // TMB-07 version.
-bool CSCCathodeLCTProcessor::patternFinding(
-    const unsigned int pulse[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS],
-    const int nStrips,
-    const unsigned int bx_time) {
+bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
+                                            const int nStrips,
+                                            const unsigned int bx_time) {
   if (bx_time >= fifo_tbins)
     return false;
 
