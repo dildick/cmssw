@@ -34,10 +34,10 @@ public:
   /** Pre-defined CLCT patterns. */
 
   // New set of halfstrip patterns for 2007 version of the algorithm.
-  // For the given pattern, set the unused parts of the pattern to 999.
-  // Pattern[i][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN] contains bend direction.
+  // For the given pattern, set the unused parts of the pattern to 0.
+  // The bend direction is given by the next-to-last number in the the 6th layer
   // Bend of 0 is right/straight and bend of 1 is left.
-  // Pattern[i][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN+1] contains pattern maximum width
+  // The pattern maximum width is the last number in the the 6th layer
   // Use during Run-1 and Run-2
   static const CLCTPatterns clct_pattern_legacy_;
 
