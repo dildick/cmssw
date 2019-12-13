@@ -143,10 +143,7 @@ lclphidat CSCSectorReceiverLUT::calcLocalPhi(const lclphiadd& theadd) const {
 
   double patternOffset;
 
-  if (isTMB07)
-    patternOffset = CSCPatternLUT::get2007Position((theadd.pattern_type << 3) + theadd.clct_pattern);
-  else
-    patternOffset = CSCPatternLUT::getPosition(theadd.clct_pattern);
+  patternOffset = CSCPatternLUT::get2007Position((theadd.pattern_type << 3) + theadd.clct_pattern);
 
   // The phiL value stored is for the center of the half-/di-strip.
   if (theadd.strip < 2 * CSCConstants::MAX_NUM_STRIPS)
