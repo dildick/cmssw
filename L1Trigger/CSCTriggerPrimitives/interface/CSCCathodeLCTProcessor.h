@@ -110,19 +110,19 @@ protected:
   void readComparatorDigis(std::vector<int> halfstrip[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS]);
   void pulseExtension(const std::vector<int> time[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS],
                       const int nStrips,
-                      PulseArray pulse]);
+                      PulseArray pulse);
 
   //--------------- Functions for post-2007 version of the firmware -----------
   virtual std::vector<CSCCLCTDigi> findLCTs(
-      const std::vector<int> halfstrip[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS]);
+                                            const std::vector<int> halfstrip[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS]);
 
   /* Check all half-strip pattern envelopes simultaneously, on every clock cycle, for a matching pattern */
-  virtual bool preTrigger(const PulseArray pulse],
+  virtual bool preTrigger(const PulseArray pulse,
                           const int start_bx,
                           int& first_bx);
 
   /* For a given clock cycle, check each half-strip if a pattern matches */
-  bool patternFinding(const PulseArray pulse],
+  bool patternFinding(const PulseArray pulse,
                       const int nStrips,
                       const unsigned int bx_time);
 
@@ -151,7 +151,7 @@ protected:
   bool ispretrig[CSCConstants::NUM_HALF_STRIPS_7CFEBS];
 
   // actual LUT used
-  CLCTPatternArray clct_pattern_ = {};
+  CSCPatternBank::CLCTPatterns clct_pattern_ = {};
 
   // we use these next ones to address the various bits inside the array that's
   // used to make the cathode LCTs.
