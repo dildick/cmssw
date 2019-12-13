@@ -31,10 +31,10 @@ const int CSCPatternBank::alct_pattern_mask_r1[CSCConstants::NUM_ALCT_PATTERNS][
     // Collision pattern B
     {0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0}};
 
-const int CSCPatternBank::clct_pattern_offset[CSCConstants::CLCT_PATTERN_WIDTH] = {
+const int CSCPatternBank::clct_pattern_offset_[CSCConstants::CLCT_PATTERN_WIDTH] = {
   -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
 
-const CLCTPatternArray CSCPatternBank::clct_pattern_legacy = {
+const CSCPatternBank::CLCTPatterns CSCPatternBank::clct_pattern_legacy_ = {
   // pid=0: no pattern found
   {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},

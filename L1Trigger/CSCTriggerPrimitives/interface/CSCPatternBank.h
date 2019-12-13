@@ -26,10 +26,10 @@ public:
 
   // Since the test beams in 2003, both collision patterns are "completely
   // open".  This is our current default.
-  static const int alct_pattern_mask_open[CSCConstants::NUM_ALCT_PATTERNS][CSCConstants::MAX_WIRES_IN_PATTERN];
+  static const ALCTPatterns alct_pattern_mask_open;
 
   // Special option for narrow pattern for ring 1 stations
-  static const int alct_pattern_mask_r1[CSCConstants::NUM_ALCT_PATTERNS][CSCConstants::MAX_WIRES_IN_PATTERN];
+  static const ALCTPatterns alct_pattern_mask_r1;
 
   /** Pre-defined CLCT patterns. */
 
@@ -38,13 +38,14 @@ public:
   // Pattern[i][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN] contains bend direction.
   // Bend of 0 is right/straight and bend of 1 is left.
   // Pattern[i][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN+1] contains pattern maximum width
-  static const int clct_pattern[CSCConstants::NUM_CLCT_PATTERNS][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN + 2];
+  // Use during Run-1 and Run-2
+  static const CLCTPatterns clct_pattern_legacy_;
 
   // New patterns for Run-3
   static const CLCTPatterns clct_pattern_run3_;
 
   // half strip offsets per layer for each half strip in the pattern envelope
-  static const int clct_pattern_offset[CSCConstants::MAX_HALFSTRIPS_IN_PATTERN];
+  static const int clct_pattern_offset_[CSCConstants::CLCT_PATTERN_WIDTH];
 };
 
 #endif

@@ -57,6 +57,10 @@ CSCCathodeLCTProcessor::CSCCathodeLCTProcessor(unsigned endcap,
   // Verbosity level, set to 0 (no print) by default.
   infoV = clctParams_.getParameter<int>("verbosity");
 
+  use_run3_patterns_ = clctParams_.getParameter<bool>("useRun3Patterns");
+
+  use_comparator_codes_ = clctParams_.getParameter<bool>("useComparatorCodes");
+
   // Check and print configuration parameters.
   checkConfigParameters();
   if ((infoV > 0) && !config_dumped) {
@@ -71,6 +75,13 @@ CSCCathodeLCTProcessor::CSCCathodeLCTProcessor(unsigned endcap,
       stagger[i_layer] = 0;
     else
       stagger[i_layer] = 1;
+  }
+
+  // which patterns should we use?
+  if (use_run3_patterns_) {
+    clct_pattern_ = CSCPatternBank::clct_pattern_run3_;
+  } else {
+    clct_pattern_ = CSCPatternBank::clct_pattern_legacy_;
   }
 
   thePreTriggerDigis.clear();
@@ -619,8 +630,7 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
           if (best_hs >= 0 && nhits[best_hs] >= nplanes_hit_pattern) {
             //ptn_trig = true;
             keystrip_data[ilct][CLCT_PATTERN] = best_pid[best_hs];
-            keystrip_data[ilct][CLCT_BEND] =
-                CSCPatternBank::clct_pattern[best_pid[best_hs]][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN];
+            keystrip_data[ilct][CLCT_BEND] = clct_pattern_[best_pid[best_hs]][CSCConstants::NUM_LAYERS - 1][CSCConstants::CLCT_PATTERN_WIDTH];
             // Remove stagger if any.
             keystrip_data[ilct][CLCT_STRIP] = best_hs - stagger[CSCConstants::KEY_CLCT_LAYER - 1];
             keystrip_data[ilct][CLCT_BX] = first_bx;
@@ -776,7 +786,7 @@ bool CSCCathodeLCTProcessor::preTrigger(
 
           // write each pre-trigger to output
           nPreTriggers++;
-          const int bend = CSCPatternBank::clct_pattern[best_pid[hstrip]][CSCConstants::MAX_HALFSTRIPS_IN_PATTERN];
+          const int bend = clct_pattern_[best_pid[hstrip]][CSCConstants::NUM_LAYERS - 1][CSCConstants::CLCT_PATTERN_WIDTH];
           const int halfstrip = hstrip % CSCConstants::NUM_HALF_STRIPS_PER_CFEB;
           const int cfeb = hstrip / CSCConstants::NUM_HALF_STRIPS_PER_CFEB;
           thePreTriggerDigis.push_back(CSCCLCTPreTriggerDigi(
@@ -830,7 +840,7 @@ bool CSCCathodeLCTProcessor::patternFinding(
   bool hit_layer[CSCConstants::NUM_LAYERS];
   for (int key_hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; key_hstrip < nStrips; key_hstrip++) {
     // Loop over patterns and look for hits matching each pattern.
-    for (unsigned int pid = CSCConstants::NUM_CLCT_PATTERNS - 1; pid >= pid_thresh_pretrig; pid--) {
+    for (unsigned int pid = clct_pattern_.size() - 1; pid >= pid_thresh_pretrig; pid--) {
       layers_hit = 0;
       for (int ilayer = 0; ilayer < CSCConstants::NUM_LAYERS; ilayer++)
         hit_layer[ilayer] = false;
@@ -841,38 +851,44 @@ bool CSCCathodeLCTProcessor::patternFinding(
 
       // Loop over halfstrips in trigger pattern mask and calculate the
       // "absolute" halfstrip number for each.
-      for (int strip_num = 0; strip_num < CSCConstants::MAX_HALFSTRIPS_IN_PATTERN; strip_num++) {
-        int this_layer = CSCPatternBank::clct_pattern[pid][strip_num];
-        if (this_layer >= 0 && this_layer < CSCConstants::NUM_LAYERS) {
-          int this_strip = CSCPatternBank::clct_pattern_offset[strip_num] + key_hstrip;
-          if (this_strip >= 0 && this_strip < nStrips) {
-            if (infoV > 3)
-              LogTrace("CSCCathodeLCTProcessor")
-                  << " In patternFinding: key_strip = " << key_hstrip << " pid = " << pid
-                  << " strip_num = " << strip_num << " layer = " << this_layer << " strip = " << this_strip;
-            // Determine if "one shot" is high at this bx_time
-            if (((pulse[this_layer][this_strip] >> bx_time) & 1) == 1) {
-              if (hit_layer[this_layer] == false) {
-                hit_layer[this_layer] = true;
-                layers_hit++;  // determines number of layers hit
-              }
+      for (int this_layer = 0; this_layer < CSCConstants::NUM_LAYERS; this_layer++) {
+        for (int strip_num = 0; strip_num < CSCConstants::CLCT_PATTERN_WIDTH; strip_num++) {
+          // ignore "0" half-strips in the pattern
+          if (clct_pattern_[pid][this_layer][strip_num] == 0)
+            continue;
 
-              // find at what bx did pulse on this halsfstrip&layer have started
-              // use hit_pesrist constraint on how far back we can go
-              int first_bx_layer = bx_time;
-              for (unsigned int dbx = 0; dbx < hit_persist; dbx++) {
-                if (((pulse[this_layer][this_strip] >> (first_bx_layer - 1)) & 1) == 1)
-                  first_bx_layer--;
-                else
-                  break;
-              }
-              times_sum += (double)first_bx_layer;
-              num_pattern_hits += 1.;
-              mset_for_median.insert(first_bx_layer);
-              if (infoV > 2)
-                LogTrace("CSCCathodeLCTProcessor") << " 1st bx in layer: " << first_bx_layer << " sum bx: " << times_sum
-                                                   << " #pat. hits: " << num_pattern_hits;
+          int this_strip = CSCPatternBank::clct_pattern_offset_[strip_num] + key_hstrip;
+          std::cout
+            // if (infoV > 3) {
+            //             LogTrace("CSCCathodeLCTProcessor")
+            << " In patternFinding: key_strip = " << key_hstrip << " pid = " << pid
+            << " layer = " << this_layer << " strip = " << this_strip << std::endl;;
+          //          }
+          // Determine if "one shot" is high at this bx_time
+          if (((pulse[this_layer][this_strip] >> bx_time) & 1) == 1) {
+            if (hit_layer[this_layer] == false) {
+              std::cout << "this layer was hit" << std::endl;
+              hit_layer[this_layer] = true;
+              layers_hit++;  // determines number of layers hit
             }
+
+            // find at what bx did pulse on this halsfstrip & layer have started
+            // use hit_persist constraint on how far back we can go
+            int first_bx_layer = bx_time;
+            for (unsigned int dbx = 0; dbx < hit_persist; dbx++) {
+              if (((pulse[this_layer][this_strip] >> (first_bx_layer - 1)) & 1) == 1)
+                first_bx_layer--;
+              else
+                break;
+            }
+            times_sum += (double)first_bx_layer;
+            num_pattern_hits += 1.;
+            mset_for_median.insert(first_bx_layer);
+            if (infoV > 2)
+              LogTrace("CSCCathodeLCTProcessor") << " 1st bx in layer: " << first_bx_layer << " sum bx: " << times_sum
+
+                                                 << " #pat. hits: " << num_pattern_hits;
+
           }
         }
       }  // end loop over strips in pretrigger pattern
