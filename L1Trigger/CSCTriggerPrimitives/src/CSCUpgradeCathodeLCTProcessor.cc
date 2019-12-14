@@ -64,7 +64,7 @@ bool CSCUpgradeCathodeLCTProcessor::preTrigger(
     // pulses at that bunch-crossing time.  Do the same for the next keystrip,
     // etc.  Then do the entire process again for the next bunch-crossing, etc
     // until you find a pre-trigger.
-    bool hits_in_time = patternFinding(pulse, nStrips, bx_time);
+    bool hits_in_time = patternFinding(pulse, nStrips, bx_time, false);
     if (hits_in_time) {
       for (int hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; hstrip < nStrips; hstrip++) {
         if (infoV > 1) {
@@ -194,7 +194,7 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
 
       // TMB latches LCTs drift_delay clocks after pretrigger.
       int latch_bx = first_bx + drift_delay;
-      bool hits_in_time = patternFinding(pulse, maxHalfStrips, latch_bx);
+      bool hits_in_time = patternFinding(pulse, maxHalfStrips, latch_bx, true);
       if (infoV > 1) {
         if (hits_in_time) {
           for (int hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; hstrip < maxHalfStrips; hstrip++) {
