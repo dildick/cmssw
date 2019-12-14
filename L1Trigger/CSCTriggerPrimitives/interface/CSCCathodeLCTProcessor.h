@@ -39,6 +39,9 @@
 
 class CSCCathodeLCTProcessor : public CSCBaseboard {
 public:
+
+  typedef unsigned int PulseArray[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS];
+
   /** Normal constructor. */
   CSCCathodeLCTProcessor(unsigned endcap,
                          unsigned station,
@@ -100,8 +103,6 @@ protected:
 
   /** Make sure that the parameter values are within the allowed range. */
   void checkConfigParameters();
-
-  typedef unsigned int PulseArray[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS];
 
   //---------------- Methods common to all firmware versions ------------------
   // Single-argument version for TMB07 (halfstrip-only) firmware.
@@ -197,7 +198,7 @@ protected:
   bool use_comparator_codes_;
 
   // which hits per CLCT?
-  PulseArray hitsCLCT[99];
+  PulseArray hitsCLCT_[99];
 
   /** Default values of configuration parameters. */
   static const unsigned int def_fifo_tbins, def_fifo_pretrig;
