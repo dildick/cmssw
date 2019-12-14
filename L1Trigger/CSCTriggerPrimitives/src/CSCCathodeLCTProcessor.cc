@@ -812,7 +812,8 @@ bool CSCCathodeLCTProcessor::preTrigger(const PulseArray pulse,
 // TMB-07 version.
 bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
                                             const int nStrips,
-                                            const unsigned int bx_time) {
+                                            const unsigned int bx_time,
+                                            bool runTrigger) {
   if (bx_time >= fifo_tbins)
     return false;
 
