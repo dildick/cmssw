@@ -209,6 +209,7 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::run(const CSCComparatorDigiColl
   if (numStrips == 0) {
     if (cscChamber_) {
       numStrips = cscChamber_->layer(1)->geometry()->numberOfStrips();
+      std::cout << "Setting number of strips for " << CSCDetId::chamberName(theEndcap, theStation, theRing, theChamber) << " as " << numStrips << std::endl;
       // ME1/a is known to the readout hardware as strips 65-80 of ME1/1.
       // Still need to decide whether we do any special adjustments to
       // reconstruct LCTs in this region (3:1 ganged strips); for now, we
@@ -832,15 +833,39 @@ bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
   if (layers_hit < nplanes_hit_pretrig)
     return false;
 
+  // print out all the hits in the pulse
+  if (runTrigger) {
+    std::cout << "Printing Pulse array" << std::endl;
+    for (int i_hstrip = 0; i_hstrip < nStrips; i_hstrip++) {
+      std::cout << "S " << i_hstrip << " " ;
+      if (i_hstrip<100)  std::cout << " ";
+      if (i_hstrip<10)  std::cout << " ";
+      for (int i_layer = 0; i_layer < CSCConstants::NUM_LAYERS; i_layer++) {
+        std::cout << ((pulse[i_layer][i_hstrip] >> bx_time) & 1) ;
+      }
+      std::cout << std::endl;
+    }
+    std::cout << "Done printing pulse array" << std::endl;
+  }
+
   for (int key_hstrip = 0; key_hstrip < nStrips; key_hstrip++) {
     best_pid[key_hstrip] = 0;
     nhits[key_hstrip] = 0;
     first_bx_corrected[key_hstrip] = -999;
   }
 
+    std::vector<std::vector<int> > hits_in_patterns;
+    hits_in_patterns.clear();
+    hits_.resize(11);
+    for (auto& p : hits_) {
+      p.resize(6);
+    }
+
+
   // Loop over candidate key strips.
   bool hit_layer[CSCConstants::NUM_LAYERS];
   for (int key_hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; key_hstrip < nStrips; key_hstrip++) {
+
     // Loop over patterns and look for hits matching each pattern.
     for (unsigned int pid = clct_pattern_.size() - 1; pid >= pid_thresh_pretrig; pid--) {
       layers_hit = 0;
@@ -860,16 +885,24 @@ bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
             continue;
 
           int this_strip = CSCPatternBank::clct_pattern_offset_[strip_num] + key_hstrip;
-          std::cout
-            // if (infoV > 3) {
-            //             LogTrace("CSCCathodeLCTProcessor")
-            << " In patternFinding: key_strip = " << key_hstrip << " pid = " << pid
-            << " layer = " << this_layer << " strip = " << this_strip << std::endl;;
-          //          }
+
+          // need an extra protection here to make sure the strip number does not wrap around!!
+          if (this_strip < 0 or this_strip > nStrips) continue;
+
           // Determine if "one shot" is high at this bx_time
           if (((pulse[this_layer][this_strip] >> bx_time) & 1) == 1) {
             if (hit_layer[this_layer] == false) {
-              std::cout << "this layer was hit" << std::endl;
+              if (runTrigger) {
+                std::cout
+                  // if (infoV > 3) {
+                  //             LogTrace("CSCCathodeLCTProcessor")
+                  << CSCDetId::chamberName(theEndcap, theStation, theRing, theChamber)
+                  << " In patternFinding: key_strip = " << key_hstrip << " pid = " << pid
+                  << " layer = " << this_layer << " strip = " << this_strip << " " << std::endl;
+                //          }
+
+                //              std::cout << "this layer was hit" << std::endl;
+              }
               hit_layer[this_layer] = true;
               layers_hit++;  // determines number of layers hit
             }
@@ -886,9 +919,9 @@ bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
             times_sum += (double)first_bx_layer;
             num_pattern_hits += 1.;
             mset_for_median.insert(first_bx_layer);
+            if (runTrigger) std::cout << " 1st bx in layer: " << first_bx_layer << " sum bx: " << times_sum << " #pat. hits: " << num_pattern_hits << std::endl;
             if (infoV > 2)
               LogTrace("CSCCathodeLCTProcessor") << " 1st bx in layer: " << first_bx_layer << " sum bx: " << times_sum
-
                                                  << " #pat. hits: " << num_pattern_hits;
 
           }
@@ -899,6 +932,7 @@ bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
         best_pid[key_hstrip] = pid;
         nhits[key_hstrip] = layers_hit;
 
+          if (runTrigger) std::cout << "\tBest pid " << best_pid[key_hstrip] << " nhits " << nhits[key_hstrip] << std::endl;
         // calculate median
         const int sz = mset_for_median.size();
         if (sz > 0) {
