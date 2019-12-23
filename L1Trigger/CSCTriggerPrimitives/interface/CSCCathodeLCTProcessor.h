@@ -72,7 +72,7 @@ public:
   std::vector<CSCCLCTDigi> readoutCLCTsME1a() const;
   std::vector<CSCCLCTDigi> readoutCLCTsME1b() const;
 
-  /** Returns vector of all found CLCTs, if any. */
+  /** Returns vector of best 2 CLCTs. */
   std::vector<CSCCLCTDigi> getCLCTs() const;
 
   /** get best/second best CLCT

@@ -160,7 +160,11 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         verbosity = cms.int32(0),
 
         # BX to start CLCT finding (poor man's dead-time shortening):
-        clctStartBxShift  = cms.int32(0)
+        clctStartBxShift  = cms.int32(0),
+
+        useRun3Patterns = cms.bool(False),
+
+        useComparatorCodes = cms.bool(False)
     ),
 
     # Parameters for CLCT processors: SLHC studies
@@ -202,7 +206,11 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         # (currently it is median time of all hits in a pattern) into the CSCCLCTDigi bx,
         # and temporary store the regular "key layer hit" time into the CSCCLCTDigi fullBX:
         # not feasible --Tao
-        clctUseCorrectedBx = cms.bool(False)
+        clctUseCorrectedBx = cms.bool(False),
+
+        useRun3Patterns = cms.bool(False),
+
+        useComparatorCodes = cms.bool(False)
     ),
 
     tmbParam = cms.PSet(
@@ -466,7 +474,11 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
                                       runME11ILT = cms.bool(True),
                                       useClusters = cms.bool(False),
                                       enableAlctSLHC = cms.bool(True)),
-                   clctSLHC = dict(clctNplanesHitPattern = 3),
+                   clctSLHC = dict(
+                       clctNplanesHitPattern = 3,
+                       useRun3Patterns = cms.bool(False),
+                       useComparatorCodes = cms.bool(False)
+                   ),
                    me11tmbSLHCGEM = me11tmbSLHCGEM,
                    copadParamGE11 = copadParamGE11
                    )
