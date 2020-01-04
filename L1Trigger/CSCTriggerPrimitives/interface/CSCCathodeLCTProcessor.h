@@ -125,7 +125,8 @@ protected:
   /* For a given clock cycle, check each half-strip if a pattern matches */
   bool patternFinding(const PulseArray pulse,
                       const int nStrips,
-                      const unsigned int bx_time, bool runTrigger);
+                      const unsigned int bx_time, bool runTrigger,
+                      std::map<int, std::map<int, std::vector<std::vector<uint16_t> > > >& hits_in_patterns);
 
   /* Mark the half-strips around the best half-strip as busy */
   void markBusyKeys(const int best_hstrip, const int best_patid, int quality[CSCConstants::NUM_HALF_STRIPS_7CFEBS]);

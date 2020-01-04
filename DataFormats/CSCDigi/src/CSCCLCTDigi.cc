@@ -92,9 +92,9 @@ void CSCCLCTDigi::clear() {
 
 int CSCCLCTDigi::getKeyStrip() const {
   if (compCode_ == -1) {
-    return cfeb_ * 64 + strip_;
-  } else {
     return cfeb_ * 32 + strip_;
+  } else {
+    return cfeb_ * 64 + strip_;
   }
 }
 
