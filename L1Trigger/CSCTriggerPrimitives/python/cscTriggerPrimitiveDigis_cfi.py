@@ -475,7 +475,7 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
                                       useClusters = cms.bool(False),
                                       enableAlctSLHC = cms.bool(True)),
                    clctSLHC = dict(
-                       clctNplanesHitPattern = 3,
+                       clctNplanesHitPattern = 4,
                        useRun3Patterns = cms.bool(False),
                        useComparatorCodes = cms.bool(False)
                    ),

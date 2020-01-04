@@ -64,7 +64,11 @@ bool CSCUpgradeCathodeLCTProcessor::preTrigger(
     // pulses at that bunch-crossing time.  Do the same for the next keystrip,
     // etc.  Then do the entire process again for the next bunch-crossing, etc
     // until you find a pre-trigger.
-    bool hits_in_time = patternFinding(pulse, nStrips, bx_time, false);
+
+    std::map<int, std::map<int, std::vector<std::vector<uint16_t> > > > hits_in_patterns;
+    hits_in_patterns.clear();
+
+    bool hits_in_time = patternFinding(pulse, nStrips, bx_time, false, hits_in_patterns);
     if (hits_in_time) {
       for (int hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; hstrip < nStrips; hstrip++) {
         if (infoV > 1) {
@@ -169,6 +173,7 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
   unsigned int pulse[CSCConstants::NUM_LAYERS][CSCConstants::NUM_HALF_STRIPS_7CFEBS];
 
   // Fire half-strip one-shots for hit_persist bx's (4 bx's by default).
+  std::cout << "Run pulseExtension" << std::endl;
   pulseExtension(halfstrip, maxHalfStrips, pulse);
 
   unsigned int start_bx = start_bx_shift;
@@ -178,12 +183,14 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
 
   // Allow for more than one pass over the hits in the time window.
   // Do search in every BX
+  std::cout << "Run over all BXs" << std::endl;
   while (start_bx < stop_bx) {
     lctListBX.clear();
 
     // All half-strip pattern envelopes are evaluated simultaneously, on every clock cycle.
     int first_bx = 999;
     bool pre_trig = CSCUpgradeCathodeLCTProcessor::preTrigger(pulse, start_bx, first_bx);
+    std::cout << "Check pretrigger " << start_bx << " " << first_bx << " " << pre_trig << std::endl;
 
     // If any of half-strip envelopes has enough layers hit in it, TMB
     // will pre-trigger.
@@ -194,7 +201,12 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
 
       // TMB latches LCTs drift_delay clocks after pretrigger.
       int latch_bx = first_bx + drift_delay;
-      bool hits_in_time = patternFinding(pulse, maxHalfStrips, latch_bx, true);
+
+      std::map<int, std::map<int, std::vector<std::vector<uint16_t> > > > hits_in_patterns;
+      hits_in_patterns.clear();
+
+      bool hits_in_time = patternFinding(pulse, maxHalfStrips, latch_bx, true, hits_in_patterns);
+      std::cout << "Check hits_in_time " << hits_in_time << std::endl;
       if (infoV > 1) {
         if (hits_in_time) {
           for (int hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; hstrip < maxHalfStrips; hstrip++) {
@@ -247,6 +259,8 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
         for (int hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; hstrip < maxHalfStrips; hstrip++) {
           // The bend-direction bit pid[0] is ignored (left and right bends have equal quality).
           quality[hstrip] = (best_pid[hstrip] & 14) | (nhits[hstrip] << 5);
+          std::cout << "quality[hstrip] " << quality[hstrip] << " " << best_pid[hstrip] << " " << (best_pid[hstrip] & 14) << " "
+                    << nhits[hstrip] << " " << (nhits[hstrip] << 5) << std::endl;
           // do not consider halfstrips:
           //   - out of pretrigger-trigger zones
           //   - in busy zones from previous trigger
@@ -289,7 +303,13 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
         //bool ptn_trig = false;
         for (int ilct = 0; ilct < CSCConstants::MAX_CLCTS_PER_PROCESSOR; ilct++) {
           int best_hs = best_halfstrip[ilct];
+
+          std::cout << "check if can build CLCT, best_hs " << best_hs << " " << maxHalfStrips << " " << nhits[best_hs] << std::endl;
+
           if (best_hs >= 0 && nhits[best_hs] >= nplanes_hit_pattern) {
+
+            std::cout << "Building new CLCT " << std::endl;
+
             int bx = first_bx;
             int fbx = first_bx_corrected[best_hs];
             if (use_corrected_bx) {
@@ -324,6 +344,41 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
                                 keystrip_data[ilct][CLCT_CFEB],
                                 keystrip_data[ilct][CLCT_BX]);
             thisLCT.setFullBX(fbx);
+
+            std::cout << "Final CLCT " << thisLCT <<  std::endl;
+
+            // set the hit collection
+            CSCCLCTDigi::ComparatorContainer compHits = hits_in_patterns[best_hs][keystrip_data[ilct][CLCT_PATTERN]];
+
+            std::cout << "Printing final comp containter " << compHits.size() << std::endl;
+
+            for (int i = 0; i < 6; i++) {
+              std::cout << "layer " << i << " " << compHits[i].size() << " ";
+              for (int j = 0; j < 11; j++) {
+                std::cout << compHits[i][j];
+              }
+              std::cout << std::endl;
+            }
+
+            // clean the container
+            for (auto& p : compHits) {
+
+              auto new_end = std::remove_if(p.begin(), p.end(),
+                                            [](int i)
+                                            { return i==65535; });
+              p.erase( new_end, p.end() );
+            }
+
+            thisLCT.setHits(compHits);
+
+            for (int i = 0; i < 6; i++) {
+              std::cout << "layer " << i << " ";
+              for (const auto& p : compHits[i]) {
+                std::cout << p;
+              }
+              std::cout << std::endl;
+            }
+
             lctList.push_back(thisLCT);
             lctListBX.push_back(thisLCT);
           }
