@@ -46,6 +46,9 @@ public:
 
   // half strip offsets per layer for each half strip in the pattern envelope
   static const int clct_pattern_offset_[CSCConstants::CLCT_PATTERN_WIDTH];
+
+  // half strip index for new patterns
+  static const int index_pattern_run3();
 };
 
 #endif

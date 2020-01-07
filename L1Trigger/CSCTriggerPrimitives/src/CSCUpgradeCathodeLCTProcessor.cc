@@ -259,8 +259,8 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
         for (int hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; hstrip < maxHalfStrips; hstrip++) {
           // The bend-direction bit pid[0] is ignored (left and right bends have equal quality).
           quality[hstrip] = (best_pid[hstrip] & 14) | (nhits[hstrip] << 5);
-          std::cout << "quality[hstrip] " << quality[hstrip] << " " << best_pid[hstrip] << " " << (best_pid[hstrip] & 14) << " "
-                    << nhits[hstrip] << " " << (nhits[hstrip] << 5) << std::endl;
+          // std::cout << "quality[hstrip] " << quality[hstrip] << " " << best_pid[hstrip] << " " << (best_pid[hstrip] & 14) << " "
+          //           << nhits[hstrip] << " " << (nhits[hstrip] << 5) << std::endl;
           // do not consider halfstrips:
           //   - out of pretrigger-trigger zones
           //   - in busy zones from previous trigger
@@ -353,7 +353,7 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
             std::cout << "Printing final comp containter " << compHits.size() << std::endl;
 
             for (int i = 0; i < 6; i++) {
-              std::cout << "layer " << i << " " << compHits[i].size() << " ";
+              std::cout << "layer " << i;
               for (int j = 0; j < 11; j++) {
                 std::cout << compHits[i][j];
               }
@@ -370,6 +370,53 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
             }
 
             thisLCT.setHits(compHits);
+
+            // clean the container
+            for (auto& p : compHits) {
+              auto new_end = std::remove_if(p.begin(), p.end(),
+                                            [](int i)
+                                            { return i==65535; });
+              p.erase( new_end, p.end() );
+            }
+
+            if (use_comparator_codes_) {
+
+              // wrap the comparator code in a format for calculation
+              std::array<std::array<int, 3>, CSCConstants::NUM_LAYERS> compHitsCC;
+
+              for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
+                int iCC = 0;
+                for (int j = 0; j < CSCConstants::CLCT_PATTERN_WIDTH; j++) {
+                  // only fill when the pattern is active
+                  if (clct_pattern_[keystrip_data[ilct][CLCT_PATTERN]][i][j]) {
+                    if (compHits[i][j] != 65535) {
+                      compHitsCC[i][iCC] = 1;
+                    } else {
+                      compHitsCC[i][iCC] = 0;
+                    }
+                    iCC++;
+                  }
+                }
+              }
+
+              // print out the hits
+              std::cout << "Printing reduced comp containter " << compHitsCC.size() << std::endl;
+
+              for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
+                std::cout << "layer " << i;
+                for (int j = 0; j < 3; j++) {
+                  std::cout << compHitsCC[i][j];
+                }
+                std::cout << std::endl;
+              }
+
+              // calculate the comparator code
+              int comparatorCode = calculateComparatorCode(compHitsCC);
+
+              std::cout << "Comparator code " << comparatorCode << std::endl;
+
+              thisLCT.setCompCode(comparatorCode);
+            }
 
             for (int i = 0; i < 6; i++) {
               std::cout << "layer " << i << " ";
