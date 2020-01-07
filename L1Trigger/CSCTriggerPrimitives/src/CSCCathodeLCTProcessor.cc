@@ -2,6 +2,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <array>
 
 // Default values of configuration parameters.
 const unsigned int CSCCathodeLCTProcessor::def_fifo_tbins = 12;
@@ -60,6 +61,10 @@ CSCCathodeLCTProcessor::CSCCathodeLCTProcessor(unsigned endcap,
   use_run3_patterns_ = clctParams_.getParameter<bool>("useRun3Patterns");
 
   use_comparator_codes_ = clctParams_.getParameter<bool>("useComparatorCodes");
+
+  nbits_position_cc_ = clctParams_.getParameter<unsigned int>("nBitsPositionCC");
+
+  nbits_slope_cc_ = clctParams_.getParameter<unsigned int>("nBitsSlopeCC");
 
   // Check and print configuration parameters.
   checkConfigParameters();
@@ -608,8 +613,8 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
           // The bend-direction bit pid[0] is ignored (left and right
           // bends have equal quality).
           quality[hstrip] = (best_pid[hstrip] & 14) | (nhits[hstrip] << 5);
-          std::cout << "quality[hstrip] " << quality[hstrip] << " " << best_pid[hstrip] << " " << (best_pid[hstrip] & 14) << " "
-                    << nhits[hstrip] << " " << (nhits[hstrip] << 5) << std::endl;
+          // std::cout << "quality[hstrip] " << quality[hstrip] << " " << best_pid[hstrip] << " " << (best_pid[hstrip] & 14) << " "
+          //           << nhits[hstrip] << " " << (nhits[hstrip] << 5) << std::endl;
           if (quality[hstrip] > best_quality[0]) {
             best_halfstrip[0] = hstrip;
             best_quality[0] = quality[hstrip];
@@ -688,26 +693,62 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
 
             std::cout << "Printing final comp containter " << compHits.size() << std::endl;
 
-            for (int i = 0; i < 6; i++) {
+            for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
               std::cout << "layer " << i << " " << compHits[i].size() << " ";
-              for (int j = 0; j < 11; j++) {
+              for (int j = 0; j < CSCConstants::CLCT_PATTERN_WIDTH; j++) {
                 std::cout << compHits[i][j];
               }
               std::cout << std::endl;
             }
 
+            thisLCT.setHits(compHits);
+
             // clean the container
             for (auto& p : compHits) {
-
               auto new_end = std::remove_if(p.begin(), p.end(),
                                             [](int i)
                                             { return i==65535; });
               p.erase( new_end, p.end() );
             }
 
-            thisLCT.setHits(compHits);
+            if (use_comparator_codes_) {
 
-            for (int i = 0; i < 6; i++) {
+              // wrap the comparator code in a format for calculation
+              std::array<std::array<int, 3>, CSCConstants::NUM_LAYERS> compHitsCC;
+
+              for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
+                int iCC = 0;
+                for (int j = 0; j < CSCConstants::CLCT_PATTERN_WIDTH; j++) {
+                  // only fill when the pattern is active
+                  if (clct_pattern_[keystrip_data[ilct][CLCT_PATTERN]][i][j]) {
+                    compHitsCC[i][iCC] = compHits[i][j];
+                    iCC++;
+                  }
+                }
+              }
+
+              // print out the hits
+              std::cout << "Printing reduced comp containter " << compHitsCC.size() << std::endl;
+
+              for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
+                std::cout << "layer " << i << " " << compHitsCC[i].size() << " ";
+                for (int j = 0; j < 3; j++) {
+                  std::cout << compHitsCC[i][j];
+                }
+                std::cout << std::endl;
+              }
+
+              // calculate the comparator code
+              int comparatorCode = calculateComparatorCode(compHitsCC);
+
+              thisLCT.setCompCode(comparatorCode);
+
+              // calculate the slope
+
+              // calculate the position
+            }
+
+            for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
               std::cout << "layer " << i << " ";
               for (const auto& p : compHits[i]) {
                 std::cout << p;
@@ -997,8 +1038,7 @@ bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
       } // end loop over layers
 
       // save the pattern information when a trigger was formed!
-      if (layers_hit > nplanes_hit_pattern) {
-        std::cout << ">>Saving pattern information<<" << std::endl;
+      if (layers_hit >= nplanes_hit_pattern) {
         hits_in_patterns[key_hstrip][pid] = hits_single_pattern;
       }
 
@@ -1084,6 +1124,57 @@ void CSCCathodeLCTProcessor::markBusyKeys(const int best_hstrip,
     }
   }
 }  // markBusyKeys -- TMB-07 version.
+
+//calculates the id based on location of hits
+int CSCCathodeLCTProcessor::calculateComparatorCode(const std::array<std::array<int, 3>, 6>& halfStripPattern) const
+{
+  //only do this iteration once, to keep things efficient
+  int id = 0;
+
+  for(unsigned int column = 0; column < CSCConstants::NUM_LAYERS; column++){
+    int rowPat = 0; //physical arrangement of the three bits
+    int rowCode = 0; //code used to identify the arrangement
+
+    //use Firmware definition for comparator code definition
+    for(int row = 2; row >=0; row--){
+      rowPat = rowPat << 1; //bitshift the last number to the left
+      rowPat += halfStripPattern[column][row];
+    }
+    switch(rowPat) {
+    case 0 : //000
+      rowCode = 0;
+      break;
+    case 1 : //00X
+      rowCode = 1;
+      break;
+    case 2 : //0X0
+      rowCode = 2;
+      break;
+    case 4 : //00X
+      rowCode = 3;
+      break;
+    default:
+      // default return value is -1
+      // if(DEBUG >= 0) std::cout << "Error: unknown rowPattern - " << std::bitset<3>(rowPat) << " defaulting to rowCode: 0" << std::endl;
+      return -1;
+      //rowCode = 0; //if we come up with a robust enough algorithm, we can do this eventually
+      //break;
+    }
+    //each column has two bits of information, largest layer is most significant bit
+    id += (rowCode << 2*column);
+  }
+  return id;
+}
+
+int CSCCathodeLCTProcessor::calculatePositionCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const
+{
+  return 0;
+}
+
+int CSCCathodeLCTProcessor::calculateSlopeCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const
+{
+  return 0;
+}
 
 // --------------------------------------------------------------------------
 // Auxiliary code.

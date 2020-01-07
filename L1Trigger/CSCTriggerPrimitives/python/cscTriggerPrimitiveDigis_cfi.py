@@ -163,8 +163,9 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         clctStartBxShift  = cms.int32(0),
 
         useRun3Patterns = cms.bool(False),
-
-        useComparatorCodes = cms.bool(False)
+        useComparatorCodes = cms.bool(False),
+        nBitsPositionCC = cms.uint32(9),
+        nBitsSlopeCC = cms.uint32(5)
     ),
 
     # Parameters for CLCT processors: SLHC studies
@@ -209,8 +210,9 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         clctUseCorrectedBx = cms.bool(False),
 
         useRun3Patterns = cms.bool(False),
-
-        useComparatorCodes = cms.bool(False)
+        useComparatorCodes = cms.bool(False),
+        nBitsPositionCC = cms.uint32(9),
+        nBitsSlopeCC = cms.uint32(5)
     ),
 
     tmbParam = cms.PSet(
@@ -220,10 +222,7 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
         matchTrigEnable = cms.uint32(1),
         matchTrigWindowSize = cms.uint32(7),
         tmbL1aWindowSize = cms.uint32(7),
-        # Debug
         verbosity = cms.int32(0),
-
-        # Configure early_tbins instead of hardcoding it
         tmbEarlyTbins = cms.int32(4),
 
         # Flag for whether to readout only the earliest max two LCTs in a
@@ -476,8 +475,10 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
                                       enableAlctSLHC = cms.bool(True)),
                    clctSLHC = dict(
                        clctNplanesHitPattern = 4,
-                       useRun3Patterns = cms.bool(False),
-                       useComparatorCodes = cms.bool(False)
+                       useRun3Patterns = cms.bool(True),
+                       useComparatorCodes = cms.bool(True),
+                       nBitsPositionCC = cms.uint32(9),
+                       nBitsSlopeCC = cms.uint32(5)
                    ),
                    me11tmbSLHCGEM = me11tmbSLHCGEM,
                    copadParamGE11 = copadParamGE11

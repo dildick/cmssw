@@ -131,6 +131,15 @@ protected:
   /* Mark the half-strips around the best half-strip as busy */
   void markBusyKeys(const int best_hstrip, const int best_patid, int quality[CSCConstants::NUM_HALF_STRIPS_7CFEBS]);
 
+  /*
+   * Functions for the comparator code methode for the CLCT processor
+   */
+  int calculateComparatorCode(const std::array<std::array<int, 3>, 6>& halfStripPattern) const;
+
+  int calculatePositionCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const;
+
+  int calculateSlopeCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const;
+
   //--------------------------- Auxiliary methods -----------------------------
   /** Dump CLCT configuration parameters. */
   void dumpConfigParams() const;
@@ -197,6 +206,8 @@ protected:
   // Use the new patterns according to the comparator code format
   bool use_run3_patterns_;
   bool use_comparator_codes_;
+  unsigned int nbits_position_cc_;
+  unsigned int nbits_slope_cc_;
 
   // which hits per CLCT?
   PulseArray hitsCLCT_[99];
