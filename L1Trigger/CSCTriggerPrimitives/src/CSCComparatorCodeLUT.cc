@@ -1,5 +1,6 @@
 #include "L1Trigger/CSCTriggerPrimitives/interface/CSCComparatorCodeLUT.h"
 
+<<<<<<< HEAD
 //using CSCComparatorCodeLUT::cclut;
 
 CSCComparatorCodeLUT::cclut CSCComparatorCodeLUT::compcode_lut[4][6] = (-1.750000, 0.500000);
@@ -7,6 +8,13 @@ compcode_lut[4][7] = (-2.250000, 1.000000);
 compcode_lut[4][9] = (-0.250000, -0.500000);
 
 /*
+=======
+using CSCComparatorCodeLUT::cclut;
+cclut CSCComparatorCodeLUT::compcode_lut[4][6] = (-1.750000, 0.500000);
+
+compcode_lut[4][7] = (-2.250000, 1.000000);
+compcode_lut[4][9] = (-0.250000, -0.500000);
+>>>>>>> 308ae644047f1a81bdc75e85a1cceca2d283f280
 compcode_lut[4][10] = (-0.750000, -0.000000);
 compcode_lut[4][11] = (-1.250000, 0.500000);
 compcode_lut[4][13] = (0.750000, -1.000000);
@@ -20388,4 +20396,7 @@ compcode_lut[0][4092] = (0.250000, 0.900000);
 compcode_lut[0][4093] = (-0.059524, 0.714286);
 compcode_lut[0][4094] = (0.059524, 0.785714);
 compcode_lut[0][4095] = (0.178571, 0.857143);
+<<<<<<< HEAD
 */
+=======
+>>>>>>> 308ae644047f1a81bdc75e85a1cceca2d283f280
