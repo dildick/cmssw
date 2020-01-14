@@ -23,6 +23,12 @@ public:
   void generateLUTsME21(unsigned e, unsigned se, unsigned sb, unsigned c) const;
   int assignRoll(const std::vector<std::pair<double, double> >&, double eta) const;
 
+  // generate position and slope tables for ME1/1
+  void generatePostionCC() const;
+
+  // generate position and slope tables for all other chambers
+  void generatePostionCC() const;
+
 private:
   // create LUT: roll->(etaMin,etaMax)
   void gemRollToEtaLimitsLUT(const GEMChamber* c, std::vector<std::pair<double, double> >&) const;

@@ -744,8 +744,10 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
               thisLCT.setCompCode(comparatorCode);
 
               // calculate the slope
+              int positionCC = calculatePositionCC(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
 
               // calculate the position
+              int slopeCC = calculateSlopeCC(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
             }
 
             for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
@@ -964,8 +966,7 @@ bool CSCCathodeLCTProcessor::patternFinding(const PulseArray pulse,
   for (int key_hstrip = stagger[CSCConstants::KEY_CLCT_LAYER - 1]; key_hstrip < nStrips; key_hstrip++) {
 
     // Loop over patterns and look for hits matching each pattern.
-    for (unsigned int pid = clct_pattern_.size() - 1; pid >= pid_thresh_pretrig; pid--) {
-
+    for (unsigned pid = clct_pattern_.size() - 1; pid >= pid_thresh_pretrig and pid < clct_pattern_.size(); --pid ) {
       // reset the layers hit
       layers_hit = 0;
       for (int ilayer = 0; ilayer < CSCConstants::NUM_LAYERS; ilayer++) {
@@ -1166,12 +1167,12 @@ int CSCCathodeLCTProcessor::calculateComparatorCode(const std::array<std::array<
   return id;
 }
 
-int CSCCathodeLCTProcessor::calculatePositionCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const
+int CSCCathodeLCTProcessor::calculatePositionCC(int id, int compCode) const
 {
   return 0;
 }
 
-int CSCCathodeLCTProcessor::calculateSlopeCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const
+int CSCCathodeLCTProcessor::calculateSlopeCC(int id, int compCode) const
 {
   return 0;
 }

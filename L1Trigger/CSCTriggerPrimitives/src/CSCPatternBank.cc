@@ -177,3 +177,7 @@ const CSCPatternBank::CLCTPatterns CSCPatternBank::clct_pattern_run3_ = {
      {0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0},
      {0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0},
      {0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 3}}};
+
+/*
+
+ */
