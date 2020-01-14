@@ -2,15 +2,15 @@
 #define L1Trigger_CSCTriggerPrimitives_CSCComparatorCodeLUT_h
 
 #include <map>
-#include <pair>
+#include <utility>
 
 class CSCComparatorCodeLUT {
 public:
 
-  typedef static const std::map<int, std::map<int, std::pair<float, float> > > cclut;
+  typedef std::map<int, std::map<int, std::pair<float, float> > > cclut;
 
   // static member lut
-   cclut compcode_lut;
+   static const cclut compcode_lut;
 };
 
 #endif
