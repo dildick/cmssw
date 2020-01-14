@@ -136,9 +136,9 @@ protected:
    */
   int calculateComparatorCode(const std::array<std::array<int, 3>, 6>& halfStripPattern) const;
 
-  int calculatePositionCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const;
+  int calculatePositionCC(int id, int compCode) const;
 
-  int calculateSlopeCC(const std::array<std::array<int, 3>, 6>& halfStripPattern, int id, int compCode) const;
+  int calculateSlopeCC(int id, int compCode) const;
 
   //--------------------------- Auxiliary methods -----------------------------
   /** Dump CLCT configuration parameters. */

@@ -473,12 +473,20 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
                                       runME11ILT = cms.bool(True),
                                       useClusters = cms.bool(False),
                                       enableAlctSLHC = cms.bool(True)),
+                   clctParam07 = dict(
+                       useRun3Patterns = cms.bool(True),
+                       useComparatorCodes = cms.bool(True),
+                       nBitsPositionCC = cms.uint32(9),
+                       nBitsSlopeCC = cms.uint32(5)
+                       clctPidThreshPretrig  = cms.uint32(0),
+                   ),
                    clctSLHC = dict(
                        clctNplanesHitPattern = 4,
                        useRun3Patterns = cms.bool(True),
                        useComparatorCodes = cms.bool(True),
                        nBitsPositionCC = cms.uint32(9),
                        nBitsSlopeCC = cms.uint32(5)
+                       clctPidThreshPretrig  = cms.uint32(0),
                    ),
                    me11tmbSLHCGEM = me11tmbSLHCGEM,
                    copadParamGE11 = copadParamGE11
