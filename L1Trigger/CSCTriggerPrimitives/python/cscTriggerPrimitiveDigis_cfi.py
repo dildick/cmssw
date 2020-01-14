@@ -28,6 +28,9 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
     # Write out pre-triggers
     savePreTriggers = cms.bool(False),
 
+                                          positionLUTFile = cms.FileInPath("L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodePosLUT_20200114.txt")
+                                          slopeLUTFile = cms.FileInPath("L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodeSlopeLUT_20200114.txt")
+
     # Parameters common for all boards
     commonParam = cms.PSet(
         # Master flag for SLHC studies
