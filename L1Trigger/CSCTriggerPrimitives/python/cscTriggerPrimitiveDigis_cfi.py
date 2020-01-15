@@ -28,8 +28,8 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
     # Write out pre-triggers
     savePreTriggers = cms.bool(False),
 
-                                          positionLUTFile = cms.FileInPath("L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodePosLUT_20200114.txt")
-                                          slopeLUTFile = cms.FileInPath("L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodeSlopeLUT_20200114.txt")
+                                          positionLUTFile = cms.FileInPath("L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodePosLUT_20200114.txt"),
+                                          slopeLUTFile = cms.FileInPath("L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodeSlopeLUT_20200114.txt"),
 
     # Parameters common for all boards
     commonParam = cms.PSet(
@@ -480,7 +480,7 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
                        useRun3Patterns = cms.bool(True),
                        useComparatorCodes = cms.bool(True),
                        nBitsPositionCC = cms.uint32(9),
-                       nBitsSlopeCC = cms.uint32(5)
+                       nBitsSlopeCC = cms.uint32(5),
                        clctPidThreshPretrig  = cms.uint32(0),
                    ),
                    clctSLHC = dict(
@@ -488,7 +488,7 @@ run3_GEM.toModify( cscTriggerPrimitiveDigis,
                        useRun3Patterns = cms.bool(True),
                        useComparatorCodes = cms.bool(True),
                        nBitsPositionCC = cms.uint32(9),
-                       nBitsSlopeCC = cms.uint32(5)
+                       nBitsSlopeCC = cms.uint32(5),
                        clctPidThreshPretrig  = cms.uint32(0),
                    ),
                    me11tmbSLHCGEM = me11tmbSLHCGEM,

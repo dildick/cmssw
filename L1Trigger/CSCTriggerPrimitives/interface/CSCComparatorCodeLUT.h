@@ -1,5 +1,5 @@
-#ifndef L1Trigger_CSCTriggerPrimitives_CSCComparatorCodePosLUT
-#define L1Trigger_CSCTriggerPrimitives_CSCComparatorCodePosLUT
+#ifndef L1Trigger_CSCTriggerPrimitives_CSCComparatorCodeLUT
+#define L1Trigger_CSCTriggerPrimitives_CSCComparatorCodeLUT
 
 #include <fstream>
 #include <sstream>
@@ -9,13 +9,13 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 #include "CondFormats/L1TObjects/interface/LUT.h"
 
-class CSCComparatorCodePosLUT : public l1t::LUT
+class CSCComparatorCodeLUT : public l1t::LUT
 {
  public:
-  CSCComparatorCodePosLUT(){};
-  explicit CSCComparatorCodePosLUT(const std::string&);
-  explicit CSCComparatorCodePosLUT(l1t::LUT*);
-  ~CSCComparatorCodePosLUT() {}
+  CSCComparatorCodeLUT(){};
+  explicit CSCComparatorCodeLUT(const std::string&);
+  explicit CSCComparatorCodeLUT(l1t::LUT*);
+  ~CSCComparatorCodeLUT() {}
 
   int lookup(int pat, int code) const;
   int lookupPacked(int in) const;
