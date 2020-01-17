@@ -24,7 +24,7 @@ class CSCComparatorCodeLUT : public l1t::LUT
   void initialize();
 
   int hashInput(int pt, int code) const;
-  void unHashInput(int input, int& pat, int& code) const;
+  /* void unHashInput(int input, int& pat, int& code) const; */
 
   int checkedInput(unsigned in, unsigned maxWidth) const;
 

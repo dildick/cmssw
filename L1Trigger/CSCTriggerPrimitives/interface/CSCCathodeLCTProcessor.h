@@ -34,6 +34,7 @@
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigi.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTPreTriggerDigi.h"
 #include "L1Trigger/CSCTriggerPrimitives/interface/CSCBaseboard.h"
+#include "L1Trigger/CSCTriggerPrimitives/interface/CSCComparatorCodeLUT.h"
 
 #include <vector>
 
@@ -88,6 +89,10 @@ public:
   std::vector<CSCCLCTPreTriggerDigi> preTriggerDigisME1b() const;
 
 protected:
+  // unique pointers to the luts
+  std::unique_ptr<CSCComparatorCodeLUT> lutpos_;
+  std::unique_ptr<CSCComparatorCodeLUT> lutslope_;
+
   /** Best LCT in this chamber, as found by the processor. */
   CSCCLCTDigi bestCLCT[CSCConstants::MAX_CLCT_TBINS];
 

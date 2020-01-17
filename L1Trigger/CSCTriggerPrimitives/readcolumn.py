@@ -16,20 +16,54 @@ with open('linearFits.lut.mod') as file:
     column4 = [ x[3] for x in lst]
 
     ## print to file
+    index = 0
+
+    results4 = []
+    results3 = []
+    results2 = []
+    results1 = []
+    results0 = []
+    for p,q,r,s in zip(column1, column2, column3, column4):
+        valuebin = int(float_to_bin(s),2)
+        if p == 100:
+            p = 4
+            line = "%d # iPat : iCC : %d : %d\n"%(valuebin, p, q)
+            results4.append(line)
+        if p == 90:
+            p = 3
+            line = "%d # iPat : iCC : %d : %d\n"%(valuebin, p, q)
+            results3.append(line)
+        if p == 80:
+            p = 2
+            line = "%d # iPat : iCC : %d : %d\n"%(valuebin, p, q)
+            results2.append(line)
+        if p == 70:
+            p = 1
+            line = "%d # iPat : iCC : %d : %d\n"%(valuebin, p, q)
+            results1.append(line)
+        if p == 60:
+            p = 0
+            line = "%d # iPat : iCC : %d : %d\n"%(valuebin, p, q)
+            results0.append(line)
+
+        index += 1
+
     f1=open('CompCodeMap.txt', 'w+')
     index = 0
-    for p,q,r,s in zip(column1, column2, column3, column4):
-        if p == 100: p = 4
-        if p == 90:  p = 3
-        if p == 80:  p = 2
-        if p == 70:  p = 1
-        if p == 60:  p = 0
-
-        ## to binary
-        valuebin = float_to_bin(s)
-
-        #        f1.write("compcode_lut[%d][%d] = (%f, %f);\n" %(p,q, r, s))
-        f1.write("%d %d # iPat : iCC : %d : %d\n"%(index, int(valuebin,2), p, q))
-        #compcode_lut[%d][%d] = (%f, %f);\n" %(p,q, r, s))
+    for p in results0:
+        f1.write("%d "%index + p)
         index += 1
+    for p in results1:
+        f1.write("%d "%index + p)
+        index += 1
+    for p in results2:
+        f1.write("%d "%index + p)
+        index += 1
+    for p in results3:
+        f1.write("%d "%index + p)
+        index += 1
+    for p in results4:
+        f1.write("%d "%index + p)
+        index += 1
+
     f1.close()

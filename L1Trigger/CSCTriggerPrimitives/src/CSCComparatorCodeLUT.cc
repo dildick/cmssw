@@ -2,6 +2,26 @@
 #include "FWCore/Utilities/interface/Exception.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+CSCComparatorCodeLUT::CSCComparatorCodeLUT(const std::string& fname)
+  : LUT(),
+    m_patInWidth(3),
+    m_codeInWidth(12) {
+  m_totalInWidth = m_patInWidth + m_codeInWidth;
+  m_outWidth = 32;
+
+  // m_Mask = (1 << m_patInWidth) - 1;
+  // m_qualMask = ((1 << m_codelInWidth) - 1) << m_patInWidth;
+
+  // m_inputs.push_back(MicroGMTConfiguration::QUALITY);
+  // m_inputs.push_back(MicroGMTConfiguration::PT);
+
+  if (fname != std::string("")) {
+    load(fname);
+  } else {
+    initialize();
+  }
+}
+
 CSCComparatorCodeLUT::CSCComparatorCodeLUT(l1t::LUT* lut)
   : m_totalInWidth(0), m_outWidth(0), m_initialized(true) {
   std::stringstream ss;
@@ -27,6 +47,17 @@ int CSCComparatorCodeLUT::load(const std::string& inFileName) {
   return readCode;
 }
 
+int CSCComparatorCodeLUT::lookup(int pat, int code) const {
+  // normalize these two to the same scale and then calculate?
+  if (m_initialized) {
+    return lookupPacked(hashInput(checkedInput(pat, m_patInWidth),
+                                  checkedInput(code, m_codeInWidth)));
+  }
+  int result = 0;
+  // normalize to out width
+  return result;
+}
+
 int CSCComparatorCodeLUT::lookupPacked(const int input) const {
   if (m_initialized) {
     return data((unsigned int)input);
@@ -47,6 +78,18 @@ void CSCComparatorCodeLUT::initialize() {
   }
   m_initialized = true;
 }
+
+int CSCComparatorCodeLUT::hashInput(int pat, int code) const {
+  int result = 0;
+  result += pat << m_codeInWidth;
+  result += code;
+  return result;
+}
+
+// void CSCComparatorCodeLUT::unHashInput(int input, int& pat, int& code) const {
+//   pt = input & m_ptRedMask;
+//   eta = (input & m_etaRedMask) >> m_ptRedInWidth;
+// }
 
 int CSCComparatorCodeLUT::checkedInput(unsigned in, unsigned maxWidth) const {
   unsigned maxIn = (1 << maxWidth) - 1;

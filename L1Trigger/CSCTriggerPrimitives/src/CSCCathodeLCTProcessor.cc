@@ -90,6 +90,13 @@ CSCCathodeLCTProcessor::CSCCathodeLCTProcessor(unsigned endcap,
   }
 
   thePreTriggerDigis.clear();
+
+  std::string basestring = "/afs/cern.ch/user/d/dildick/work/GEM/NewCSCTriggerPatterns/CMSSW_11_1_X_2020-01-14-1100/src/";
+  std::string positionLUTFile_ = "L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodePosLUT_20200114.txt";
+  std::string slopeLUTFile_ = "L1Trigger/CSCTriggerPrimitives/data/CSCComparatorCodeSlopeLUT_20200114.txt";
+
+  lutpos_.reset(new CSCComparatorCodeLUT(positionLUTFile_));
+  lutslope_.reset(new CSCComparatorCodeLUT(slopeLUTFile_));
 }
 
 CSCCathodeLCTProcessor::CSCCathodeLCTProcessor() : CSCBaseboard() {
@@ -744,10 +751,11 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
               thisLCT.setCompCode(comparatorCode);
 
               // calculate the slope
-              int positionCC = calculatePositionCC(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
+              int positionCC = lutpos_->lookup(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
 
               // calculate the position
-              int slopeCC = calculateSlopeCC(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
+              int slopeCC = lutslope_->lookup(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
+              std::cout << "positionCC " << positionCC <<  " slopeCC " << slopeCC<< std::endl;
             }
 
             for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {
