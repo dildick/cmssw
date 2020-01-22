@@ -747,6 +747,7 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
 
               // calculate the comparator code
               int comparatorCode = calculateComparatorCode(compHitsCC);
+              std::cout << "input " << keystrip_data[ilct][CLCT_PATTERN] << " " << comparatorCode << std::endl;
 
               thisLCT.setCompCode(comparatorCode);
 
@@ -755,7 +756,7 @@ std::vector<CSCCLCTDigi> CSCCathodeLCTProcessor::findLCTs(
 
               // calculate the position
               int slopeCC = lutslope_->lookup(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
-              std::cout << "positionCC " << positionCC <<  " slopeCC " << slopeCC<< std::endl;
+              std::cout << "input " << keystrip_data[ilct][CLCT_PATTERN] << " " << comparatorCode << "  positionCC " << positionCC <<  " slopeCC " << slopeCC<< std::endl;
             }
 
             for (int i = 0; i < CSCConstants::NUM_LAYERS; i++) {

@@ -16,6 +16,7 @@ CSCComparatorCodeLUT::CSCComparatorCodeLUT(const std::string& fname)
   // m_inputs.push_back(MicroGMTConfiguration::PT);
 
   if (fname != std::string("")) {
+    std::cout << "loaded table " << std::endl;
     load(fname);
   } else {
     initialize();
@@ -60,6 +61,7 @@ int CSCComparatorCodeLUT::lookup(int pat, int code) const {
 
 int CSCComparatorCodeLUT::lookupPacked(const int input) const {
   if (m_initialized) {
+    std::cout << "lookupPacked " << data((unsigned int)input) << std::endl;
     return data((unsigned int)input);
   }
   throw cms::Exception("Uninitialized") << "If you're not loading a LUT from file you need to implement lookupPacked.";
@@ -83,6 +85,7 @@ int CSCComparatorCodeLUT::hashInput(int pat, int code) const {
   int result = 0;
   result += pat << m_codeInWidth;
   result += code;
+  std::cout << "result " << result << std::endl;
   return result;
 }
 
@@ -93,5 +96,7 @@ int CSCComparatorCodeLUT::hashInput(int pat, int code) const {
 
 int CSCComparatorCodeLUT::checkedInput(unsigned in, unsigned maxWidth) const {
   unsigned maxIn = (1 << maxWidth) - 1;
-  return (in < maxIn ? in : maxIn);
+  int returnvalue = (in < maxIn ? in : maxIn);
+  std::cout << "checkedInput " << in << " " << maxWidth << " " << returnvalue << std::endl;
+  return returnvalue;
 }

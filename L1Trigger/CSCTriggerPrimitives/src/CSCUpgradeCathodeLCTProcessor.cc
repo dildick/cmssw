@@ -416,6 +416,13 @@ std::vector<CSCCLCTDigi> CSCUpgradeCathodeLCTProcessor::findLCTs(
               std::cout << "Comparator code " << comparatorCode << std::endl;
 
               thisLCT.setCompCode(comparatorCode);
+
+              // calculate the slope
+              int positionCC = lutpos_->lookup(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
+
+              // calculate the position
+              int slopeCC = lutslope_->lookup(keystrip_data[ilct][CLCT_PATTERN], comparatorCode);
+              std::cout << "input " << keystrip_data[ilct][CLCT_PATTERN] << " " << comparatorCode << "  positionCC " << positionCC <<  " slopeCC " << slopeCC<< std::endl;
             }
 
             for (int i = 0; i < 6; i++) {
