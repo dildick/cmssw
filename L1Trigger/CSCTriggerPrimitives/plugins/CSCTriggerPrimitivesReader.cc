@@ -135,6 +135,9 @@ void TreePerStub::init(int run, int event) {
   t_station = -1;
   t_chambertype = -1;
   t_endcap = -2;
+  t_sector = -1;
+  t_nComp = 0;
+  t_nWire = 0;
 }
 
 TTree* TreePerStub::bookTree(TTree* t, const std::string& name) {
@@ -151,10 +154,13 @@ TTree* TreePerStub::bookTree(TTree* t, const std::string& name) {
   t->Branch("t_nStubs_noMEpm11", &t_nStubs_noMEpm11, "t_nStubs_noMEpm11/I");
 
   t->Branch("t_chamber", &t_chamber, "t_chamber/I");
+  t->Branch("t_sector", &t_sector, "t_sector/I");
   t->Branch("t_ring", &t_ring, "t_ring/I");
   t->Branch("t_endcap", &t_endcap, "t_endcap/I");
   t->Branch("t_station", &t_station, "t_station/I");
   t->Branch("t_chambertype", &t_chambertype, "t_chambertype/I");
+  t->Branch("t_nComp", &t_nComp, "t_nComp/I");
+  t->Branch("t_nWire", &t_nWire, "t_nWire/I");
 
   return t;
 }
@@ -394,6 +400,8 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
   edm::Handle<CSCCLCTPreTriggerDigiCollection> pretrigs_emul;
   edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_emul;
   edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_emul;
+  edm::Handle<CSCComparatorDigiCollection> compDigis;
+  edm::Handle<CSCWireDigiCollection> wireDigis;
 
   // Data
   if (dataLctsIn_) {
@@ -405,6 +413,8 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
     ev.getByToken(clcts_d_token_, clcts_data);
     ev.getByToken(lcts_tmb_d_token_, lcts_tmb_data);
     ev.getByToken(lcts_mpc_d_token_, lcts_mpc_data);
+    ev.getByToken(compDigi_token_, compDigis);
+    ev.getByToken(wireDigi_token_, wireDigis);
 
     if (!alcts_data.isValid()) {
       edm::LogWarning("L1CSCTPEmulatorWrongInput")
@@ -445,6 +455,8 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
     ev.getByToken(pretrigs_e_token_, pretrigs_emul);
     ev.getByToken(lcts_tmb_e_token_, lcts_tmb_emul);
     ev.getByToken(lcts_mpc_e_token_, lcts_mpc_emul);
+    ev.getByToken(compDigi_token_, compDigis);
+    ev.getByToken(wireDigi_token_, wireDigis);
 
     if (!alcts_emul.isValid()) {
       edm::LogWarning("L1CSCTPEmulatorWrongInput")
@@ -494,7 +506,9 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
             clcts_emul.product(),
             pretrigs_emul.product(),
             lcts_tmb_data.product(),
-            lcts_tmb_emul.product());
+            lcts_tmb_emul.product(),
+            compDigis.product(),
+            wireDigis.product());
   }
   // Fill MC-based resolution/efficiency histograms, if needed.
   if (emulLctsIn_) {
@@ -1379,20 +1393,24 @@ void CSCTriggerPrimitivesReader::compare(const CSCALCTDigiCollection* alcts_data
                                          const CSCCLCTDigiCollection* clcts_emul,
                                          const CSCCLCTPreTriggerDigiCollection* pretrigs_emul,
                                          const CSCCorrelatedLCTDigiCollection* lcts_data,
-                                         const CSCCorrelatedLCTDigiCollection* lcts_emul) {
+                                         const CSCCorrelatedLCTDigiCollection* lcts_emul,
+                                         const CSCComparatorDigiCollection* compDigis,
+                                         const CSCWireDigiCollection* wireDigis){
+
   // Book histos when called for the first time.
   if (!bookedCompHistos)
     bookCompHistos();
 
   // Comparisons
-  compareALCTs(alcts_data, alcts_emul);
-  compareCLCTs(clcts_data, clcts_emul, pretrigs_emul);
-  compareLCTs(lcts_data, lcts_emul, alcts_data, clcts_data);
+  compareALCTs(alcts_data, alcts_emul, wireDigis);
+  compareCLCTs(clcts_data, clcts_emul, pretrigs_emul, compDigis);
+  compareLCTs(lcts_data,  lcts_emul, alcts_data, clcts_data);
   //compareMPCLCTs(mpclcts_data,  mpclcts_emul, alcts_data, clcts_data);
 }
 
 void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts_data,
-                                              const CSCALCTDigiCollection* alcts_emul) {
+                                              const CSCALCTDigiCollection* alcts_emul,
+                                              const CSCWireDigiCollection* wireDigis) {
   int emul_corr_bx;
 
   // Should be taken from config. parameters.
@@ -1430,6 +1448,15 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
             if ((*digiIt).isValid()) {
               alctV_emul.push_back(*digiIt);
               bookedalctV_emul.push_back(false);
+            }
+          }
+
+          std::vector<CSCWireDigi>  wireV;
+          for (int layr = 1; layr <= 6; layr++) {
+            CSCDetId detid_layer(endc, stat, ring, cham, layr);
+            const auto& wrange = wireDigis->get(detid_layer);
+            for (auto digiIt = wrange.first; digiIt != wrange.second; digiIt++) {
+              wireV.push_back(*digiIt);
             }
           }
 
@@ -1479,9 +1506,12 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
           perStub[0].t_station = stat;
           perStub[0].t_chamber = cham;
           perStub[0].t_ring = ring;
+          perStub[0].t_sector = detid.triggerSector();
           perStub[0].t_EventNumberAnalyzed = eventsAnalyzed;
-          perStub[0].t_nStubs = ndata;
-          perStub[0].t_nStubs_readout = ndata;
+          perStub[0].t_nStubs              = ndata;
+          perStub[0].t_nStubs_readout              = ndata;
+          perStub[0].t_nWire = wireV.size();
+          std::cout << "[INFO]: filling per event aclt tree" << std::endl;
           event_tree[0]->Fill();
           //Emul
           for (pe = alctV_emul.begin(); pe != alctV_emul.end(); pe++) {
@@ -1669,7 +1699,8 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
 
 void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts_data,
                                               const CSCCLCTDigiCollection* clcts_emul,
-                                              const CSCCLCTPreTriggerDigiCollection* pretrigs_emul) {
+                                              const CSCCLCTPreTriggerDigiCollection* pretrigs_emul,
+                                              const CSCComparatorDigiCollection* compDigis) {
   // Number of Tbins before pre-trigger for raw cathode hits.
   const int tbin_cathode_offset = 7;
   //const int tbin_cathode_offset = 8;//in MC, it became 8, Tao
@@ -1678,6 +1709,7 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
   // Loop over all chambers in search for CLCTs.
   std::vector<CSCCLCTDigi>::const_iterator pd, pe;
   std::vector<CSCCLCTPreTriggerDigi>::const_iterator pretrig;
+  std::vector<CSCComparatorDigi>::const_iterator compa;
   perStub[2].init(RUN_, Event_);
   perStub[3].init(RUN_, Event_);
   for (int endc = 1; endc <= 2; endc++) {
@@ -1719,6 +1751,15 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
           for (auto pretrigIt = pretrigrange.first; pretrigIt != pretrigrange.second; pretrigIt++) {
             if ((*pretrigIt).isValid()) {
               pretrigV_emul.push_back(*pretrigIt);
+            }
+          }
+
+          std::vector<CSCComparatorDigi>  compV;
+          for (int layr = 1; layr <= 6; layr++) {
+            CSCDetId detid_layer(endc, stat, ring, cham, layr);
+            const auto& crange = compDigis->get(detid_layer);
+            for (auto digiIt = crange.first; digiIt != crange.second; digiIt++) {
+              compV.push_back(*digiIt);
             }
           }
 
@@ -1772,6 +1813,8 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
             nemul_readout = 2;
           }
 
+          std::cout << "ME" << stat << "/" << ring << ", Chamber " << cham << " is in Sector " << detid.triggerSector()  << std::endl;
+
           //Per event Fill, From Luca
           //Data, add HS quality later
           int perEv_nStub_data = 0;
@@ -1785,9 +1828,11 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
           perStub[2].t_station = stat;
           perStub[2].t_chamber = cham;
           perStub[2].t_ring = ring;
+          perStub[2].t_sector = detid.triggerSector();
           perStub[2].t_EventNumberAnalyzed = eventsAnalyzed;
-          perStub[2].t_nStubs = ndata;
-          perStub[2].t_nStubs_readout = ndata;
+          perStub[2].t_nStubs              = ndata;
+          perStub[2].t_nStubs_readout              = ndata;
+          perStub[2].t_nComp = compV.size();
           event_tree[2]->Fill();
           //Emul
           for (pe = clctV_emul.begin(); pe != clctV_emul.end(); pe++) {

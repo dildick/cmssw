@@ -56,10 +56,13 @@ struct TreePerStub {
   Int_t t_nStubs_noMEpm11;
 
   Int_t t_chamber;
+  Int_t t_sector;
   Int_t t_ring;
   Int_t t_endcap;
   Int_t t_station;
   Int_t t_chambertype;
+  Int_t t_nComp;
+  Int_t t_nWire;
 };
 
 struct MyStubComparison {
@@ -261,32 +264,36 @@ private:
   int getCSCType(const CSCDetId &id);
   double getHsPerRad(const int idh);
 
-  void compare(const CSCALCTDigiCollection *alcts_data,
-               const CSCALCTDigiCollection *alcts_emul,
-               const CSCCLCTDigiCollection *clcts_data,
-               const CSCCLCTDigiCollection *clcts_emul,
-               const CSCCLCTPreTriggerDigiCollection *pretrigs_emul,
-               const CSCCorrelatedLCTDigiCollection *lcts_data,
-               const CSCCorrelatedLCTDigiCollection *lcts_emul);  //,
+  void compare(const CSCALCTDigiCollection* alcts_data,
+               const CSCALCTDigiCollection* alcts_emul,
+               const CSCCLCTDigiCollection* clcts_data,
+               const CSCCLCTDigiCollection* clcts_emul,
+               const CSCCLCTPreTriggerDigiCollection* pretrigs_emul,
+               const CSCCorrelatedLCTDigiCollection* lcts_data,
+               const CSCCorrelatedLCTDigiCollection* lcts_emul,
+               const CSCComparatorDigiCollection* compDigis,
+               const CSCWireDigiCollection* wireDigis);//,
   //const CSCCorrelatedLCTDigiCollection* mpclcts_data,
   //const CSCCorrelatedLCTDigiCollection* mpclcts_emul);
   void bookCompHistos();
-  void compareALCTs(const CSCALCTDigiCollection *alcts_data, const CSCALCTDigiCollection *alcts_emul);
-  void compareCLCTs(const CSCCLCTDigiCollection *clcts_data,
-                    const CSCCLCTDigiCollection *clcts_emul,
-                    const CSCCLCTPreTriggerDigiCollection *pretrigs_emul);
-  void compareLCTs(const CSCCorrelatedLCTDigiCollection *lcts_data,
-                   const CSCCorrelatedLCTDigiCollection *lcts_emul,
-                   const CSCALCTDigiCollection *alcts_data,
-                   const CSCCLCTDigiCollection *clcts_data);
-  void compareMPCLCTs(const CSCCorrelatedLCTDigiCollection *lcts_data,
-                      const CSCCorrelatedLCTDigiCollection *lcts_emul,
-                      const CSCALCTDigiCollection *alcts_data,
-                      const CSCCLCTDigiCollection *clcts_data);
-  int convertBXofLCT(const int emul_bx,
-                     const CSCDetId &detid,
-                     const CSCALCTDigiCollection *alcts_data,
-                     const CSCCLCTDigiCollection *clcts_data);
+  void compareALCTs(const CSCALCTDigiCollection* alcts_data,
+                    const CSCALCTDigiCollection* alcts_emul,
+                    const CSCWireDigiCollection* wireDigis);
+  void compareCLCTs(const CSCCLCTDigiCollection* clcts_data,
+                    const CSCCLCTDigiCollection* clcts_emul,
+                    const CSCCLCTPreTriggerDigiCollection* pretrigs_emul,
+                    const CSCComparatorDigiCollection* compDigis);
+  void compareLCTs(const CSCCorrelatedLCTDigiCollection* lcts_data,
+                   const CSCCorrelatedLCTDigiCollection* lcts_emul,
+                   const CSCALCTDigiCollection* alcts_data,
+                   const CSCCLCTDigiCollection* clcts_data);
+  void compareMPCLCTs(const CSCCorrelatedLCTDigiCollection* lcts_data,
+                      const CSCCorrelatedLCTDigiCollection* lcts_emul,
+                      const CSCALCTDigiCollection* alcts_data,
+                      const CSCCLCTDigiCollection* clcts_data);
+  int  convertBXofLCT(const int emul_bx, const CSCDetId& detid,
+                      const CSCALCTDigiCollection* alcts_data,
+                      const CSCCLCTDigiCollection* clcts_data);
   void drawCompHistos();
 
   void MCStudies(const edm::Event &ev, const CSCALCTDigiCollection *alcts, const CSCCLCTDigiCollection *clcts);

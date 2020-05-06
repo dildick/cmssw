@@ -24,18 +24,18 @@ lctreader = cms.EDAnalyzer("CSCTriggerPrimitivesReader",
     CSCLCTProducerData = cms.untracked.string("muonCSCDigis"),
     CSCMPCLCTProducerData = cms.untracked.string("emtfStage2Digis"),
     #                                       produced by emulator
-    CSCLCTProducerEmul = cms.untracked.string("cscTriggerPrimitiveDigis"),
-    #CSCLCTProducerEmul = cms.untracked.string("simCscTriggerPrimitiveDigis"),
+    #CSCLCTProducerEmul = cms.untracked.string("cscTriggerPrimitiveDigis"),
+    CSCLCTProducerEmul = cms.untracked.string("simCscTriggerPrimitiveDigis"),
     # Labels to retrieve simHits, comparator and wire digis.
     #  (Used only when emulLctsIn = true.)
     CSCSimHitProducer = cms.InputTag("g4SimHits", "MuonCSCHits"),  # Full sim.
     #CSCSimHitProducer = cms.InputTag("MuonSimHits", "MuonCSCHits"), # Fast sim.
     #simulation
-    #CSCComparatorDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi"),
-    #CSCWireDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi"),
+    CSCComparatorDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi"),
+    CSCWireDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi"),
     #data
-    CSCComparatorDigiProducer = cms.InputTag("muonCSCDigis","MuonCSCComparatorDigi"),
-    CSCWireDigiProducer = cms.InputTag("muonCSCDigis","MuonCSCWireDigi"),
+    #CSCComparatorDigiProducer = cms.InputTag("muonCSCDigis","MuonCSCComparatorDigi"),
+    #CSCWireDigiProducer = cms.InputTag("muonCSCDigis","MuonCSCWireDigi"),
     checkBadChambers = cms.untracked.bool(True),
-    dataIsAnotherMC = cms.untracked.bool(False)
+    dataIsAnotherMC = cms.untracked.bool(False)#default was False
 )
