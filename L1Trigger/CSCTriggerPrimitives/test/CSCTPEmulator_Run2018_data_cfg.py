@@ -22,14 +22,6 @@ process.source = cms.Source("PoolSource",
      )
 )
 
-"""
-'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file1_to_5.root',
-'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file6_to_10.root',
-'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file11_to_15.root',
-'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file16_to_20.root'
-#         'file:/uscms/home/dildick/nobackup/work/LLPStudiesWithSergoEtAL/CMSSW_10_6_4/src/step2.root'
-"""
-
 process.MessageLogger = cms.Service("MessageLogger",
     destinations = cms.untracked.vstring("debug"),
     debug = cms.untracked.PSet(
@@ -97,9 +89,9 @@ process.TFileService = cms.Service("TFileService",
 # Scheduler path
 # ==============
 process.p = cms.Path(
-    process.muonCSCDigis*
-    process.cscTriggerPrimitiveDigis
-    *process.lctreader
+    process.muonCSCDigis *
+    process.cscTriggerPrimitiveDigis *
+    process.lctreader
     )
 
 process.pp = cms.EndPath(process.output)
