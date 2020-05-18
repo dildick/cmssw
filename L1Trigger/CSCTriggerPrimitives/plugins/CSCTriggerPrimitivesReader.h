@@ -320,8 +320,8 @@ private:
   void MCStudies(const edm::Event &ev,
                  const reco::GenParticleCollection *genParticles,
                  const edm::PSimHitContainer *allSimHits,
-                 const CSCComparatorDigiCollection *compDigis,
                  const CSCWireDigiCollection *wireDigis,
+                 const CSCComparatorDigiCollection *compDigis,
                  const CSCALCTDigiCollection *alcts,
                  const CSCCLCTDigiCollection *clcts);
 

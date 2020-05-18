@@ -2759,7 +2759,7 @@ void CSCTriggerPrimitivesReader::HotWires(const CSCWireDigiCollection* wires) {
 
 void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
                                            const reco::GenParticleCollection* genParticles,
-                                           const edm::PSimHitContainer& allSimHits,
+                                           const edm::PSimHitContainer* allSimHits,
                                            const CSCWireDigiCollection* wires,
                                            const CSCComparatorDigiCollection* comps,
                                            const CSCALCTDigiCollection* alcts,
@@ -2877,13 +2877,13 @@ void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
     }
 
     if (debug)
-      LogTrace("CSCTriggerPrimitivesReader") << "   #CSC SimHits: " << simHits.size();
+      LogTrace("CSCTriggerPrimitivesReader") << "   #CSC SimHits: " << allSimHits->size();
 
     // MC-based resolution studies.
-    calcResolution(alcts, clcts, wires, comps, simHits);
+    calcResolution(alcts, clcts, wires, comps, allSimHits);
 
     // MC-based efficiency studies.
-    //calcEfficiency(alcts, clcts, simHits);
+    calcEfficiency(alcts, clcts, allSimHits);
 
     //sixie stuff
     int myALCTCount = 0;
@@ -2927,7 +2927,7 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
                                                 const CSCCLCTDigiCollection* clcts,
                                                 const CSCWireDigiCollection* wiredc,
                                                 const CSCComparatorDigiCollection* compdc,
-                                                const edm::PSimHitContainer& allSimHits) {
+                                                const edm::PSimHitContainer* allSimHits) {
   // Book histos when called for the first time.
   if (!bookedResolHistos)
     bookResolHistos();
@@ -2944,7 +2944,7 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
     for (auto digiIt = range.first; digiIt != range.second; digiIt++) {
       bool alct_valid = (*digiIt).isValid();
       if (alct_valid) {
-        vector<CSCAnodeLayerInfo> alctInfo = alct_analyzer.getSimInfo(*digiIt, id, wiredc, &allSimHits);
+        vector<CSCAnodeLayerInfo> alctInfo = alct_analyzer.getSimInfo(*digiIt, id, wiredc, allSimHits);
 
         double hitPhi = -999.0, hitEta = -999.0;
         int hitWG = alct_analyzer.nearestWG(alctInfo, hitPhi, hitEta);
@@ -2974,12 +2974,6 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
           hEtaDiffVsEta[stat - 1]->Fill(fabs(alctEta), fabs(deltaEta));
           hEtaDiffVsWireCsc[csctype]->Fill(wiregroup, deltaEta);
         }
-        // should I comment out this "else"?
-        //else {
-        //  edm::LogWarning("L1CSCTPEmulatorWrongInput")
-        //    << "+++ Warning in calcResolution(): no matched SimHit"
-        //    << " found! +++\n";
-        //}
       }
     }
   }
@@ -2997,7 +2991,7 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
     for (auto digiIt = range.first; digiIt != range.second; digiIt++) {
       bool clct_valid = (*digiIt).isValid();
       if (clct_valid) {
-        vector<CSCCathodeLayerInfo> clctInfo = clct_analyzer.getSimInfo(*digiIt, id, compdc, &allSimHits);
+        vector<CSCCathodeLayerInfo> clctInfo = clct_analyzer.getSimInfo(*digiIt, id, compdc, allSimHits);
 
         double hitPhi = -999.0, hitEta = -999.0, deltaStrip = -999.0;
         int hitHS = clct_analyzer.nearestHS(clctInfo, hitPhi, hitEta);
@@ -3068,12 +3062,6 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
             }
           }
         }
-        // should I comment out this "else"?
-        //else {
-        //  edm::LogWarning("L1CSCTPEmulatorWrongInput")
-        //    << "+++ Warning in calcResolution(): no matched SimHit"
-        //    << " found! +++\n";
-        //}
 
         // "True bend", defined as difference in phi between muon hit
         // positions in the first and in the sixth layers.
@@ -3084,7 +3072,7 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
           int layer = layerId.layer();
           if (layer == 1 || layer == 6) {
             // Get simHits in this layer.
-            for (const auto& psh : allSimHits) {
+            for (const auto& psh : *allSimHits) {
               // Find detId where simHit is located.
               CSCDetId hitId = (CSCDetId)psh.detUnitId();
               if (hitId == layerId && abs(psh.particleType()) == 13) {  // muon hits only
@@ -3116,7 +3104,7 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
 
 void CSCTriggerPrimitivesReader::calcEfficiency(const CSCALCTDigiCollection* alcts,
                                                 const CSCCLCTDigiCollection* clcts,
-                                                const edm::PSimHitContainer& allSimHits) {
+                                                const edm::PSimHitContainer* allSimHits) {
   // Book histos when called for the first time.
   if (!bookedEfficHistos)
     bookEfficHistos();
@@ -3124,7 +3112,7 @@ void CSCTriggerPrimitivesReader::calcEfficiency(const CSCALCTDigiCollection* alc
   // Create list of chambers having SimHits.
   vector<CSCDetId> chamberIds;
   vector<CSCDetId>::const_iterator chamberIdIt;
-  for (const auto& simHitIt : allSimHits) {
+  for (const auto& simHitIt : *allSimHits) {
     // Find detId where simHit is located.
     bool sameId = false;
     CSCDetId hitId = (CSCDetId)simHitIt.detUnitId();
@@ -3162,7 +3150,7 @@ void CSCTriggerPrimitivesReader::calcEfficiency(const CSCALCTDigiCollection* alc
     int station = chamberId.station();
     int ring = chamberId.ring();
     int chamber = chamberId.chamber();
-    for (const auto& simHitIt : allSimHits) {
+    for (const auto& simHitIt : *allSimHits) {
       CSCDetId hitId = (CSCDetId)simHitIt.detUnitId();
       if (hitId.endcap() == endcap && hitId.station() == station && hitId.ring() == ring &&
           hitId.chamber() == chamber) {
