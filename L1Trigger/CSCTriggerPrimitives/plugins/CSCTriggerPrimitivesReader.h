@@ -139,7 +139,7 @@ public:
   int chamberSerial(CSCDetId id);
   int chamberIX(CSCDetId id);
   int chamberIXi(CSCDetId id);
-  void HotWires(const edm::Event &iEvent);
+  void HotWires(const CSCWireDigiCollection* wireDigis);
 
 private:
   int eventsAnalyzed;        // event number
@@ -169,33 +169,42 @@ private:
   // Flag to plot or not plot ME4/2.
   bool plotME42;
 
-  // Producer's labels
-  std::string lctProducerData_;
-  std::string mpclctProducerData_;
-  std::string lctProducerEmul_;
-  edm::InputTag simHitProducer_;
-  edm::InputTag wireDigiProducer_;
-  edm::InputTag compDigiProducer_;
+  // handles
+  edm::Handle<CSCComparatorDigiCollection> comp_data;
+  edm::Handle<CSCWireDigiCollection> wire_data;
+  edm::Handle<CSCALCTDigiCollection> alcts_data;
+  edm::Handle<CSCCLCTDigiCollection> clcts_data;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_data;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_data;
 
+  edm::Handle<reco::GenParticleCollection> genParticles;
+  edm::Handle<edm::PSimHitContainer> simHits;
+  edm::Handle<CSCComparatorDigiCollection> comp_emul;
+  edm::Handle<CSCWireDigiCollection> wire_emul;
+  edm::Handle<CSCALCTDigiCollection> alcts_emul;
+  edm::Handle<CSCCLCTDigiCollection> clcts_emul;
+  edm::Handle<CSCCLCTPreTriggerDigiCollection> pretrigs_emul;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_emul;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_emul;
+
+  // simulation
+  edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
   edm::EDGetTokenT<edm::PSimHitContainer> simHit_token_;
-  edm::EDGetTokenT<CSCWireDigiCollection> wireDigi_token_;
-  edm::EDGetTokenT<CSCComparatorDigiCollection> compDigi_token_;
-
-  edm::EDGetTokenT<CSCALCTDigiCollection> alcts_d_token_;
-  edm::EDGetTokenT<CSCCLCTDigiCollection> clcts_d_token_;
-  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_tmb_d_token_;
-  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_mpc_d_token_;
+  edm::EDGetTokenT<CSCWireDigiCollection> wire_e_token_;
+  edm::EDGetTokenT<CSCComparatorDigiCollection> comp_e_token_;
   edm::EDGetTokenT<CSCALCTDigiCollection> alcts_e_token_;
   edm::EDGetTokenT<CSCCLCTDigiCollection> clcts_e_token_;
   edm::EDGetTokenT<CSCCLCTPreTriggerDigiCollection> pretrigs_e_token_;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_tmb_e_token_;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_mpc_e_token_;
 
-  //GenParticleToken
-  edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
-  //handle
-  //GEN particles
-  edm::Handle<reco::GenParticleCollection> genParticles;
+  // data
+  edm::EDGetTokenT<CSCWireDigiCollection> wire_d_token_;
+  edm::EDGetTokenT<CSCComparatorDigiCollection> comp_d_token_;
+  edm::EDGetTokenT<CSCALCTDigiCollection> alcts_d_token_;
+  edm::EDGetTokenT<CSCCLCTDigiCollection> clcts_d_token_;
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_tmb_d_token_;
+  edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_mpc_d_token_;
 
   // a prefix for results ps files
   std::string resultsFileNamesPrefix_;
@@ -285,9 +294,7 @@ private:
                const CSCCorrelatedLCTDigiCollection* lcts_data,
                const CSCCorrelatedLCTDigiCollection* lcts_emul,
                const CSCComparatorDigiCollection* compDigis,
-               const CSCWireDigiCollection* wireDigis);//,
-  //const CSCCorrelatedLCTDigiCollection* mpclcts_data,
-  //const CSCCorrelatedLCTDigiCollection* mpclcts_emul);
+               const CSCWireDigiCollection* wireDigis);
   void bookCompHistos();
   void compareALCTs(const CSCALCTDigiCollection* alcts_data,
                     const CSCALCTDigiCollection* alcts_emul,
@@ -309,17 +316,23 @@ private:
                       const CSCCLCTDigiCollection* clcts_data);
   void drawCompHistos();
 
-  void MCStudies(const edm::Event &ev, const CSCALCTDigiCollection *alcts, const CSCCLCTDigiCollection *clcts);
+  void MCStudies(const edm::Event &ev,
+                 const reco::GenParticleCollection* genParticles,
+                 const edm::PSimHitContainer* allSimHits,
+                 const CSCComparatorDigiCollection* compDigis,
+                 const CSCWireDigiCollection* wireDigis,
+                 const CSCALCTDigiCollection *alcts,
+                 const CSCCLCTDigiCollection *clcts);
 
   void calcResolution(const CSCALCTDigiCollection *alcts,
                       const CSCCLCTDigiCollection *clcts,
                       const CSCWireDigiCollection *wiredc,
                       const CSCComparatorDigiCollection *compdc,
-                      const edm::PSimHitContainer &allSimHits);
+                      const edm::PSimHitContainer* allSimHits);
 
   void calcEfficiency(const CSCALCTDigiCollection *alcts,
                       const CSCCLCTDigiCollection *clcts,
-                      const edm::PSimHitContainer &allSimHits);
+                      const edm::PSimHitContainer* allSimHits);
 
   int maxRing(int station);
 

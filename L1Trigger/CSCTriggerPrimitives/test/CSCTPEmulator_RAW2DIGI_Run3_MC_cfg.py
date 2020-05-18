@@ -95,4 +95,4 @@ process.p = cms.Path(
     process.lctreader
     )
 
-process.pp = cms.EndPath(process.output)
+#process.pp = cms.EndPath(process.output)

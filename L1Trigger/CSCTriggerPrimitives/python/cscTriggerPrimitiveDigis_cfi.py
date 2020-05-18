@@ -20,10 +20,10 @@ cscTriggerPrimitiveDigis = cms.EDProducer("CSCTriggerPrimitivesProducer",
     checkBadChambers = cms.bool(True),
 
     # Write out all CLCTs
-    writeOutAllCLCTs = cms.bool(False),
+                                          writeOutAllCLCTs = cms.bool(True),
 
     # Write out all ALCTs
-    writeOutAllALCTs = cms.bool(False),
+                                          writeOutAllALCTs = cms.bool(True),
 
     # Write out pre-triggers
     savePreTriggers = cms.bool(True),
