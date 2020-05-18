@@ -5,7 +5,7 @@
 import FWCore.ParameterSet.Config as cms
 from Configuration.StandardSequences.Eras import eras
 
-process = cms.Process("ANA", eras.Run3)
+process = cms.Process("CSCTPEmulator", eras.Run3)
 
 process.maxEvents = cms.untracked.PSet(
     input = cms.untracked.int32(100)

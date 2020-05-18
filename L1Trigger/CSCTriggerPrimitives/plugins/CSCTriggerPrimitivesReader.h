@@ -32,11 +32,12 @@
 
 #include "SimDataFormats/TrackingHit/interface/PSimHitContainer.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+
 #include <TH1.h>
 #include <TH2.h>
 #include <TTree.h>
 #include <sstream>
-#define MAXSTUBS 100
 
 class CSCGeometry;
 class CSCBadChambers;
@@ -190,6 +191,12 @@ private:
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_tmb_e_token_;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> lcts_mpc_e_token_;
 
+  //GenParticleToken
+  edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
+  //handle
+  //GEN particles
+  edm::Handle<reco::GenParticleCollection> genParticles;
+
   // a prefix for results ps files
   std::string resultsFileNamesPrefix_;
 
@@ -205,6 +212,8 @@ private:
   enum trig_cscs { MAX_ENDCAPS = 2, MAX_STATIONS = 4, CSC_TYPES = 10 };
   enum { MAXPAGES = 20 };     // max. number of pages in postscript files
   static const double TWOPI;  // 2.*pi
+  static const int MAXSTUBS = 100;
+  static const int MAXLLPS = 2;
 
   // Various useful constants
   static const std::string csc_type[CSC_TYPES];
@@ -236,6 +245,10 @@ private:
   static bool bookedEfficHistos;
 
   static bool printps;
+
+  //modified alct functions
+  void resetALCTreeBranches();
+  void enableALCTreeBranches();
 
   void setRootStyle();
 
@@ -313,6 +326,7 @@ private:
   //fill 3 Trees
   MyStubComparison stubs_comparison[4];
   TTree *stub_tree[4];
+  TTree* modified_alct;//tree for modified aclc and llp information
   //fill 3 Trees: alct, clct, lct for data and emul
   TreePerStub perStub[6];
   TTree *event_tree[6];
@@ -457,6 +471,20 @@ private:
   TH1F *hLctTMBKeyStripME11;
   TH1F *hLctMPCKeyGroupME11;
   TH1F *hLctMPCKeyStripME11;
+
+  //modified ALCT Tree variables
+  int event;
+  int nWireDigis;
+  int nALCTs;
+  int nStripDigis;
+  int nCLCTs;
+  int nCLCTsPerChamber[540][10];
+  float llp_decay_x[MAXLLPS];
+  float llp_decay_y[MAXLLPS];
+  float llp_decay_z[MAXLLPS];
+  bool llp_in_acceptance[MAXLLPS];
+  float llp_eta[MAXLLPS];
+  float llp_phi[MAXLLPS];
 };
 
 #endif
