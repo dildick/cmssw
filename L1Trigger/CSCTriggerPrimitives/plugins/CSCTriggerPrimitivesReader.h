@@ -170,22 +170,22 @@ private:
   bool plotME42;
 
   // handles
-  edm::Handle<CSCComparatorDigiCollection> comp_data;
-  edm::Handle<CSCWireDigiCollection> wire_data;
-  edm::Handle<CSCALCTDigiCollection> alcts_data;
-  edm::Handle<CSCCLCTDigiCollection> clcts_data;
-  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_data;
-  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_data;
+  edm::Handle<CSCComparatorDigiCollection> comp_data_;
+  edm::Handle<CSCWireDigiCollection> wire_data_;
+  edm::Handle<CSCALCTDigiCollection> alcts_data_;
+  edm::Handle<CSCCLCTDigiCollection> clcts_data_;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_data_;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_data_;
 
-  edm::Handle<reco::GenParticleCollection> genParticles;
-  edm::Handle<edm::PSimHitContainer> simHits;
-  edm::Handle<CSCComparatorDigiCollection> comp_emul;
-  edm::Handle<CSCWireDigiCollection> wire_emul;
-  edm::Handle<CSCALCTDigiCollection> alcts_emul;
-  edm::Handle<CSCCLCTDigiCollection> clcts_emul;
-  edm::Handle<CSCCLCTPreTriggerDigiCollection> pretrigs_emul;
-  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_emul;
-  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_emul;
+  edm::Handle<reco::GenParticleCollection> genParticles_;
+  edm::Handle<edm::PSimHitContainer> simHits_;
+  edm::Handle<CSCComparatorDigiCollection> comp_emul_;
+  edm::Handle<CSCWireDigiCollection> wire_emul_;
+  edm::Handle<CSCALCTDigiCollection> alcts_emul_;
+  edm::Handle<CSCCLCTDigiCollection> clcts_emul_;
+  edm::Handle<CSCCLCTPreTriggerDigiCollection> pretrigs_emul_;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_tmb_emul_;
+  edm::Handle<CSCCorrelatedLCTDigiCollection> lcts_mpc_emul_;
 
   // simulation
   edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
@@ -336,6 +336,9 @@ private:
                       const edm::PSimHitContainer *allSimHits);
 
   int maxRing(int station);
+
+  template <class T>
+  void checkValid(const edm::Handle<T>& h);
 
   //fill 3 Trees
   MyStubComparison stubs_comparison[4];
@@ -500,5 +503,16 @@ private:
   float llp_eta[MAXLLPS];
   float llp_phi[MAXLLPS];
 };
+
+template <class T>
+void CSCTriggerPrimitivesReader::checkValid(const edm::Handle<T>& h)
+{
+  if (!h.isValid()) {
+    edm::LogWarning("L1CSCTPEmulatorWrongInput")
+      << "+++ Warning: Collection with label " << h.id()
+      << " requested, but not found in the event...+++\n";
+    return;
+  }
+}
 
 #endif

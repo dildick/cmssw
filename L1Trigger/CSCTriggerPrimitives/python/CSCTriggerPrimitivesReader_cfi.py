@@ -17,8 +17,9 @@ lctreader = cms.EDAnalyzer(
     checkBadChambers = cms.bool(True),
     dataIsAnotherMC = cms.bool(True),
     printps = cms.bool(True),
+    resultsFileNamesPrefix = cms.string(""),
     #data:
-    comparatorData = cms.InputTag("muonCSCDigis","MuonCSCComparatorDigi"),
+    compData = cms.InputTag("muonCSCDigis","MuonCSCComparatorDigi"),
     wireData = cms.InputTag("muonCSCDigis","MuonCSCWireDigi"),
     alctData = cms.InputTag("muonCSCDigis", "MuonCSCALCTDigi"),
     clctData = cms.InputTag("muonCSCDigis", "MuonCSCCLCTDigi"),
@@ -27,7 +28,7 @@ lctreader = cms.EDAnalyzer(
     #simulation(emulator):
     genParticles      = cms.InputTag("genParticles"),
     CSCSimHitProducer = cms.InputTag("g4SimHits", "MuonCSCHits"),  # Full sim.
-    comparatorEmul = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi"),
+    compEmul = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi"),
     wireEmul = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi"),
     alctEmul = cms.InputTag("simCscTriggerPrimitiveDigis"),
     clctEmul = cms.InputTag("simCscTriggerPrimitiveDigis"),

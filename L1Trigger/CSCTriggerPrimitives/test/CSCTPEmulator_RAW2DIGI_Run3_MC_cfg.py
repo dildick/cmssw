@@ -13,7 +13,7 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-         'file:FFC59020-EA48-1F41-B4B8-FF34C0E09D88.root'
+         'file:/uscms/home/dildick/nobackup/work/LLPStudiesWithSergoEtAL/CMSSW_11_1_0_pre6/src/L1Trigger/CSCTriggerPrimitives/test/FFC59020-EA48-1F41-B4B8-FF34C0E09D88.root'
      )
 )
 
@@ -37,13 +37,10 @@ process.MessageLogger = cms.Service("MessageLogger",
 process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load('Configuration.StandardSequences.RawToDigi_cff')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+process.load('Configuration.StandardSequences.MagneticField_cff')
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2021_realistic', '')
-
-# magnetic field (do I need it?)
-# ==============================
-process.load('Configuration.StandardSequences.MagneticField_cff')
 
 # CSC raw --> digi unpacker
 # =========================
@@ -56,8 +53,7 @@ process.muonGEMDigis.useDBEMap = False
 # CSC Trigger Primitives emulator
 # ===============================
 process.load("L1Trigger.CSCTriggerPrimitives.cscTriggerPrimitiveDigis_cfi")
-#process.cscTriggerPrimitiveDigis.CSCComparatorDigiProducer = "simMuonCSCDigis:MuonCSCComparatorDigi:HLT"
-#process.cscTriggerPrimitiveDigis.CSCWireDigiProducer = "simMuonCSCDigis:MuonCSCWireDigi:HLT"
+process.simCscTriggerPrimitiveDigis = process.cscTriggerPrimitiveDigis.clone()
 
 # CSC Trigger Primitives reader
 # =============================
@@ -66,7 +62,6 @@ process.lctreader.debug = True
 #process.lctreader.CSCComparatorDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi")
 #process.lctreader.CSCWireDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi")
 process.simMuonGEMPadDigis.InputCollection = "muonGEMDigis"
-process.lctreader.CSCLCTProducerEmul = 'cscTriggerPrimitiveDigis'
 
 # Output
 # ======
@@ -91,7 +86,7 @@ process.p = cms.Path(
     process.muonGEMDigis*
     process.simMuonGEMPadDigis *
     process.simMuonGEMPadDigiClusters *
-    process.cscTriggerPrimitiveDigis*
+    process.simCscTriggerPrimitiveDigis*
     process.lctreader
     )
 

@@ -311,7 +311,7 @@ CSCTriggerPrimitivesReader::CSCTriggerPrimitivesReader(const edm::ParameterSet& 
   comp_e_token_ = consumes<CSCComparatorDigiCollection>(conf.getParameter<edm::InputTag>("compEmul"));
   alcts_e_token_ = consumes<CSCALCTDigiCollection>(conf.getParameter<edm::InputTag>("alctEmul"));
   clcts_e_token_ = consumes<CSCCLCTDigiCollection>(conf.getParameter<edm::InputTag>("clctEmul"));
-  pretrigs_e_token_ = consumes<CSCCLCTPreTriggerDigiCollection>(conf.getParameter<edm::InputTag>("preclctemul"));
+  pretrigs_e_token_ = consumes<CSCCLCTPreTriggerDigiCollection>(conf.getParameter<edm::InputTag>("preclctEmul"));
   lcts_tmb_e_token_ = consumes<CSCCorrelatedLCTDigiCollection>(conf.getParameter<edm::InputTag>("lctEmul"));
   lcts_mpc_e_token_ = consumes<CSCCorrelatedLCTDigiCollection>(conf.getParameter<edm::InputTag>("mpclctEmul"));
 
@@ -334,11 +334,18 @@ CSCTriggerPrimitivesReader::CSCTriggerPrimitivesReader(const edm::ParameterSet& 
   event_tree[4] = perStub[4].bookTree(event_tree[4], "Ev_lcttree");
   event_tree[5] = perStub[5].bookTree(event_tree[5], "Ev_emul_lcttree");
 
+  //initialize modified alct Tree
+  modified_alct = fs->make<TTree>("llp", "selected information for llp trigger");
+  enableALCTreeBranches();
+
   bookHotWireHistos();
   bookALCTHistos();
   bookCLCTHistos();
   bookLCTTMBHistos();
   bookLCTMPCHistos();
+  bookCompHistos();
+  bookResolHistos();
+  bookEfficHistos();
 
   // My favourite ROOT settings.
   setRootStyle();
@@ -423,109 +430,69 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
 
   // Data
   if (dataLctsIn_) {
-    ev.getByToken(wire_d_token_, wire_data);
-    ev.getByToken(comp_d_token_, comp_data);
-    ev.getByToken(alcts_d_token_, alcts_data);
-    ev.getByToken(clcts_d_token_, clcts_data);
-    ev.getByToken(lcts_tmb_d_token_, lcts_tmb_data);
-    ev.getByToken(lcts_mpc_d_token_, lcts_mpc_data);
+    ev.getByToken(wire_d_token_, wire_data_);
+    ev.getByToken(comp_d_token_, comp_data_);
+    ev.getByToken(alcts_d_token_, alcts_data_);
+    ev.getByToken(clcts_d_token_, clcts_data_);
+    ev.getByToken(lcts_tmb_d_token_, lcts_tmb_data_);
+    ev.getByToken(lcts_mpc_d_token_, lcts_mpc_data_);
 
-    HotWires(wire_data.product());
+    //HotWires(wire_data_.product());
+    checkValid(alcts_data_);
+    checkValid(clcts_data_);
+    checkValid(lcts_tmb_data_);
+    // checkValid(lcts_mpc_data_);
 
-    if (!alcts_data.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of ALCTs with label MuonCSCALCTDigi"
-          << " requested, but not found in the event... Skipping the rest +++\n";
-      return;
-    }
-    if (!clcts_data.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of CLCTs with label MuonCSCCLCTDigi"
-          << " requested, but not found in the event... Skipping the rest +++\n";
-      return;
-    }
-    if (!lcts_tmb_data.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput") << "+++ Warning: Collection of correlated LCTs with label"
-                                                   << " MuonCSCCorrelatedLCTDigi requested, but not found in the"
-                                                   << " event... Skipping the rest +++\n";
-      return;
-    }
-    if (!lcts_mpc_data.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of MPC correlated LCTs with label"
-          << " MuonCSCCorrelatedLCTDigi + MCPSorted requested, but not found in the"
-          << " event... Skipping the rest +++\n";
-    }
-    fillALCTHistos(alcts_data.product());
-    fillCLCTHistos(clcts_data.product());
-    fillLCTTMBHistos(lcts_tmb_data.product());
+    fillALCTHistos(alcts_data_.product());
+    fillCLCTHistos(clcts_data_.product());
+    fillLCTTMBHistos(lcts_tmb_data_.product());
   }
 
   // Emulator
   if (emulLctsIn_) {
     resetALCTreeBranches();
-    ev.getByToken(genParticlesToken_, genParticles);
-    ev.getByToken(simHit_token_, simHits);
-    ev.getByToken(wire_e_token_, wire_emul);
-    ev.getByToken(comp_e_token_, comp_emul);
-    ev.getByToken(alcts_e_token_, alcts_emul);
-    ev.getByToken(clcts_e_token_, clcts_emul);
-    ev.getByToken(pretrigs_e_token_, pretrigs_emul);
-    ev.getByToken(lcts_tmb_e_token_, lcts_tmb_emul);
-    ev.getByToken(lcts_mpc_e_token_, lcts_mpc_emul);
+    ev.getByToken(genParticlesToken_, genParticles_);
+    ev.getByToken(simHit_token_, simHits_);
+    ev.getByToken(wire_e_token_, wire_emul_);
+    ev.getByToken(comp_e_token_, comp_emul_);
+    ev.getByToken(alcts_e_token_, alcts_emul_);
+    ev.getByToken(clcts_e_token_, clcts_emul_);
+    ev.getByToken(pretrigs_e_token_, pretrigs_emul_);
+    ev.getByToken(lcts_tmb_e_token_, lcts_tmb_emul_);
+    ev.getByToken(lcts_mpc_e_token_, lcts_mpc_emul_);
 
-    HotWires(wire_emul.product());
+    HotWires(wire_emul_.product());
 
-    if (!alcts_emul.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of emulated ALCTs"
-          << " requested, but not found in the event... Skipping the rest +++\n";
-      return;
-    }
-    if (!clcts_emul.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of emulated CLCTs"
-          << " requested, but not found in the event... Skipping the rest +++\n";
-      return;
-    }
-    if (!lcts_tmb_emul.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of emulated correlated LCTs"
-          << " requested, but not found in the event... Skipping the rest +++\n";
-      return;
-    }
-    if (!lcts_mpc_emul.isValid()) {
-      edm::LogWarning("L1CSCTPEmulatorWrongInput")
-          << "+++ Warning: Collection of emulated correlated LCTs (MPCs)"
-          << " requested, but not found in the event... Skipping the rest +++\n";
-    }
+    checkValid(alcts_emul_);
+    checkValid(clcts_emul_);
+    checkValid(lcts_tmb_emul_);
+    checkValid(lcts_mpc_emul_);
 
-    fillALCTHistos(alcts_emul.product());
-    fillCLCTHistos(clcts_emul.product());
-    fillLCTTMBHistos(lcts_tmb_emul.product());
-    //fillLCTMPCHistos(lcts_mpc_emul.product());
+    fillALCTHistos(alcts_emul_.product());
+    fillCLCTHistos(clcts_emul_.product());
+    fillLCTTMBHistos(lcts_tmb_emul_.product());
 
     // Fill MC-based resolution/efficiency histograms, if needed.
     MCStudies(ev,
-              genParticles.product(),
-              simHits.product(),
-              wire_emul.product(),
-              comp_emul.product(),
-              alcts_emul.product(),
-              clcts_emul.product());
+              genParticles_.product(),
+              simHits_.product(),
+              wire_emul_.product(),
+              comp_emul_.product(),
+              alcts_emul_.product(),
+              clcts_emul_.product());
   }
 
   // Compare LCTs in the data with the ones produced by the emulator.
   if (dataLctsIn_ && emulLctsIn_) {
-    compare(alcts_data.product(),
-            alcts_emul.product(),
-            clcts_data.product(),
-            clcts_emul.product(),
-            pretrigs_emul.product(),
-            lcts_tmb_data.product(),
-            lcts_tmb_emul.product(),
-            comp_data.product(),
-            wire_data.product());
+    compare(alcts_data_.product(),
+            alcts_emul_.product(),
+            clcts_data_.product(),
+            clcts_emul_.product(),
+            pretrigs_emul_.product(),
+            lcts_tmb_data_.product(),
+            lcts_tmb_emul_.product(),
+            comp_data_.product(),
+            wire_data_.product());
   }
   modified_alct->Fill();
 }  // analyze
@@ -1320,7 +1287,7 @@ void CSCTriggerPrimitivesReader::fillCLCTHistos(const CSCCLCTDigiCollection* clc
         //*********************************************
         if (CSCChamberIndex >= 0 && CSCChamberIndex < 540) {
           nCLCTsPerChamber[CSCChamberIndex][clct_bx]++;
-          cout << "[sixie]: BX = " << clct_bx << "\n";
+          //cout << "[sixie]: BX = " << clct_bx << "\n";
         }
 
       }  //if clct_valid
@@ -1476,10 +1443,6 @@ void CSCTriggerPrimitivesReader::compare(const CSCALCTDigiCollection* alcts_data
                                          const CSCCorrelatedLCTDigiCollection* lcts_emul,
                                          const CSCComparatorDigiCollection* compDigis,
                                          const CSCWireDigiCollection* wireDigis) {
-  // Book histos when called for the first time.
-  if (!bookedCompHistos)
-    bookCompHistos();
-
   // Comparisons
   compareALCTs(alcts_data, alcts_emul, wireDigis);
   compareCLCTs(clcts_data, clcts_emul, pretrigs_emul, compDigis);
@@ -2928,10 +2891,6 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
                                                 const CSCWireDigiCollection* wiredc,
                                                 const CSCComparatorDigiCollection* compdc,
                                                 const edm::PSimHitContainer* allSimHits) {
-  // Book histos when called for the first time.
-  if (!bookedResolHistos)
-    bookResolHistos();
-
   // ALCT resolution
   CSCAnodeLCTAnalyzer alct_analyzer;
   alct_analyzer.setGeometry(geom_);
@@ -3105,13 +3064,8 @@ void CSCTriggerPrimitivesReader::calcResolution(const CSCALCTDigiCollection* alc
 void CSCTriggerPrimitivesReader::calcEfficiency(const CSCALCTDigiCollection* alcts,
                                                 const CSCCLCTDigiCollection* clcts,
                                                 const edm::PSimHitContainer* allSimHits) {
-  // Book histos when called for the first time.
-  if (!bookedEfficHistos)
-    bookEfficHistos();
-
   // Create list of chambers having SimHits.
   vector<CSCDetId> chamberIds;
-  vector<CSCDetId>::const_iterator chamberIdIt;
   for (const auto& simHitIt : *allSimHits) {
     // Find detId where simHit is located.
     bool sameId = false;
@@ -3187,14 +3141,14 @@ void CSCTriggerPrimitivesReader::calcEfficiency(const CSCALCTDigiCollection* alc
                                                       << " where there must be at least " << nLayers << "! +++\n";
         continue;
       }
-      int csctype = getCSCType(*chamberIdIt);
+      int csctype = getCSCType(chamberId);
       hEfficHitsEta[station - 1]->Fill(fabs(hitEta));
       hEfficHitsEtaCsc[csctype]->Fill(fabs(hitEta));
 
       bool isALCT = false;
       for (auto adetUnitIt = alcts->begin(); adetUnitIt != alcts->end(); adetUnitIt++) {
         const CSCDetId& id = (*adetUnitIt).first;
-        if (id == (*chamberIdIt)) {
+        if (id == chamberId) {
           const auto& range = (*adetUnitIt).second;
           for (auto digiIt = range.first; digiIt != range.second; digiIt++) {
             if (digiIt->isValid()) {
@@ -3218,7 +3172,7 @@ void CSCTriggerPrimitivesReader::calcEfficiency(const CSCALCTDigiCollection* alc
       bool isCLCT = false;
       for (auto cdetUnitIt = clcts->begin(); cdetUnitIt != clcts->end(); cdetUnitIt++) {
         const CSCDetId& id = (*cdetUnitIt).first;
-        if (id == (*chamberIdIt)) {
+        if (id == chamberId) {
           const auto& range = (*cdetUnitIt).second;
           for (auto digiIt = range.first; digiIt != range.second; digiIt++) {
             if (digiIt->isValid()) {
@@ -4906,6 +4860,10 @@ int CSCTriggerPrimitivesReader::getCSCType(const CSCDetId& id) {
 
 // Returns halfstrips-per-radian for different CSC types
 double CSCTriggerPrimitivesReader::getHsPerRad(const int idh) { return (NCHAMBERS[idh] * MAX_HS[idh] / TWOPI); }
+
+
+
+
 
 DEFINE_FWK_MODULE(CSCTriggerPrimitivesReader);
 //-------------------------------------------------
