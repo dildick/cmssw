@@ -2727,6 +2727,8 @@ void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
                                            const CSCComparatorDigiCollection* comps,
                                            const CSCALCTDigiCollection* alcts,
                                            const CSCCLCTDigiCollection* clcts) {
+  event = Event_;
+
   // MC particles, if any.
   vector<edm::Handle<edm::HepMCProduct> > allhepmcp;
   // Use "getManyByType" to be able to check the existence of MC info.
