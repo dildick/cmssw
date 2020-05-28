@@ -123,9 +123,10 @@ const int CSCTriggerPrimitivesReader::lut_wg_vs_hs_me1b[48][2] = {
     {0, 127},   {0, 127},  {0, 127},  {0, 127},  {0, 105}, {0, 93},  {0, 78},  {0, 63}};
 
 //init My ttree
-void TreePerStub::init(int run, int event) {
+void TreePerStub::init(int run, int event, int lumi) {
   t_EventNumberAnalyzed = -1;
-  t_RUN = run;
+  t_Run = run;
+  t_Lumi = lumi;
   t_Event = event;
   t_nStubs = 0;
   t_nStubs_readout = 0;
@@ -145,7 +146,8 @@ TTree* TreePerStub::bookTree(TTree* t, const std::string& name) {
   t = fs->make<TTree>(name.c_str(), name.c_str());
 
   t->Branch("t_EventNumberAnalyzed", &t_EventNumberAnalyzed, "t_EventNumberAnalyzed/I");
-  t->Branch("t_RUN", &t_RUN, "t_RUN/I");
+  t->Branch("t_Run", &t_Run, "t_Run/I");
+  t->Branch("t_Lumi", &t_Lumi, "t_Lumi/I");
   t->Branch("t_Event", &t_Event, "t_Event/I");
   t->Branch("t_nStubs", &t_nStubs, "t_nStubs/I");
   t->Branch("t_nStubs_readout", &t_nStubs_readout, "t_nStubs_readout/I");
@@ -166,9 +168,10 @@ TTree* TreePerStub::bookTree(TTree* t, const std::string& name) {
 }
 
 //init stub comparison struct
-void MyStubComparison::init(int run, int event) {
+void MyStubComparison::init(int run, int event, int lumi) {
   nEvents = -1;
-  nRUN = run;
+  nRun = run;
+  nLumi = lumi;
   nEvent = event;
   firstfill = false;
   totStubs_data = -1;
@@ -222,7 +225,8 @@ TTree* MyStubComparison::bookTree(TTree* t, const std::string& name) {
   t = fs->make<TTree>(name.c_str(), name.c_str());
 
   t->Branch("nEvents", &nEvents);
-  t->Branch("nRUN", &nRUN);
+  t->Branch("nRun", &nRun);
+  t->Branch("nLumi", &nLumi);
   t->Branch("nEvent", &nEvent);
   t->Branch("firstfill", &firstfill);
   t->Branch("totStubs_data", &totStubs_data);
@@ -411,7 +415,8 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
   LogTrace("CSCTriggerPrimitivesReader") << "\n** CSCTriggerPrimitivesReader: processing run #" << ev.id().run()
                                          << " event #" << ev.id().event() << "; events so far: " << eventsAnalyzed
                                          << " **";
-  RUN_ = ev.id().run();
+  Run_ = ev.id().run();
+  Lumi_ = ev.id().luminosityBlock();
   Event_ = ev.id().event();
 
   // Find the geometry for this event & cache it.  Needed in LCTAnalyzer
@@ -1539,8 +1544,8 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
           //Data, add HS quality later
           int perEv_nStub_data = 0;
           int perEv_nStub_emul = 0;
-          perStub[0].init(RUN_, Event_);
-          perStub[1].init(RUN_, Event_);
+          perStub[0].init(Run_, Event_, Lumi_);
+          perStub[1].init(Run_, Event_, Lumi_);
           for (pd = alctV_data.begin(); pd != alctV_data.end(); pd++) {
             perEv_nStub_data++;
           }
@@ -1607,7 +1612,7 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
             int data_wiregroup = alctV_data[i].getKeyWG();
             int data_bx = alctV_data[i].getBX();
 
-            stubs_comparison[0].init(RUN_, Event_);
+            stubs_comparison[0].init(Run_, Event_, Lumi_);
             stubs_comparison[0].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
@@ -1699,7 +1704,7 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
             if (alctV_emul[i].isValid() == 0 or bookedalctV_emul[i])
               continue;
             int emul_bx = alctV_emul[i].getBX();
-            stubs_comparison[0].init(RUN_, Event_);
+            stubs_comparison[0].init(Run_, Event_, Lumi_);
             stubs_comparison[0].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
@@ -1752,8 +1757,8 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
   std::vector<CSCCLCTDigi>::const_iterator pd, pe;
   std::vector<CSCCLCTPreTriggerDigi>::const_iterator pretrig;
   std::vector<CSCComparatorDigi>::const_iterator compa;
-  perStub[2].init(RUN_, Event_);
-  perStub[3].init(RUN_, Event_);
+  perStub[2].init(Run_, Event_, Lumi_);
+  perStub[3].init(Run_, Event_, Lumi_);
   for (int endc = 1; endc <= 2; endc++) {
     for (int stat = 1; stat <= 4; stat++) {
       for (int ring = 1; ring <= maxRing(stat); ring++) {
@@ -1862,8 +1867,8 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
           //Data, add HS quality later
           int perEv_nStub_data = 0;
           int perEv_nStub_emul = 0;
-          perStub[2].init(RUN_, Event_);
-          perStub[3].init(RUN_, Event_);
+          perStub[2].init(Run_, Event_, Lumi_);
+          perStub[3].init(Run_, Event_, Lumi_);
           for (pd = clctV_data.begin(); pd != clctV_data.end(); pd++) {
             perEv_nStub_data++;
           }
@@ -1935,7 +1940,7 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
             else
               testwg = 20;
 
-            stubs_comparison[1].init(RUN_, Event_);
+            stubs_comparison[1].init(Run_, Event_, Lumi_);
             stubs_comparison[1].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
@@ -2067,7 +2072,7 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
               continue;
             if (bookedclctV_emul[k])
               continue;
-            stubs_comparison[1].init(RUN_, Event_);
+            stubs_comparison[1].init(Run_, Event_, Lumi_);
             stubs_comparison[1].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
@@ -2190,8 +2195,8 @@ void CSCTriggerPrimitivesReader::compareLCTs(const CSCCorrelatedLCTDigiCollectio
           //Data, add HS quality later
           int perEv_nStub_data = 0;
           int perEv_nStub_emul = 0;
-          perStub[4].init(RUN_, Event_);
-          perStub[5].init(RUN_, Event_);
+          perStub[4].init(Run_, Event_, Lumi_);
+          perStub[5].init(Run_, Event_, Lumi_);
           for (pd = lctV_data.begin(); pd != lctV_data.end(); pd++) {
             perEv_nStub_data++;
           }
@@ -2254,7 +2259,7 @@ void CSCTriggerPrimitivesReader::compareLCTs(const CSCCorrelatedLCTDigiCollectio
             int data_bend = (*pd).getBend();
             int data_bx = (*pd).getBX();
 
-            stubs_comparison[2].init(RUN_, Event_);
+            stubs_comparison[2].init(Run_, Event_, Lumi_);
             stubs_comparison[2].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
@@ -2363,7 +2368,7 @@ void CSCTriggerPrimitivesReader::compareLCTs(const CSCCorrelatedLCTDigiCollectio
               continue;
             if (lctV_emul[i].isValid() == 0)
               continue;
-            stubs_comparison[2].init(RUN_, Event_);
+            stubs_comparison[2].init(Run_, Event_, Lumi_);
             stubs_comparison[2].nEvents = eventsAnalyzed;
             stubs_comparison[2].endcap = endc;
             stubs_comparison[2].station = stat;
@@ -2493,7 +2498,7 @@ void CSCTriggerPrimitivesReader::compareMPCLCTs(const CSCCorrelatedLCTDigiCollec
             int data_bend = (*pd).getBend();
             int data_bx = (*pd).getBX();
 
-            stubs_comparison[3].init(RUN_, Event_);
+            stubs_comparison[3].init(Run_, Event_, Lumi_);
             stubs_comparison[3].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
@@ -2599,7 +2604,7 @@ void CSCTriggerPrimitivesReader::compareMPCLCTs(const CSCCorrelatedLCTDigiCollec
           for (int k = 0; k < nemul; k++) {
             if (bookedlctV_emul[k])
               continue;
-            stubs_comparison[3].init(RUN_, Event_);
+            stubs_comparison[3].init(Run_, Event_, Lumi_);
             stubs_comparison[3].firstfill = firstfill;
             if (firstfill)
               firstfill = false;
