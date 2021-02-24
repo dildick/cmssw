@@ -138,6 +138,7 @@ void TreePerStub::init(int run, int event, int lumi) {
   t_endcap = -2;
   t_sector = -1;
   t_nComp = 0;
+  t_compTimes.clear();
   t_nWire = 0;
 }
 
@@ -1802,11 +1803,14 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
           }
 
           std::vector<CSCComparatorDigi> compV;
+          std::vector<std::vector<int>> compTimes;
+
           for (int layr = 1; layr <= 6; layr++) {
             CSCDetId detid_layer(endc, stat, ring, cham, layr);
             const auto& crange = compDigis->get(detid_layer);
             for (auto digiIt = crange.first; digiIt != crange.second; digiIt++) {
               compV.push_back(*digiIt);
+              compTimes.push_back(digiIt->getTimeBinsOn());
             }
           }
 
@@ -1881,6 +1885,7 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
           perStub[2].t_nStubs = ndata;
           perStub[2].t_nStubs_readout = ndata;
           perStub[2].t_nComp = compV.size();
+          perStub[2].t_compTimes = compTimes;
           event_tree[2]->Fill();
           //Emul
           for (pe = clctV_emul.begin(); pe != clctV_emul.end(); pe++) {

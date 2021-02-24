@@ -64,6 +64,7 @@ struct TreePerStub {
   Int_t t_station;
   Int_t t_chambertype;
   Int_t t_nComp;
+  std::vector<std::vector<Int_t>> t_compTimes;
   Int_t t_nWire;
 };
 
