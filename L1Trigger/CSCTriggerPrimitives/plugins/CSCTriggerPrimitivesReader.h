@@ -65,6 +65,7 @@ struct TreePerStub {
   Int_t t_chambertype;
   Int_t t_nComp;
   std::vector<std::vector<Int_t>> t_compTimes;
+  std::vector<std::vector<Int_t>> t_wireTimes;
   Int_t t_nWire;
 };
 
@@ -162,6 +163,7 @@ private:
 
   // Define which LCTs are present in the input file.  This will determine the
   // workflow of the Reader.
+  bool mcTruthIn_;
   bool dataLctsIn_;
   bool emulLctsIn_;
 

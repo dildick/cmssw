@@ -139,6 +139,7 @@ void TreePerStub::init(int run, int event, int lumi) {
   t_sector = -1;
   t_nComp = 0;
   t_compTimes.clear();
+  t_wireTimes.clear();
   t_nWire = 0;
 }
 
@@ -164,6 +165,8 @@ TTree* TreePerStub::bookTree(TTree* t, const std::string& name) {
   t->Branch("t_chambertype", &t_chambertype, "t_chambertype/I");
   t->Branch("t_nComp", &t_nComp, "t_nComp/I");
   t->Branch("t_nWire", &t_nWire, "t_nWire/I");
+  t->Branch("t_compTimes", "vector<vector<int> >", &t_compTimes);
+  t->Branch("t_wireTimes", "vector<vector<int> >", &t_wireTimes);
 
   return t;
 }
@@ -288,6 +291,7 @@ CSCTriggerPrimitivesReader::CSCTriggerPrimitivesReader(const edm::ParameterSet& 
 
   // Various input parameters.
   printps = conf.getParameter<bool>("printps");
+  mcTruthIn_ = conf.getParameter<bool>("mcTruthIn");
   dataLctsIn_ = conf.getParameter<bool>("dataLctsIn");
   emulLctsIn_ = conf.getParameter<bool>("emulLctsIn");
   edm::ParameterSet commonParams = conf.getParameter<edm::ParameterSet>("commonParam");
@@ -308,11 +312,13 @@ CSCTriggerPrimitivesReader::CSCTriggerPrimitivesReader(const edm::ParameterSet& 
   lcts_mpc_d_token_ = consumes<CSCCorrelatedLCTDigiCollection>(conf.getParameter<edm::InputTag>("mpclctData"));
 
   // simulation
-  consumesMany<edm::HepMCProduct>();
-  genParticlesToken_ = consumes<reco::GenParticleCollection>(conf.getParameter<edm::InputTag>("genParticles"));
-  simHit_token_ = consumes<edm::PSimHitContainer>(conf.getParameter<edm::InputTag>("CSCSimHitProducer"));
-  wire_e_token_ = consumes<CSCWireDigiCollection>(conf.getParameter<edm::InputTag>("wireEmul"));
+  if (mcTruthIn_) {
+    consumesMany<edm::HepMCProduct>();
+    genParticlesToken_ = consumes<reco::GenParticleCollection>(conf.getParameter<edm::InputTag>("genParticles"));
+    simHit_token_ = consumes<edm::PSimHitContainer>(conf.getParameter<edm::InputTag>("CSCSimHitProducer"));
+  }
 
+  wire_e_token_ = consumes<CSCWireDigiCollection>(conf.getParameter<edm::InputTag>("wireEmul"));
   comp_e_token_ = consumes<CSCComparatorDigiCollection>(conf.getParameter<edm::InputTag>("compEmul"));
   alcts_e_token_ = consumes<CSCALCTDigiCollection>(conf.getParameter<edm::InputTag>("alctEmul"));
   clcts_e_token_ = consumes<CSCCLCTDigiCollection>(conf.getParameter<edm::InputTag>("clctEmul"));
@@ -457,8 +463,10 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
   // Emulator
   if (emulLctsIn_) {
     resetALCTreeBranches();
-    ev.getByToken(genParticlesToken_, genParticles_);
-    ev.getByToken(simHit_token_, simHits_);
+    if (mcTruthIn_) {
+      ev.getByToken(genParticlesToken_, genParticles_);
+      ev.getByToken(simHit_token_, simHits_);
+    }
     ev.getByToken(wire_e_token_, wire_emul_);
     ev.getByToken(comp_e_token_, comp_emul_);
     ev.getByToken(alcts_e_token_, alcts_emul_);
@@ -479,13 +487,15 @@ void CSCTriggerPrimitivesReader::analyze(const edm::Event& ev, const edm::EventS
     fillLCTTMBHistos(lcts_tmb_emul_.product());
 
     // Fill MC-based resolution/efficiency histograms, if needed.
-    MCStudies(ev,
-              genParticles_.product(),
-              simHits_.product(),
-              wire_emul_.product(),
-              comp_emul_.product(),
-              alcts_emul_.product(),
-              clcts_emul_.product());
+    if (mcTruthIn_) {
+      MCStudies(ev,
+                genParticles_.product(),
+                simHits_.product(),
+                wire_emul_.product(),
+                comp_emul_.product(),
+                alcts_emul_.product(),
+                clcts_emul_.product());
+    }
   }
 
   // Compare LCTs in the data with the ones produced by the emulator.
@@ -1500,11 +1510,13 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
           }
 
           std::vector<CSCWireDigi> wireV;
+          std::vector<std::vector<Int_t>> wireTimes;
           for (int layr = 1; layr <= 6; layr++) {
             CSCDetId detid_layer(endc, stat, ring, cham, layr);
             const auto& wrange = wireDigis->get(detid_layer);
             for (auto digiIt = wrange.first; digiIt != wrange.second; digiIt++) {
               wireV.push_back(*digiIt);
+              wireTimes.push_back(digiIt->getTimeBinsOn());
             }
           }
 
@@ -1559,6 +1571,7 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
           perStub[0].t_nStubs = ndata;
           perStub[0].t_nStubs_readout = ndata;
           perStub[0].t_nWire = wireV.size();
+          perStub[0].t_wireTimes = wireTimes;
           std::cout << "[INFO]: filling per event aclt tree" << std::endl;
           event_tree[0]->Fill();
           //Emul

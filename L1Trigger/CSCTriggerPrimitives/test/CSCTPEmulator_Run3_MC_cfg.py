@@ -8,28 +8,16 @@ from Configuration.StandardSequences.Eras import eras
 process = cms.Process("ANA", eras.Run3)
 
 process.maxEvents = cms.untracked.PSet(
-    #input = cms.untracked.int32(100)
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(-100)
 )
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-         ##'file:/uscms/home/dildick/nobackup/work/LLPStudiesWithSergoEtAL/CMSSW_10_6_4/src/step2.root'
-         'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file1_to_5.root',
-         'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file6_to_10.root',
-         'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file11_to_15.root',
-         'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/step2_file16_to_20.root'
-         #'file:/afs/cern.ch/work/c/cpena/public/NikTrigger/CMSSW_10_6_4/src/../../Data/data_v2/HIG-RunIIFall18wmLHEGS-01282_FEVTDEBUG_LLP_WH_15.root'
-
-         #'/store/mc/PhaseIITDRSpring19DR/Nu_E10-pythia8-gun/GEN-SIM-DIGI-RAW/PU200_106X_upgrade2023_realistic_v3-v3/70000/EDE4B502-F1D1-2446-ACED-49A370F253E1.root'
-         #'file:/afs/cern.ch/work/s/sixie/public/releases/run3/CSCL1Trigger/CMSSW_10_6_4/src/TPEHists.signal.root'
-  
-         #'root://cmsxrootd.fnal.gov//store/user/menendez/ZeroBias/Run2018D_All_LCT/200210_213120/0000/lcts_725.root'
-         #'file:lcts_emulated.root'
-         #'file:TPEHists.root'
+         '/store/user/menendez/HTo2LongLivedTo4q_MH_125_MFF_1_CTau_10000mm_TuneCP5_14TeV_pythia/HTo2LongLivedTo4q_MH_125_MFF_1_CTau_10000mm_TuneCP5_14TeV_pythia/200710_130547/0000/step2_1.root'
      )
 )
 
+'''
 process.MessageLogger = cms.Service("MessageLogger",
    destinations = cms.untracked.vstring("debug"),
    debug = cms.untracked.PSet(
@@ -42,6 +30,7 @@ process.MessageLogger = cms.Service("MessageLogger",
    debugModules = cms.untracked.vstring("cscTriggerPrimitiveDigis",
                                         "lctreader","lctDigis","nearestWG", "nearestHS")
 )
+'''
 
 # es_source of ideal geometry
 # ===========================
@@ -75,8 +64,12 @@ process.load("L1Trigger.CSCTriggerPrimitives.cscTriggerPrimitiveDigis_cfi")
 # =============================
 process.load("L1Trigger.CSCTriggerPrimitives.CSCTriggerPrimitivesReader_cfi")
 process.lctreader.debug = True
-#process.lctreader.CSCComparatorDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi")
-#process.lctreader.CSCWireDigiProducer = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi")
+process.lctreader.compData = cms.InputTag("simMuonCSCDigis","MuonCSCComparatorDigi")
+process.lctreader.wireData = cms.InputTag("simMuonCSCDigis","MuonCSCWireDigi")
+process.lctreader.alctData = process.lctreader.alctEmul
+process.lctreader.clctData = process.lctreader.clctEmul
+process.lctreader.lctData = process.lctreader.lctEmul
+process.lctreader.mpclctData = process.lctreader.mpclctEmul
 
 # Output
 # ======
@@ -95,10 +88,7 @@ process.TFileService = cms.Service("TFileService",
 # Scheduler path
 # ==============
 process.p = cms.Path(#process.muonCSCDigis*
-    #process.muonCSCDigis
-    #process.cscTriggerPrimitiveDigis*
     process.lctreader
     )
 
-process.pp = cms.EndPath(process.output)
-
+#process.pp = cms.EndPath(process.output)

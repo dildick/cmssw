@@ -13,9 +13,11 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-         'file:/uscms/home/dildick/nobackup/work/LLPStudiesWithSergoEtAL/CMSSW_11_1_0_pre6/src/L1Trigger/CSCTriggerPrimitives/test/FFC59020-EA48-1F41-B4B8-FF34C0E09D88.root'
+         '/store/user/nimenend/ppTohToSSTo4b/ppTohToSSTo4b_DIGI_L1/200513_135650/0000/step2_8.root'
      )
 )
+
+'file:/uscms/home/dildick/nobackup/work/LLPStudiesWithSergoEtAL/CMSSW_11_1_0_pre6/src/L1Trigger/CSCTriggerPrimitives/test/FFC59020-EA48-1F41-B4B8-FF34C0E09D88.root'
 
 '''
 process.MessageLogger = cms.Service("MessageLogger",

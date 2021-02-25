@@ -12,6 +12,7 @@ lctreader = cms.EDAnalyzer(
     debug = cms.bool(False),
     # Define which LCTs are present in the input file.
     # This will determine the workflow of the Reader.
+    mcTruthIn = cms.bool(True),
     dataLctsIn = cms.bool(True),
     emulLctsIn = cms.bool(True),
     checkBadChambers = cms.bool(True),
