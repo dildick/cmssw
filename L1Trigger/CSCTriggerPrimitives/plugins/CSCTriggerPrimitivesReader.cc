@@ -2792,7 +2792,8 @@ void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
           (abs((*genParticles)[i].pdgId()) >= 32 && abs((*genParticles)[i].pdgId()) <= 42) ||
           (abs((*genParticles)[i].pdgId()) >= 100 && abs((*genParticles)[i].pdgId()) <= 350)
           // || (abs((*genParticles)[i].pdgId()) >= 1000001 && abs((*genParticles)[i].pdgId()) <= 1000039)
-          || (abs((*genParticles)[i].pdgId()) == 9000006 || abs((*genParticles)[i].pdgId()) == 9000007)) {
+          || (abs((*genParticles)[i].pdgId()) == 9000006 || abs((*genParticles)[i].pdgId()) == 9000007)
+          || (abs((*genParticles)[i].pdgId()) == 6000113)) {
         if ((*genParticles)[i].pt() > pt_cut) {
           prunedV.push_back(&(*genParticles)[i]);
         }
@@ -2802,7 +2803,7 @@ void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
     //nGenParticle = prunedV.size();
     //Look for mother particle and Fill gen variables
     for (unsigned int i = 0; i < prunedV.size(); i++) {
-      if (abs(prunedV[i]->pdgId()) > 90000) {
+      if (abs(prunedV[i]->pdgId()) > 60000) {
         /*std::cout << "pdgid: " << prunedV[i]->pdgId() << " nDaugthers: "
               << prunedV[i]->numberOfDaughters()
               << "; dau0: " << prunedV[i]->daughter(0)->pdgId()
@@ -2815,9 +2816,9 @@ void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
               << " " << prunedV[i]->daughter(1)->vz()
               << std::endl;
             */
-        std::cout << "fill!" << std::endl;
         //assign values to tree
-        if (prunedV[i]->pdgId() == 9000006) {
+        if (prunedV[i]->pdgId() == 9000006 || prunedV[i]->pdgId() == 6000113) {
+          std::cout << "fill GEN particle! " << prunedV[i]->pdgId() << std::endl;
           llp_decay_x[0] = prunedV[i]->daughter(0)->vx();
           llp_decay_y[0] = prunedV[i]->daughter(0)->vy();
           llp_decay_z[0] = prunedV[i]->daughter(0)->vz();
@@ -2827,7 +2828,8 @@ void CSCTriggerPrimitivesReader::MCStudies(const edm::Event& ev,
             llp_in_acceptance[0] = true;
         }
         //
-        if (prunedV[i]->pdgId() == -9000006) {
+        if (prunedV[i]->pdgId() == -9000006 || prunedV[i]->pdgId() == -6000113) {
+          std::cout << "fill GEN particle! " << prunedV[i]->pdgId() << std::endl;
           llp_decay_x[1] = prunedV[i]->daughter(0)->vx();
           llp_decay_y[1] = prunedV[i]->daughter(0)->vy();
           llp_decay_z[1] = prunedV[i]->daughter(0)->vz();

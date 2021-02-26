@@ -1,3 +1,4 @@
+
 # Configuration file to unpack CSC digis, run Trigger Primitives emulator,
 # and compare LCTs in the data with LCTs found by the emulator.
 # Slava Valuev; October, 2006.
@@ -13,26 +14,9 @@ process.maxEvents = cms.untracked.PSet(
 
 process.source = cms.Source("PoolSource",
      fileNames = cms.untracked.vstring(
-         '/store/user/nimenend/ppTohToSSTo4b/ppTohToSSTo4b_DIGI_L1/200513_135650/0000/step2_8.root'
+         '/store/mc/Run3Winter20DRPremixMiniAOD/HTo2LongLivedTo4b_MH-1000_MFF-450_CTau-100000mm_TuneCP5_14TeV_pythia8/GEN-SIM-RAW/110X_mcRun3_2021_realistic_v6-v2/10000/132B0128-FF59-DB4A-A3AD-AF4D8B4D21D2.root'
      )
 )
-
-'file:/uscms/home/dildick/nobackup/work/LLPStudiesWithSergoEtAL/CMSSW_11_1_0_pre6/src/L1Trigger/CSCTriggerPrimitives/test/FFC59020-EA48-1F41-B4B8-FF34C0E09D88.root'
-
-'''
-process.MessageLogger = cms.Service("MessageLogger",
-   destinations = cms.untracked.vstring("debug"),
-   debug = cms.untracked.PSet(
-       extension = cms.untracked.string(".txt"),
-       threshold = cms.untracked.string("DEBUG"),
-       # threshold = cms.untracked.string("WARNING"),
-       lineLength = cms.untracked.int32(132),
-       noLineBreaks = cms.untracked.bool(True)
-   ),
-   debugModules = cms.untracked.vstring("cscTriggerPrimitiveDigis",
-                                        "lctreader","lctDigis","nearestWG", "nearestHS")
-)
-'''
 
 # es_source of ideal geometry
 # ===========================
