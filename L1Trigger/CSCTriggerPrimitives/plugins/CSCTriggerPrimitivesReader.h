@@ -64,8 +64,9 @@ struct TreePerStub {
   Int_t t_station;
   Int_t t_chambertype;
   Int_t t_nComp;
-  std::vector<std::vector<Int_t>> t_compTimes;
-  std::vector<std::vector<Int_t>> t_wireTimes;
+  // 7 wide: counts of all hits in a certain time window
+  std::vector<Int_t> t_compTimes;
+  std::vector<Int_t> t_wireTimes;
   Int_t t_nWire;
 };
 

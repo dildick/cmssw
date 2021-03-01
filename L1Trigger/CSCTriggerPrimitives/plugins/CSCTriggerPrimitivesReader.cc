@@ -165,8 +165,8 @@ TTree* TreePerStub::bookTree(TTree* t, const std::string& name) {
   t->Branch("t_chambertype", &t_chambertype, "t_chambertype/I");
   t->Branch("t_nComp", &t_nComp, "t_nComp/I");
   t->Branch("t_nWire", &t_nWire, "t_nWire/I");
-  t->Branch("t_compTimes", "vector<vector<int> >", &t_compTimes);
-  t->Branch("t_wireTimes", "vector<vector<int> >", &t_wireTimes);
+  t->Branch("t_compTimes", "vector<int>", &t_compTimes);
+  t->Branch("t_wireTimes", "vector<int>", &t_wireTimes);
 
   return t;
 }
@@ -1510,13 +1510,29 @@ void CSCTriggerPrimitivesReader::compareALCTs(const CSCALCTDigiCollection* alcts
           }
 
           std::vector<CSCWireDigi> wireV;
-          std::vector<std::vector<Int_t>> wireTimes;
+          std::vector<Int_t> wireTimes;
+          wireTimes.resize(7);
           for (int layr = 1; layr <= 6; layr++) {
             CSCDetId detid_layer(endc, stat, ring, cham, layr);
             const auto& wrange = wireDigis->get(detid_layer);
             for (auto digiIt = wrange.first; digiIt != wrange.second; digiIt++) {
               wireV.push_back(*digiIt);
-              wireTimes.push_back(digiIt->getTimeBinsOn());
+              for (auto p : digiIt->getTimeBinsOn()) {
+                if (p == 8)
+                  wireTimes[0]++;
+                if (p == 7 or p == 8)
+                  wireTimes[1]++;
+                if (p == 8 or p == 9)
+                  wireTimes[2]++;
+                if (p >= 7 and p<= 9)
+                  wireTimes[3]++;
+                if (p >= 7 and p<= 10)
+                  wireTimes[4]++;
+                if (p >= 6 and p<= 9)
+                  wireTimes[5]++;
+                if (p >= 6 and p<= 10)
+                  wireTimes[6]++;
+              }
             }
           }
 
@@ -1816,14 +1832,29 @@ void CSCTriggerPrimitivesReader::compareCLCTs(const CSCCLCTDigiCollection* clcts
           }
 
           std::vector<CSCComparatorDigi> compV;
-          std::vector<std::vector<int>> compTimes;
-
+          std::vector<int> compTimes;
+          compTimes.resize(7);
           for (int layr = 1; layr <= 6; layr++) {
             CSCDetId detid_layer(endc, stat, ring, cham, layr);
             const auto& crange = compDigis->get(detid_layer);
             for (auto digiIt = crange.first; digiIt != crange.second; digiIt++) {
               compV.push_back(*digiIt);
-              compTimes.push_back(digiIt->getTimeBinsOn());
+              for (auto p : digiIt->getTimeBinsOn()) {
+                if (p == 7)
+                  compTimes[0]++;
+                if (p == 6 or p == 7)
+                  compTimes[1]++;
+                if (p == 7 or p == 8)
+                  compTimes[2]++;
+                if (p >= 6 and p<= 8)
+                  compTimes[3]++;
+                if (p >= 6 and p<= 9)
+                  compTimes[4]++;
+                if (p >= 5 and p<= 8)
+                  compTimes[5]++;
+                if (p >= 5 and p<= 9)
+                  compTimes[6]++;
+              }
             }
           }
 
