@@ -383,6 +383,38 @@ void l1t::GlobalBoard::receiveMuonObjectData(edm::Event& iEvent,
   }  //end if ReveiveMuon data
 }
 
+// receive muon shower data from Global Muon Trigger
+void l1t::GlobalBoard::receiveMuonShowerObjectData(edm::Event& iEvent,
+                                                   const edm::EDGetTokenT<BXVector<l1t::MuonShower>>& muShowerInputToken,
+                                                   const bool receiveMuShower,
+                                                   const int nrL1MuShower) {
+  // get data from Global Muon Trigger
+  if (receiveMuShower) {
+    edm::Handle<BXVector<l1t::MuonShower>> muonData;
+    iEvent.getByToken(muShowerInputToken, muonData);
+
+    if (!muonData.isValid()) {
+      if (m_verbosity) {
+        edm::LogWarning("L1TGlobal") << "\nWarning: BXVector<l1t::MuonShower> with input tag "
+                                     << "\nrequested in configuration, but not found in the event.\n"
+                                     << std::endl;
+      }
+    } else {
+      //Loop over Muons in this bx
+      int nObj = 0;
+      for (auto mu = muonData->begin(0); mu != muonData->end(0); ++mu) {
+        if (nObj < nrL1MuShower) {
+          (*m_candL1MuShower).push_back(0, &(*mu));
+        } else {
+          edm::LogWarning("L1TGlobal") << " Too many Muon Showers (" << nObj
+                                       << ") for uGT Configuration maxMuShower =" << nrL1MuShower << std::endl;
+        }
+        nObj++;
+      }  //end loop over muon showers in bx
+    }  //end if over valid muon shower data
+  }  //end if ReveiveMuonShower data
+}
+
 // receive data from Global External Conditions
 void l1t::GlobalBoard::receiveExternalData(edm::Event& iEvent,
                                            const edm::EDGetTokenT<BXVector<GlobalExtBlk>>& extInputToken,

@@ -86,6 +86,13 @@ from Configuration.Eras.Modifier_stage2L1Trigger_cff import stage2L1Trigger
 #
 stage2L1Trigger.toReplaceWith(SimL1TMuonTask, cms.Task(SimL1TMuonCommonTask, simTwinMuxDigis, simBmtfDigis, simKBmtfStubs, simKBmtfDigis, simEmtfDigis, simOmtfDigis, simGmtCaloSumDigis, simGmtStage2Digis))
 
+## hadronic shower trigger for Run-3
+from Configuration.Eras.Modifier_run3_common_cff import run3_common
+_run3_SimL1TMuonTask = SimL1TMuonTask.copy()
+_run3_SimL1TMuonTask.add(simEmtfShowers)
+_run3_SimL1TMuonTask.add(simGmtShowerDigis)
+(stage2L1Trigger & run3_common).toReplaceWith( SimL1TMuonTask, _run3_SimL1TMuonTask )
+
 #
 # Phase-2 Trigger
 #
@@ -96,12 +103,12 @@ phase2_trigger.toReplaceWith(SimL1TMuonTask, cms.Task(SimL1TMuonCommonTask, simT
 
 ## GEM TPs
 from L1Trigger.L1TGEM.simGEMDigis_cff import *
-_run3_SimL1TMuonTask = SimL1TMuonTask.copy()
+_run3_GEM_SimL1TMuonTask = SimL1TMuonTask.copy()
 #_run3_SimL1TMuonTask.add(simMuonGEMPadTask)
 
 from Configuration.Eras.Modifier_run3_GEM_cff import run3_GEM
 #(stage2L1Trigger & run3_GEM).toReplaceWith( SimL1TMuonTask, _run3_SimL1TMuonTask )
-(stage2L1Trigger & run3_GEM).toReplaceWith( SimL1TMuonTask, cms.Task(simMuonGEMPadTask,_run3_SimL1TMuonTask) )
+(stage2L1Trigger & run3_GEM).toReplaceWith( SimL1TMuonTask, cms.Task(simMuonGEMPadTask,_run3_GEM_SimL1TMuonTask) )
 
 ## ME0 TPs
 from L1Trigger.L1TGEM.me0TriggerDigis_cff import *
