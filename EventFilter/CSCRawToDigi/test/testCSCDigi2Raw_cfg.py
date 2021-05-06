@@ -23,7 +23,7 @@ process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load("EventFilter.CSCRawToDigi.cscUnpacker_cfi")
 process.load("EventFilter.CSCRawToDigi.cscPacker_cfi")
-process.load("EventFilter.CSCRawToDigi.viewDigi_cfi")
+process.load("EventFilter.CSCRawToDigi.viewDigiDef_cfi")
 
 process.maxEvents = cms.untracked.PSet(
       input = cms.untracked.int32(options.maxEvents)
@@ -137,7 +137,7 @@ process.p1 = cms.Path(process.cscpacker)
 process.p2 = cms.Path(process.muonCSCDigis)
 process.p3 = cms.Path(process.csc2DRecHits * process.cscSegments)
 process.p4 = cms.Path(process.cscValidation)
-process.p5 = cms.Path(process.viewDigi)
+process.p5 = cms.Path(process.viewDigiDef)
 process.endjob_step = cms.EndPath(process.out * process.endOfProcess)
 
 process.schedule = cms.Schedule()

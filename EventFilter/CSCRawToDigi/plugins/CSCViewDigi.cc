@@ -18,6 +18,7 @@
 #include "DataFormats/CSCDigi/interface/CSCRPCDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCALCTDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCCLCTDigiCollection.h"
+#include "DataFormats/CSCDigi/interface/CSCCLCTPreTriggerDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCDCCFormatStatusDigiCollection.h"
 #include "DataFormats/CSCDigi/interface/CSCDDUStatusDigiCollection.h"
@@ -26,15 +27,18 @@
 class CSCViewDigi : public edm::EDAnalyzer {
 public:
   explicit CSCViewDigi(const edm::ParameterSet&);
-  ~CSCViewDigi() override;
+  ~CSCViewDigi() override {}
+
+  void analyze(const edm::Event&, const edm::EventSetup&) override;
+
+  // Fill parameters descriptions
+  static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
 
 private:
-  void analyze(const edm::Event&, const edm::EventSetup&) override;
-  void endJob() override;
-
-  bool WiresDigiDump, AlctDigiDump, ClctDigiDump, CorrClctDigiDump;
-  bool StripDigiDump, ComparatorDigiDump, RpcDigiDump, StatusDigiDump;
-  bool DDUStatusDigiDump, DCCStatusDigiDump;
+  bool WiresDigiDump_, AlctDigiDump_, ClctDigiDump_, CorrClctDigiDump_;
+  bool StripDigiDump_, ComparatorDigiDump_, RpcDigiDump_, StatusDigiDump_;
+  bool DDUStatusDigiDump_, DCCStatusDigiDump_;
+  bool ClctPreTriggerDigiDump_;
 
   edm::EDGetTokenT<CSCWireDigiCollection> wd_token;
   edm::EDGetTokenT<CSCStripDigiCollection> sd_token;
@@ -42,6 +46,7 @@ private:
   edm::EDGetTokenT<CSCRPCDigiCollection> rd_token;
   edm::EDGetTokenT<CSCALCTDigiCollection> al_token;
   edm::EDGetTokenT<CSCCLCTDigiCollection> cl_token;
+  edm::EDGetTokenT<CSCCLCTPreTriggerDigiCollection> clpre_token;
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> co_token;
   edm::EDGetTokenT<CSCDCCFormatStatusDigiCollection> st_token;
   edm::EDGetTokenT<CSCDDUStatusDigiCollection> dd_token;
@@ -49,63 +54,77 @@ private:
 };
 
 CSCViewDigi::CSCViewDigi(const edm::ParameterSet& conf) {
-  wd_token = consumes<CSCWireDigiCollection>(conf.getParameter<edm::InputTag>("wireDigiTag"));
-  sd_token = consumes<CSCStripDigiCollection>(conf.getParameter<edm::InputTag>("stripDigiTag"));
-  cd_token = consumes<CSCComparatorDigiCollection>(conf.getParameter<edm::InputTag>("comparatorDigiTag"));
-  rd_token = consumes<CSCRPCDigiCollection>(conf.getParameter<edm::InputTag>("rpcDigiTag"));
-  al_token = consumes<CSCALCTDigiCollection>(conf.getParameter<edm::InputTag>("alctDigiTag"));
-  cl_token = consumes<CSCCLCTDigiCollection>(conf.getParameter<edm::InputTag>("clctDigiTag"));
-  co_token = consumes<CSCCorrelatedLCTDigiCollection>(conf.getParameter<edm::InputTag>("corrclctDigiTag"));
-  st_token = consumes<CSCDCCFormatStatusDigiCollection>(conf.getParameter<edm::InputTag>("statusDigiTag"));
-  dd_token = consumes<CSCDDUStatusDigiCollection>(conf.getParameter<edm::InputTag>("DDUstatusDigiTag"));
-  dc_token = consumes<CSCDCCStatusDigiCollection>(conf.getParameter<edm::InputTag>("DCCstatusDigiTag"));
+  WiresDigiDump_ = conf.getParameter<bool>("WiresDigiDump");
+  StripDigiDump_ = conf.getParameter<bool>("StripDigiDump");
+  ComparatorDigiDump_ = conf.getParameter<bool>("ComparatorDigiDump");
+  RpcDigiDump_ = conf.getParameter<bool>("RpcDigiDump");
+  AlctDigiDump_ = conf.getParameter<bool>("AlctDigiDump");
+  ClctDigiDump_ = conf.getParameter<bool>("ClctDigiDump");
+  ClctPreTriggerDigiDump_ = conf.getParameter<bool>("ClctPreDigiDump");
+  CorrClctDigiDump_ = conf.getParameter<bool>("CorrClctDigiDump");
+  StatusDigiDump_ = conf.getParameter<bool>("StatusDigiDump");
+  DDUStatusDigiDump_ = conf.getParameter<bool>("DDUStatus");
+  DCCStatusDigiDump_ = conf.getParameter<bool>("DCCStatus");
 
-  WiresDigiDump = conf.getUntrackedParameter<bool>("WiresDigiDump", false);
-  StripDigiDump = conf.getUntrackedParameter<bool>("StripDigiDump", false);
-  ComparatorDigiDump = conf.getUntrackedParameter<bool>("ComparatorDigiDump", false);
-  RpcDigiDump = conf.getUntrackedParameter<bool>("RpcDigiDump", false);
-  AlctDigiDump = conf.getUntrackedParameter<bool>("AlctDigiDump", false);
-  ClctDigiDump = conf.getUntrackedParameter<bool>("ClctDigiDump", false);
-  CorrClctDigiDump = conf.getUntrackedParameter<bool>("CorrClctDigiDump", false);
-  StatusDigiDump = conf.getUntrackedParameter<bool>("StatusDigiDump", false);
-  DDUStatusDigiDump = conf.getUntrackedParameter<bool>("DDUStatus", false);
-  DCCStatusDigiDump = conf.getUntrackedParameter<bool>("DCCStatus", false);
+  // don't consume products you won't print
+  // this allows us to run on DIGI-L1 Monte Carlo to test the packing with CFEBs
+  if (WiresDigiDump_)
+    wd_token = consumes<CSCWireDigiCollection>(conf.getParameter<edm::InputTag>("wireDigiTag"));
+  if (StripDigiDump_)
+    sd_token = consumes<CSCStripDigiCollection>(conf.getParameter<edm::InputTag>("stripDigiTag"));
+  if (ComparatorDigiDump_)
+    cd_token = consumes<CSCComparatorDigiCollection>(conf.getParameter<edm::InputTag>("comparatorDigiTag"));
+  if (RpcDigiDump_)
+    rd_token = consumes<CSCRPCDigiCollection>(conf.getParameter<edm::InputTag>("rpcDigiTag"));
+  if (AlctDigiDump_)
+    al_token = consumes<CSCALCTDigiCollection>(conf.getParameter<edm::InputTag>("alctDigiTag"));
+  if (ClctDigiDump_)
+    cl_token = consumes<CSCCLCTDigiCollection>(conf.getParameter<edm::InputTag>("clctDigiTag"));
+  if (ClctPreTriggerDigiDump_)
+    clpre_token = consumes<CSCCLCTPreTriggerDigiCollection>(conf.getParameter<edm::InputTag>("clctpreDigiTag"));
+  if (CorrClctDigiDump_)
+    co_token = consumes<CSCCorrelatedLCTDigiCollection>(conf.getParameter<edm::InputTag>("corrclctDigiTag"));
+  if (StatusDigiDump_)
+    st_token = consumes<CSCDCCFormatStatusDigiCollection>(conf.getParameter<edm::InputTag>("statusDigiTag"));
+  if (DDUStatusDigiDump_)
+    dd_token = consumes<CSCDDUStatusDigiCollection>(conf.getParameter<edm::InputTag>("DDUstatusDigiTag"));
+  if (DCCStatusDigiDump_)
+    dc_token = consumes<CSCDCCStatusDigiCollection>(conf.getParameter<edm::InputTag>("DCCstatusDigiTag"));
 }
 
-CSCViewDigi::~CSCViewDigi() {}
+void CSCViewDigi::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
+  edm::ParameterSetDescription desc;
+
+  desc.add<bool>("WiresDigiDump", true);
+  desc.add<bool>("StripDigiDump", true);
+  desc.add<bool>("ComparatorDigiDump", true);
+  desc.add<bool>("RpcDigiDump", true);
+  desc.add<bool>("AlctDigiDump", true);
+  desc.add<bool>("ClctDigiDump", true);
+  desc.add<bool>("ClctPreDigiDump", true);
+  desc.add<bool>("CorrClctDigiDump", true);
+  desc.add<bool>("StatusDigiDump", true);
+  desc.add<bool>("DDUStatus", true);
+  desc.add<bool>("DCCStatus", true);
+  desc.add<edm::InputTag>("wireDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCWireDigi"));
+  desc.add<edm::InputTag>("stripDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCStripDigi"));
+  desc.add<edm::InputTag>("comparatorDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCComparatorDigi"));
+  desc.add<edm::InputTag>("alctDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCALCTDigi"));
+  desc.add<edm::InputTag>("clctDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCCLCTDigi"));
+  desc.add<edm::InputTag>("clctPreDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCCorrelatedLCTDigi"));
+  desc.add<edm::InputTag>("corrclctDigiTag", edm::InputTag("simCscTriggerPrimitiveDigis"));
+  desc.add<edm::InputTag>("rpcDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCRPCDigi"));
+  desc.add<edm::InputTag>("statusDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCDCCFormatStatusDigi"));
+  desc.add<edm::InputTag>("statusCFEBTag", edm::InputTag("muonCSCDigis", "MuonCSCCFEBStatusDigi"));
+  desc.add<edm::InputTag>("DDUstatusDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCDDUStatusDigi"));
+  desc.add<edm::InputTag>("DCCstatusDigiTag", edm::InputTag("muonCSCDigis", "MuonCSCDCCStatusDigi"));
+  descriptions.add("cscViewDigiDef", desc);
+}
 
 void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
-  using namespace edm;
-
-  edm::Handle<CSCWireDigiCollection> wires;
-  edm::Handle<CSCStripDigiCollection> strips;
-  edm::Handle<CSCComparatorDigiCollection> comparators;
-  edm::Handle<CSCRPCDigiCollection> rpcs;
-  edm::Handle<CSCALCTDigiCollection> alcts;
-  edm::Handle<CSCCLCTDigiCollection> clcts;
-  edm::Handle<CSCCorrelatedLCTDigiCollection> correlatedlcts;
-  edm::Handle<CSCDCCFormatStatusDigiCollection> statusdigis;
-  edm::Handle<CSCDDUStatusDigiCollection> DDUstatusdigi;
-  edm::Handle<CSCDCCStatusDigiCollection> DCCstatusdigi;
-
-  iEvent.getByToken(wd_token, wires);
-  iEvent.getByToken(sd_token, strips);
-  iEvent.getByToken(cd_token, comparators);
-  iEvent.getByToken(rd_token, rpcs);
-  iEvent.getByToken(al_token, alcts);
-  iEvent.getByToken(cl_token, clcts);
-  iEvent.getByToken(co_token, correlatedlcts);
-
-  if (StatusDigiDump)
-    iEvent.getByToken(st_token, statusdigis);
-
-  if (DDUStatusDigiDump)
-    iEvent.getByToken(dd_token, DDUstatusdigi);
-
-  if (DCCStatusDigiDump)
-    iEvent.getByToken(dc_token, DCCstatusdigi);
-
-  if (WiresDigiDump) {
+  if (WiresDigiDump_) {
+    edm::Handle<CSCWireDigiCollection> wires;
+    iEvent.getByToken(wd_token, wires);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -120,7 +139,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (StripDigiDump) {
+  if (StripDigiDump_) {
+    edm::Handle<CSCStripDigiCollection> strips;
+    iEvent.getByToken(sd_token, strips);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -135,7 +156,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (ComparatorDigiDump) {
+  if (ComparatorDigiDump_) {
+    edm::Handle<CSCComparatorDigiCollection> comparators;
+    iEvent.getByToken(cd_token, comparators);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -150,7 +173,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (RpcDigiDump) {
+  if (RpcDigiDump_) {
+    edm::Handle<CSCRPCDigiCollection> rpcs;
+    iEvent.getByToken(rd_token, rpcs);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -165,7 +190,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (AlctDigiDump) {
+  if (AlctDigiDump_) {
+    edm::Handle<CSCALCTDigiCollection> alcts;
+    iEvent.getByToken(al_token, alcts);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -179,7 +206,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (ClctDigiDump) {
+  if (ClctDigiDump_) {
+    edm::Handle<CSCCLCTDigiCollection> clcts;
+    iEvent.getByToken(cl_token, clcts);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -193,7 +222,25 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (CorrClctDigiDump) {
+  if (ClctPreTriggerDigiDump_) {
+    edm::Handle<CSCCLCTPreTriggerDigiCollection> preclcts;
+    iEvent.getByToken(clpre_token, preclcts);
+    std::cout << std::endl;
+    std::cout << "Event " << iEvent.id() << std::endl;
+    std::cout << std::endl;
+    std::cout << "********CLCT PreTrigger Digis********" << std::endl;
+    for (CSCCLCTPreTriggerDigiCollection::DigiRangeIterator j = preclcts->begin(); j != preclcts->end(); j++) {
+      std::vector<CSCCLCTPreTriggerDigi>::const_iterator digiItr = (*j).second.first;
+      std::vector<CSCCLCTPreTriggerDigi>::const_iterator last = (*j).second.second;
+      for (; digiItr != last; ++digiItr) {
+        digiItr->print();
+      }
+    }
+  }
+
+  if (CorrClctDigiDump_) {
+    edm::Handle<CSCCorrelatedLCTDigiCollection> correlatedlcts;
+    iEvent.getByToken(co_token, correlatedlcts);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -208,7 +255,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (StatusDigiDump) {
+  if (StatusDigiDump_) {
+    edm::Handle<CSCDCCFormatStatusDigiCollection> statusdigis;
+    iEvent.getByToken(st_token, statusdigis);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -222,7 +271,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (DDUStatusDigiDump) {
+  if (DDUStatusDigiDump_) {
+    edm::Handle<CSCDDUStatusDigiCollection> DDUstatusdigi;
+    iEvent.getByToken(dd_token, DDUstatusdigi);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -236,7 +287,9 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
     }
   }
 
-  if (DCCStatusDigiDump) {
+  if (DCCStatusDigiDump_) {
+    edm::Handle<CSCDCCStatusDigiCollection> DCCstatusdigi;
+    iEvent.getByToken(dc_token, DCCstatusdigi);
     std::cout << std::endl;
     std::cout << "Event " << iEvent.id() << std::endl;
     std::cout << std::endl;
@@ -249,20 +302,7 @@ void CSCViewDigi::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
       }
     }
   }
-
-#ifdef THIS_IS_AN_EVENT_EXAMPLE
-  Handle<ExampleData> pIn;
-  iEvent.getByLabel("example", pIn);
-#endif
-
-#ifdef THIS_IS_AN_EVENTSETUP_EXAMPLE
-  ESHandle<SetupData> pSetup;
-  iSetup.get<SetupRecord>().get(pSetup);
-#endif
 }
-
-// ------------ method called once each job just after ending the event loop  ------------
-void CSCViewDigi::endJob() {}
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(CSCViewDigi);

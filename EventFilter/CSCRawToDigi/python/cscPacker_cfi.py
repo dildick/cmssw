@@ -14,7 +14,7 @@ run2_common.toModify( cscpacker,
                       usePreTriggers = False,
                       packEverything = True)
 
-## in Run-3 include GEMs
+## in Run-3 include GEMs, and pack again the digis according to (pre)triggers
 from Configuration.Eras.Modifier_run3_GEM_cff import run3_GEM
 run3_GEM.toModify( cscpacker,
                    padDigiClusterTag = "simMuonGEMPadDigiClusters",
