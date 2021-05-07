@@ -10,7 +10,7 @@ cscpacker = cscPackerDef.clone()
 # packer - simply get rid of it
 from Configuration.Eras.Modifier_run2_common_cff import run2_common
 run2_common.toModify( cscpacker,
-                      useFormatVersion = 2013,
+                      formatVersion = 2013,
                       usePreTriggers = False,
                       packEverything = True)
 

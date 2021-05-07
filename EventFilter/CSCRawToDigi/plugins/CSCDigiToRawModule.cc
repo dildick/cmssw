@@ -100,7 +100,7 @@ CSCDigiToRawModule::CSCDigiToRawModule(const edm::ParameterSet& pset) : packer_(
 void CSCDigiToRawModule::fillDescriptions(edm::ConfigurationDescriptions& descriptions) {
   edm::ParameterSetDescription desc;
 
-  desc.add<unsigned int>("useFormatVersion", 2005)
+  desc.add<unsigned int>("formatVersion", 2005)
       ->setComment("Set to 2005 for pre-LS1 CSC data format, 2013 - new post-LS1 CSC data format");
   desc.add<bool>("usePreTriggers", true)->setComment("Set to false if CSCCLCTPreTrigger digis are not available");
   desc.add<bool>("packEverything", false)

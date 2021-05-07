@@ -3,6 +3,10 @@ from __future__ import print_function
 import FWCore.ParameterSet.Config as cms
 from Configuration.Eras.Era_Run3_cff import Run3
 
+from FWCore.ParameterSet.VarParsing import VarParsing
+options = VarParsing('analysis')
+options.parseArguments()
+
 ## process def
 process = cms.Process("TEST", Run3)
 process.load("FWCore.MessageService.MessageLogger_cfi")
@@ -13,14 +17,10 @@ process.load("Configuration.StandardSequences.Reconstruction_cff")
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load("EventFilter.CSCRawToDigi.cscUnpacker_cfi")
 process.load("EventFilter.CSCRawToDigi.cscPacker_cfi")
-process.load("EventFilter.CSCRawToDigi.viewDigiDef_cfi")
+process.load("EventFilter.CSCRawToDigi.cscViewDigiDef_cfi")
 
 process.maxEvents = cms.untracked.PSet(
-      input = cms.untracked.int32(-1)
-)
-
-process.options = cms.untracked.PSet(
-      SkipEvent = cms.untracked.vstring('ProductNotFound')
+      input = cms.untracked.int32(1)
 )
 
 process.source = cms.Source(
@@ -38,24 +38,21 @@ process.out = cms.OutputModule(
 )
 
 ## pretriggers are not saved in the packing-unpacking
-process.viewDigiRAW = process.viewDigiDef.clone(
-    ClctPreDigiDump = False,
-    StatusCFEBDump = False,
-    StatusDigiDump = False,
-    DDUStatus = False,
-    DCCStatus = False,
-    RpcDigiDump = False
+process.viewDigiRAW = process.cscViewDigiDef.clone(
+    ClctPreTriggerDump = False,
 )
 
 process.viewDigiSIM = process.viewDigiRAW.clone(
-    wireDigiTag = "simMuonCSCDigis:MuonCSCWireDigi",
-    stripDigiTag = "simMuonCSCDigis:MuonCSCStripDigi",
-    comparatorDigiTag = "simMuonCSCDigis:MuonCSCComparatorDigi",
-    alctDigiTag = "simCscTriggerPrimitiveDigis",
-    clctDigiTag = "simCscTriggerPrimitiveDigis",
-    corrclctDigiTag = "simCscTriggerPrimitiveDigis",
-    ClctPreDigiDump = True
+    wireTag = "simMuonCSCDigis:MuonCSCWireDigi",
+    stripTag = "simMuonCSCDigis:MuonCSCStripDigi",
+    comparatorTag = "simMuonCSCDigis:MuonCSCComparatorDigi",
+    alctTag = "simCscTriggerPrimitiveDigis",
+    clctTag = "simCscTriggerPrimitiveDigis",
+    corrclctTag = "simCscTriggerPrimitiveDigis",
+    ClctPreTriggerDump = True
 )
+
+process.muonCSCDigis.InputObjects = "cscpacker:CSCRawData"
 
 ## schedule and path definition
 process.p1 = cms.Path(
