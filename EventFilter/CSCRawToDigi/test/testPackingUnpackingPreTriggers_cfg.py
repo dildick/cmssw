@@ -48,12 +48,12 @@ process.viewDigiRAW = process.viewDigiDef.clone(
 )
 
 process.viewDigiSIM = process.viewDigiRAW.clone(
-    wireDigiTag = "simMuonCSCDigis:MuonCSCWireDigi"),
-    stripDigiTag = "simMuonCSCDigis:MuonCSCStripDigi"),
-    comparatorDigiTag = "simMuonCSCDigis:MuonCSCComparatorDigi"),
-    alctDigiTag = "simCscTriggerPrimitiveDigis"),
-    clctDigiTag = "simCscTriggerPrimitiveDigis"),
-    corrclctDigiTag = "simCscTriggerPrimitiveDigis"),
+    wireDigiTag = "simMuonCSCDigis:MuonCSCWireDigi",
+    stripDigiTag = "simMuonCSCDigis:MuonCSCStripDigi",
+    comparatorDigiTag = "simMuonCSCDigis:MuonCSCComparatorDigi",
+    alctDigiTag = "simCscTriggerPrimitiveDigis",
+    clctDigiTag = "simCscTriggerPrimitiveDigis",
+    corrclctDigiTag = "simCscTriggerPrimitiveDigis",
     ClctPreDigiDump = True
 )
 

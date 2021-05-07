@@ -83,10 +83,10 @@ namespace cscd2r {
     bool atLeastOnePreTrigger = false;
 
     CSCDetId chamberId = chamberID(cscId);
-    CSCCLCTPreTriggerCollection::Range lctRange = lcts.get(chamberId);
+    CSCCLCTPreTriggerDigiCollection::Range lctRange = lcts.get(chamberId);
     bool result = false;
     // check for pretriggers in a time window and save the location of those pretriggers
-    for (CSCCLCTPreTriggerCollection::const_iterator lctItr = lctRange.first; lctItr != lctRange.second; ++lctItr) {
+    for (CSCCLCTPreTriggerDigiCollection::const_iterator lctItr = lctRange.first; lctItr != lctRange.second; ++lctItr) {
       int bx = lctItr->getBX() - nominalBX;
       if (bx >= bxMin && bx <= bxMax) {
         atLeastOnePreTrigger = true;
@@ -99,8 +99,8 @@ namespace cscd2r {
     if (me1a && !atLeastOnePreTrigger && me1abCheck) {
       //check pretriggers in me1a as well; relevant for TMB emulator writing to separate detIds
       lctRange = lcts.get(cscId);
-      for (CSCCLCTPreTriggerCollection::const_iterator lctItr = lctRange.first; lctItr != lctRange.second; ++lctItr) {
-        int bx = *lctItr - nominalBX;
+      for (CSCCLCTPreTriggerDigiCollection::const_iterator lctItr = lctRange.first; lctItr != lctRange.second; ++lctItr) {
+        int bx = lctItr->getBX() - nominalBX;
         if (bx >= bxMin && bx <= bxMax) {
           atLeastOnePreTrigger = true;
           // save the location of all pretriggers
