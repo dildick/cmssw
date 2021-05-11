@@ -134,7 +134,7 @@ void CSCDigiToRaw::add(const CSCStripDigiCollection& stripDigis,
     // only digitize if there are pre-triggers
 
     // determine where the pretriggers are
-    bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2];
+    bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2] = {false};
 
     // pretrigger flag must be set and the pretrigger collection must be nonzero!
     const bool usePreTriggers = usePreTriggers_ and preTriggers != nullptr;
@@ -161,7 +161,9 @@ void CSCDigiToRaw::add(const CSCStripDigiCollection& stripDigis,
         if (me1a)
           cfeb += CSCConstants::NUM_CFEBS_ME1B;
 
-        if (!packEverything_ and usePreTriggers and packByCFEB_ and !preTriggerInCFEB[cfeb]) continue;
+        // At this point, if we are piacking by CFEBs and there is no
+        // pretrigger in this CFEB, ignore this strip digi
+        if (packByCFEB_ and !preTriggerInCFEB[cfeb]) continue;
 
         // From LS1 on ME1a strips are unganged
         if (fedInfo.formatVersion_ == 2013) {
