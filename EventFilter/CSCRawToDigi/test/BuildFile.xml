@@ -1,3 +1,8 @@
 <bin file="cscRawToDigiTest.cpp">
   <use name="EventFilter/CSCRawToDigi"/>
 </bin>
+<!--
+<library file="*.cc" name="CSCRawToDigiTest">
+  <flags EDM_PLUGIN="1"/>
+</library>
+-->

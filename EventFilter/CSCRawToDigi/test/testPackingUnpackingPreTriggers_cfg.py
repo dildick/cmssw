@@ -10,57 +10,90 @@ options.parseArguments()
 ## process def
 process = cms.Process("TEST", Run3)
 process.load("FWCore.MessageService.MessageLogger_cfi")
+process.load('Configuration.StandardSequences.Services_cff')
+process.load('Configuration.StandardSequences.GeometrySimDB_cff')
 process.load("Configuration/StandardSequences/GeometryRecoDB_cff")
 process.load("Configuration/StandardSequences/MagneticField_cff")
-process.load("Configuration/StandardSequences/FrontierConditions_GlobalTag_cff")
-process.load("Configuration.StandardSequences.Reconstruction_cff")
-process.load('Configuration.StandardSequences.EndOfProcess_cff')
+process.load('Configuration.EventContent.EventContent_cff')
+process.load('Configuration.StandardSequences.Generator_cff')
+process.load('GeneratorInterface.Core.genFilterSummary_cff')
+process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
+process.load('IOMC.EventVertexGenerators.VtxSmearedRun3RoundOptics25ns13TeVLowSigmaZ_cfi')
+process.load('Configuration.StandardSequences.SimIdeal_cff')
+process.load('Configuration.StandardSequences.Digi_cff')
+process.load('SimGeneral.MixingModule.mixNoPU_cfi')
+process.load('Configuration.StandardSequences.SimL1Emulator_cff')
 process.load("EventFilter.CSCRawToDigi.cscUnpacker_cfi")
 process.load("EventFilter.CSCRawToDigi.cscPacker_cfi")
-process.load("EventFilter.CSCRawToDigi.cscViewDigiDef_cfi")
+process.load("EventFilter.CSCRawToDigi.cscPackerUnpackerUnitTestDef_cfi")
+process.load('Configuration.StandardSequences.EndOfProcess_cff')
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
-      input = cms.untracked.int32(1)
+        input = cms.untracked.int32(10)
 )
 
-process.source = cms.Source(
-      "PoolSource",
-      fileNames = cms.untracked.vstring(options.inputFiles)
-)
+process.source = cms.Source("EmptySource")
 
 ## global tag
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:phase1_2021_realistic', '')
 
-process.out = cms.OutputModule(
-      "PoolOutputModule",
-      fileName = cms.untracked.string('output.root'),
+process.XMLFromDBSource.label = cms.string("Extended")
+process.genstepfilter.triggerConditions=cms.vstring("generation_step")
+
+process.generator = cms.EDFilter(
+        "Pythia8PtGun",
+        PGunParameters = cms.PSet(
+        AddAntiParticle = cms.bool(True),
+                MaxEta = cms.double(2.4),
+                MaxPhi = cms.double(3.14159265359),
+                MaxPt = cms.double(1000.1),
+                MinEta = cms.double(0.9),
+                MinPhi = cms.double(-3.14159265359),
+                MinPt = cms.double(999.9),
+                ParticleID = cms.vint32(-13)
+        ),
+        PythiaParameters = cms.PSet(
+                parameterSets = cms.vstring()
+        ),
+        Verbosity = cms.untracked.int32(0),
+        firstRun = cms.untracked.uint32(1),
+        psethack = cms.string('single mu pt 1')
 )
 
-## pretriggers are not saved in the packing-unpacking
-process.viewDigiRAW = process.cscViewDigiDef.clone(
-    ClctPreTriggerDump = False,
+
+process.FEVTDEBUGHLToutput = cms.OutputModule(
+        "PoolOutputModule",
+        SelectEvents = cms.untracked.PSet(
+                SelectEvents = cms.vstring('generation_step')
+        ),
+        dataset = cms.untracked.PSet(
+                dataTier = cms.untracked.string('GEN-SIM-DIGI-RAW'),
+                filterName = cms.untracked.string('')
+        ),
+        fileName = cms.untracked.string('file:step1.root'),
+        outputCommands = process.FEVTDEBUGHLTEventContent.outputCommands,
+        splitLevel = cms.untracked.int32(0)
 )
 
-process.viewDigiSIM = process.viewDigiRAW.clone(
-    wireTag = "simMuonCSCDigis:MuonCSCWireDigi",
-    stripTag = "simMuonCSCDigis:MuonCSCStripDigi",
-    comparatorTag = "simMuonCSCDigis:MuonCSCComparatorDigi",
-    alctTag = "simCscTriggerPrimitiveDigis",
-    clctTag = "simCscTriggerPrimitiveDigis",
-    corrclctTag = "simCscTriggerPrimitiveDigis",
-    ClctPreTriggerDump = True
-)
+process.mix.digitizers = cms.PSet(process.theDigitizersValid)
 
 process.muonCSCDigis.InputObjects = "cscpacker:CSCRawData"
 
-## schedule and path definition
-process.p1 = cms.Path(
-    process.viewDigiSIM *
-    process.cscpacker *
-    process.muonCSCDigis *
-    process.viewDigiRAW
-)
-process.endjob_step = cms.EndPath(process.out * process.endOfProcess)
+process.generation_step = cms.Path(process.pgen)
+process.simulation_step = cms.Path(process.psim)
+process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
+process.digitisation_step = cms.Path(process.pdigi_valid)
+process.L1simulation_step = cms.Path(process.simMuonGEMPadDigis * process.simMuonGEMPadDigiClusters * process.simCscTriggerPrimitiveDigis)
+process.testPackUnpack_step = cms.Path(process.cscpacker * process.muonCSCDigis * process.cscPackerUnpackerUnitTestDef)
+process.endjob_step = cms.EndPath(process.endOfProcess)
+process.FEVTDEBUGHLToutput_step = cms.EndPath(process.FEVTDEBUGHLToutput)
 
-process.schedule = cms.Schedule(process.p1, process.endjob_step)
+process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.simulation_step,process.digitisation_step,process.L1simulation_step, process.testPackUnpack_step, process.endjob_step,process.FEVTDEBUGHLToutput_step)
+
+from PhysicsTools.PatAlgos.tools.helpers import associatePatAlgosToolsTask
+associatePatAlgosToolsTask(process)
+# filter all path with the production filter sequence
+for path in process.paths:
+	getattr(process,path).insert(0, process.generator)

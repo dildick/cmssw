@@ -191,8 +191,11 @@ void CSCDigiToRaw::add(const CSCStripDigiCollection& stripDigis,
       for (; digiItr != last; ++digiItr) {
         CSCStripDigi digi = *digiItr;
         int strip = digi.getStrip();
+        int cfeb = digi.getCFEB();
+        if (me1a)
+          cfeb += CSCConstants::NUM_CFEBS_ME1B;
 
-        if (!packEverything_ and usePreTriggers and packByCFEB_ and !preTriggerInCFEB[digi.getCFEB()]) continue;
+        if (!packEverything_ and usePreTriggers and packByCFEB_ and !preTriggerInCFEB[cfeb]) continue;
 
         // From LS1 on ME1a strips are unganged
         if (fedInfo.formatVersion_ == 2013) {
