@@ -37,7 +37,7 @@ namespace cscd2r {
 
   template <typename LCTCollection>
   bool accept(
-      const CSCDetId& cscId, const LCTCollection& lcts, int bxMin, int bxMax, int nominalBX, bool me1abCheck = false) {
+      const CSCDetId& cscId, const LCTCollection& lcts, int bxMin, int bxMax, int nominalBX) {
     if (bxMin == -999)
       return true;
     CSCDetId chamberId = chamberID(cscId);
@@ -50,22 +50,6 @@ namespace cscd2r {
         break;
       }
     }
-
-    bool me1 = cscId.station() == 1 && cscId.ring() == 1;
-    //this is another "creative" recovery of smart ME1A-ME1B TMB logic cases:
-    //wire selective readout requires at least one (A)LCT in the full chamber
-    if (me1 && result == false && me1abCheck) {
-      CSCDetId me1aId = CSCDetId(chamberId.endcap(), chamberId.station(), 4, chamberId.chamber(), 0);
-      lctRange = lcts.get(me1aId);
-      for (typename LCTCollection::const_iterator lctItr = lctRange.first; lctItr != lctRange.second; ++lctItr) {
-        int bx = lctItr->getBX() - nominalBX;
-        if (bx >= bxMin && bx <= bxMax) {
-          result = true;
-          break;
-        }
-      }
-    }
-
     return result;
   }
 
@@ -75,8 +59,7 @@ namespace cscd2r {
               int bxMin,
               int bxMax,
               int nominalBX,
-              bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2],
-              bool me1abCheck) {
+              bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2]) {
     if (bxMin == -999)
       return true;
 
@@ -92,20 +75,6 @@ namespace cscd2r {
         atLeastOnePreTrigger = true;
         // save the location of all pretriggers
         preTriggerInCFEB[lctItr->getCFEB()] = true;
-      }
-    }
-
-    bool me1a = cscId.station() == 1 && cscId.ring() == 4;
-    if (me1a && !atLeastOnePreTrigger && me1abCheck) {
-      //check pretriggers in me1a as well; relevant for TMB emulator writing to separate detIds
-      lctRange = lcts.get(cscId);
-      for (CSCCLCTPreTriggerDigiCollection::const_iterator lctItr = lctRange.first; lctItr != lctRange.second; ++lctItr) {
-        int bx = lctItr->getBX() - nominalBX;
-        if (bx >= bxMin && bx <= bxMax) {
-          atLeastOnePreTrigger = true;
-          // save the location of all pretriggers
-          preTriggerInCFEB[lctItr->getCFEB()] = true;
-        }
       }
     }
     return atLeastOnePreTrigger;
@@ -164,8 +133,6 @@ void CSCDigiToRaw::add(const CSCStripDigiCollection& stripDigis,
     CSCDetId cscDetId = (*j).first;
     // only digitize if there are pre-triggers
 
-    bool me1abCheck = fedInfo.formatVersion_ == 2013;
-
     // determine where the pretriggers are
     bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2];
 
@@ -177,8 +144,7 @@ void CSCDigiToRaw::add(const CSCStripDigiCollection& stripDigis,
                                           preTriggerWindowMin_,
                                           preTriggerWindowMax_,
                                           CSCConstants::CLCT_CENTRAL_BX,
-                                          preTriggerInCFEB,
-                                          me1abCheck))) {
+                                          preTriggerInCFEB))) {
 
       bool me1a = (cscDetId.station() == 1) && (cscDetId.ring() == 4);
       bool zplus = (cscDetId.endcap() == 1);
@@ -235,10 +201,9 @@ void CSCDigiToRaw::add(const CSCWireDigiCollection& wireDigis,
   add(alctDigis, fedInfo);
   for (CSCWireDigiCollection::DigiRangeIterator j = wireDigis.begin(); j != wireDigis.end(); ++j) {
     CSCDetId cscDetId = (*j).first;
-    bool me1abCheck = fedInfo.formatVersion_ == 2013;
     if (packEverything_ ||
         cscd2r::accept(
-            cscDetId, alctDigis, alctWindowMin_, alctWindowMax_, CSCConstants::ALCT_CENTRAL_BX, me1abCheck)) {
+            cscDetId, alctDigis, alctWindowMin_, alctWindowMax_, CSCConstants::ALCT_CENTRAL_BX)) {
       CSCEventData& cscData = findEventData(cscDetId, fedInfo);
       std::vector<CSCWireDigi>::const_iterator digiItr = (*j).second.first;
       std::vector<CSCWireDigi>::const_iterator last = (*j).second.second;
@@ -256,10 +221,9 @@ void CSCDigiToRaw::add(const CSCComparatorDigiCollection& comparatorDigis,
   for (auto const& j : comparatorDigis) {
     CSCDetId cscDetId = j.first;
     CSCEventData& cscData = findEventData(cscDetId, fedInfo);
-    bool me1abCheck = fedInfo.formatVersion_ == 2013;
     if (packEverything_ ||
         cscd2r::accept(
-            cscDetId, clctDigis, clctWindowMin_, clctWindowMax_, CSCConstants::CLCT_CENTRAL_BX, me1abCheck)) {
+                       cscDetId, clctDigis, clctWindowMin_, clctWindowMax_, CSCConstants::CLCT_CENTRAL_BX)) {
       bool me1a = (cscDetId.station() == 1) && (cscDetId.ring() == 4);
 
       /*
