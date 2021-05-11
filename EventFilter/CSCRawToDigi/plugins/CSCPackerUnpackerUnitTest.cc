@@ -34,7 +34,7 @@ public:
 
 private:
 
-  static const unsigned max_tests = 6;
+  static const unsigned max_tests = 18;
   static const unsigned max_chambers = 540;
 
   void analyzeChamber(const CSCDetId& cscId,
@@ -228,12 +228,11 @@ void CSCPackerUnpackerUnitTest::analyze(const edm::Event& iEvent, const edm::Eve
 
   std::string explanations[max_tests] = {
     "Test 1: check that an ALCT in this chamber kept the wire digis",
-    "Test 2: check that no digis were kept if there was no ALCT ",
-    "Test 3: count the number of wire digis before and after unpacking",
-    "Test 4: check that an CCLT in this chamber kept the comp digis",
-    "Test 5: check that no digis were kept if there was no CCLT ",
-    "Test 6: count the number of comp digis before and after unpacking",
+    "Test 2: count the number of wire digis before and after unpacking",
+    "Test 3: check that an CCLT in this chamber kept the comp digis",
+    "Test 4: count the number of comp digis before and after unpacking",
   };
+
 
   for (unsigned i = 0; i < max_tests; i++) {
     unsigned nTestsRun = 0;
@@ -246,7 +245,10 @@ void CSCPackerUnpackerUnitTest::analyze(const edm::Event& iEvent, const edm::Eve
         }
       }
     }
-    std::cout << explanations[i] << "\tTests Run: " << nTestsRun << ", Tests Pass: " << nTestsOK << std::endl;
+    // if (i<4)
+    //   std::cout << explanations[i] << "\tTests Run: " << nTestsRun << ", Tests Pass: " << nTestsOK << std::endl;
+    // else
+    std::cout << "test " << i << "\tTests Run: " << nTestsRun << ", Tests Pass: " << nTestsOK << std::endl;
   }
 }
 
@@ -274,7 +276,7 @@ void CSCPackerUnpackerUnitTest::analyzeChamber(const CSCDetId& cscDetId,
   bool hasCLCT = accept(cscDetId, clcts, clctWindowMin_, clctWindowMax_, CSCConstants::CLCT_CENTRAL_BX);
 
   // determine where the pretriggers are
-  bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2];
+  bool preTriggerInCFEB[CSCConstants::MAX_CFEBS_RUN2] = {false};
 
   // readout condition for strips: L1A + preCLCT in CFEB
   bool hasPreCLCT = accept(cscDetId,
@@ -293,70 +295,72 @@ void CSCPackerUnpackerUnitTest::analyzeChamber(const CSCDetId& cscDetId,
   unsigned numStripDigis = nStripDigis(cscDetId, strips);
   unsigned numStripDigisUnpacked = nStripDigis(cscDetId, strips_unpacked);
 
-  unsigned nStripDigisCFEB[CSCConstants::MAX_CFEBS_RUN2];
+  unsigned nStripDigisCFEB[CSCConstants::MAX_CFEBS_RUN2] = {0};
   nDigisCFEB(chamberId, strips, nStripDigisCFEB);
 
-  unsigned nStripDigisUnpackedCFEB[CSCConstants::MAX_CFEBS_RUN2];
+  unsigned nStripDigisUnpackedCFEB[CSCConstants::MAX_CFEBS_RUN2] = {0};
   nDigisCFEB(chamberId, strips_unpacked, nStripDigisUnpackedCFEB);
 
   /// ALCT tests
   if (numWireDigis) {
+
     // test 1: check that an ALCT in this chamber kept the wire digis
     testRan[0][iChamber] = true;
     if (!hasALCT or (hasALCT and numWireDigisUnpacked > 0))
       testOK[0][iChamber] = true;
-
-    // test 2: check that no digis were kept if there was no ALCT
+    else {
+      std::cout << "Test 0 Failed: hasALCT "  << hasALCT << " numWireDigisUnpacked " << numWireDigisUnpacked << " " << chamberId << std::endl;
+    }
+    // test 2: count the number of wire digis before and after unpacking
     testRan[1][iChamber] = true;
-    if (!hasALCT and numWireDigisUnpacked == 0)
-      testOK[1][iChamber] = true;
-
-    // test 3: count the number of wire digis before and after unpacking
-    testRan[2][iChamber] = true;
     if (numWireDigis >= numWireDigisUnpacked)
-      testOK[2][iChamber] = true;
+      testOK[1][iChamber] = true;
+    else {
+      std::cout << "Test 1 Failed: numWireDigis " << numWireDigis << " numWireDigisUnpacked " << numWireDigisUnpacked << " " << chamberId << std::endl;
+    }
   }
 
   /// CLCT tests
   if (numCompDigis) {
 
-    // test 4: check that a CLCT in this chamber kept the comp digis
-    testRan[3][iChamber] = true;
+    // test 3: check that a CLCT in this chamber kept the comp digis
+    testRan[2][iChamber] = true;
     if (!hasCLCT or (hasCLCT and numCompDigisUnpacked > 0))
-      testOK[3][iChamber] = true;
+      testOK[2][iChamber] = true;
+    else {
+      std::cout << "Test 2 Failed: hasCLCT "  << hasCLCT << " numCompDigisUnpacked " << numCompDigisUnpacked << " " << chamberId << std::endl;
+    }
 
-    // test 5: check that no digis were kept if there was no CLCT
-    testRan[4][iChamber] = true;
-    if (!hasCLCT and numCompDigisUnpacked == 0)
-      testOK[4][iChamber] = true;
-
-    // test 6: count the number of comp digis before and after unpacking
-    testRan[5][iChamber] = true;
+    // test 4: count the number of comp digis before and after unpacking
+    testRan[3][iChamber] = true;
     if (numCompDigis >= numCompDigisUnpacked)
-      testOK[5][iChamber] = true;
+      testOK[3][iChamber] = true;
+    else {
+      std::cout << "Test 1 Failed: numCompDigis " << numCompDigis << " numCompDigisUnpacked " << numCompDigisUnpacked << " " << chamberId << std::endl;
+    }
   }
 
   /// CFEB tests
   if (numStripDigis) {
 
-    /*
-      const unsigned maxCFEBs = getNCFEBs(cscDetId.iChamberType());
-
-      for (unsigned i = 0; i < maxCFEBs; i++) {
+    for (unsigned i = 0; i < CSCConstants::MAX_CFEBS_RUN2; i++) {
 
       // test 7: check that a CLCT in this chamber kept the comp digis
-      testRan[5+i][iChamber] = true;
-      testOK[5+i][iChamber] = preTriggerInCFEB[i] and (nStripDigisUnpackedCFEB[i] > 0);
-
-      // test 8: check that no digis were kept if there was no CLCT
-      testRan[5+i+7][iChamber] = true;
-      testOK[5+i+7][iChamber] = (nStripDigisCFEB[i] > 0) and !preTriggerInCFEB[i] and (nStripDigisUnpackedCFEB[i] > 0);
+      testRan[4+i][iChamber] = true;
+      if (!preTriggerInCFEB[i] or (preTriggerInCFEB[i] and nStripDigisUnpackedCFEB[i] > 0))
+        testOK[4+i][iChamber] = true;
+      else {
+        std::cout << "Test " << 4+i << " Failed: preTriggerInCFEB" << i << ": " << preTriggerInCFEB[i] << " nStripDigisUnpackedCFEB " << nStripDigisUnpackedCFEB[i] << " " << chamberId << std::endl;
+      }
 
       // test 9: count the number of comp digis before and after unpacking
-      testRan[5+i+14][iChamber] = true;
-      testOK[5+i+14][iChamber] = nStripDigisCFEB[i] == nStripDigisUnpackedCFEB[i] and preTriggerInCFEB[i];
+      testRan[4+i+7][iChamber] = true;
+      if (nStripDigisCFEB[i] >= nStripDigisUnpackedCFEB[i])
+        testOK[4+i+7][iChamber] = true;
+      else {
+        std::cout << "Test " << 4+i+7<< " Failed: nStripDigisCFEB " << i << ": " << nStripDigisCFEB[i] << " nStripDigisUnpackedCFEB " << nStripDigisUnpackedCFEB[i] << " " << chamberId << std::endl;
       }
-    */
+    }
   }
 
   iChamber++;

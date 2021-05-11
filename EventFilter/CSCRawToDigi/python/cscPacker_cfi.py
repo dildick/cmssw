@@ -19,6 +19,6 @@ from Configuration.Eras.Modifier_run3_GEM_cff import run3_GEM
 run3_GEM.toModify( cscpacker,
                    usePreTriggers = True,
                    packEverything = False,
-                   packByCFEB = False,
+                   packByCFEB = True,
                    padDigiClusterTag = "simMuonGEMPadDigiClusters",
                    useGEMs = False)
