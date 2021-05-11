@@ -34,7 +34,7 @@ public:
 
 private:
 
-  static const unsigned max_tests = 50;
+  static const unsigned max_tests = 6;
   static const unsigned max_chambers = 540;
 
   void analyzeChamber(const CSCDetId& cscId,
@@ -72,9 +72,13 @@ private:
   void nDigisCFEB(const CSCDetId& cscId, const CSCStripDigiCollection& digis, unsigned digisInCFEB[CSCConstants::MAX_CFEBS_RUN2]) const;
   unsigned getNCFEBs(unsigned type) const;
 
-  bool hasWireDigis(const CSCDetId& cscId, const CSCWireDigiCollection& wiredc) const;
-  bool hasStripDigis(const CSCDetId& cscId, const CSCStripDigiCollection& stripdc) const;
-  bool hasComparatorDigis(const CSCDetId& cscId, const CSCComparatorDigiCollection& compdc) const;
+  unsigned nWireDigis(const CSCDetId& cscId, const CSCWireDigiCollection& wiredc) const;
+  unsigned nStripDigis(const CSCDetId& cscId, const CSCStripDigiCollection& stripdc) const;
+  unsigned nComparatorDigis(const CSCDetId& cscId, const CSCComparatorDigiCollection& compdc) const;
+
+  unsigned nWireDigisLayer(const CSCDetId& cscId, const CSCWireDigiCollection& wiredc) const;
+  unsigned nStripDigisLayer(const CSCDetId& cscId, const CSCStripDigiCollection& stripdc) const;
+  unsigned nComparatorDigisLayer(const CSCDetId& cscId, const CSCComparatorDigiCollection& compdc) const;
 
   edm::EDGetTokenT<CSCWireDigiCollection> wd_token;
   edm::EDGetTokenT<CSCWireDigiCollection> wd_unpacked_token;
@@ -222,23 +226,28 @@ void CSCPackerUnpackerUnitTest::analyze(const edm::Event& iEvent, const edm::Eve
     }
   }
 
-  unsigned nTestsRan = 0;
-  unsigned nTestsOK = 0;
+  std::string explanations[max_tests] = {
+    "Test 1: check that an ALCT in this chamber kept the wire digis",
+    "Test 2: check that no digis were kept if there was no ALCT ",
+    "Test 3: count the number of wire digis before and after unpacking",
+    "Test 4: check that an CCLT in this chamber kept the comp digis",
+    "Test 5: check that no digis were kept if there was no CCLT ",
+    "Test 6: count the number of comp digis before and after unpacking",
+  };
+
   for (unsigned i = 0; i < max_tests; i++) {
+    unsigned nTestsRun = 0;
+    unsigned nTestsOK = 0;
     for (unsigned j = 0; j < max_chambers; j++) {
       if (testRan[i][j]) {
-        nTestsRan++;
-        std::cout << i << " " << j << " " << testRan[i][j];
+        nTestsRun++;
         if (testOK[i][j]) {
           nTestsOK++;
-          std::cout << " 1" << std::endl;
         }
-        else
-          std::cout << " 0" << std::endl;
       }
     }
+    std::cout << explanations[i] << "\tTests Run: " << nTestsRun << ", Tests Pass: " << nTestsOK << std::endl;
   }
-  std::cout << nTestsRan << " " << nTestsOK << std::endl;
 }
 
 void CSCPackerUnpackerUnitTest::analyzeChamber(const CSCDetId& cscDetId,
@@ -275,14 +284,14 @@ void CSCPackerUnpackerUnitTest::analyzeChamber(const CSCDetId& cscDetId,
                            CSCConstants::CLCT_CENTRAL_BX,
                            preTriggerInCFEB);
 
-  unsigned nWireDigis = nDigis(chamberId, wires);
-  unsigned nWireDigisUnpacked = nDigis(chamberId, wires_unpacked);
+  unsigned numWireDigis = nWireDigis(cscDetId, wires);
+  unsigned numWireDigisUnpacked = nWireDigis(cscDetId, wires);
 
-  unsigned nCompDigis = nDigis(chamberId, comparators);
-  unsigned nCompDigisUnpacked = nDigis(chamberId, comparators_unpacked);
+  unsigned numCompDigis = nComparatorDigis(cscDetId, comparators);
+  unsigned numCompDigisUnpacked = nComparatorDigis(cscDetId, comparators_unpacked);
 
-  unsigned nStripDigis = nDigis(chamberId, strips);
-  unsigned nStripDigisUnpacked = nDigis(chamberId, strips_unpacked);
+  unsigned numStripDigis = nStripDigis(cscDetId, strips);
+  unsigned numStripDigisUnpacked = nStripDigis(cscDetId, strips_unpacked);
 
   unsigned nStripDigisCFEB[CSCConstants::MAX_CFEBS_RUN2];
   nDigisCFEB(chamberId, strips, nStripDigisCFEB);
@@ -290,27 +299,45 @@ void CSCPackerUnpackerUnitTest::analyzeChamber(const CSCDetId& cscDetId,
   unsigned nStripDigisUnpackedCFEB[CSCConstants::MAX_CFEBS_RUN2];
   nDigisCFEB(chamberId, strips_unpacked, nStripDigisUnpackedCFEB);
 
-  bool hasWireDigisUnpacked = nWireDigisUnpacked > 0;
-
-  bool hasCompDigisUnpacked = nCompDigisUnpacked > 0;
-
   /// ALCT tests
-  if (hasWireDigis(cscDetId, wires)) {
+  if (numWireDigis) {
     // test 1: check that an ALCT in this chamber kept the wire digis
     testRan[0][iChamber] = true;
-    testOK[0][iChamber] = hasALCT and hasWireDigisUnpacked;
+    if (!hasALCT or (hasALCT and numWireDigisUnpacked > 0))
+      testOK[0][iChamber] = true;
 
     // test 2: check that no digis were kept if there was no ALCT
     testRan[1][iChamber] = true;
-    testOK[1][iChamber] = !(!hasALCT and hasWireDigisUnpacked);
+    if (!hasALCT and numWireDigisUnpacked == 0)
+      testOK[1][iChamber] = true;
 
     // test 3: count the number of wire digis before and after unpacking
     testRan[2][iChamber] = true;
-    testOK[2][iChamber] = nWireDigis == nWireDigisUnpacked and hasALCT;
+    if (numWireDigis >= numWireDigisUnpacked)
+      testOK[2][iChamber] = true;
+  }
+
+  /// CLCT tests
+  if (numCompDigis) {
+
+    // test 4: check that a CLCT in this chamber kept the comp digis
+    testRan[3][iChamber] = true;
+    if (!hasCLCT or (hasCLCT and numCompDigisUnpacked > 0))
+      testOK[3][iChamber] = true;
+
+    // test 5: check that no digis were kept if there was no CLCT
+    testRan[4][iChamber] = true;
+    if (!hasCLCT and numCompDigisUnpacked == 0)
+      testOK[4][iChamber] = true;
+
+    // test 6: count the number of comp digis before and after unpacking
+    testRan[5][iChamber] = true;
+    if (numCompDigis >= numCompDigisUnpacked)
+      testOK[5][iChamber] = true;
   }
 
   /// CFEB tests
-  if (hasStripDigis(cscDetId, strips)) {
+  if (numStripDigis) {
 
     /*
       const unsigned maxCFEBs = getNCFEBs(cscDetId.iChamberType());
@@ -332,21 +359,6 @@ void CSCPackerUnpackerUnitTest::analyzeChamber(const CSCDetId& cscDetId,
     */
   }
 
-  /// CLCT tests
-  if (hasComparatorDigis(cscDetId, comparators)) {
-
-    // test 4: check that a CLCT in this chamber kept the comp digis
-    testRan[3][iChamber] = true;
-    testOK[3][iChamber] = hasCLCT and hasCompDigisUnpacked;
-
-    // test 5: check that no digis were kept if there was no CLCT
-    testRan[4][iChamber] = true;
-    testOK[4][iChamber] = !(!hasCLCT and hasCompDigisUnpacked);
-
-    // test 6: count the number of comp digis before and after unpacking
-    testRan[5][iChamber] = true;
-    testOK[5][iChamber] = nCompDigis == nCompDigisUnpacked and hasCLCT;
-  }
   iChamber++;
 }
 
@@ -433,63 +445,72 @@ unsigned CSCPackerUnpackerUnitTest::getNCFEBs(unsigned type) const {
   return cfebs[type];
 }
 
-bool CSCPackerUnpackerUnitTest::hasWireDigis(const CSCDetId& detid, const CSCWireDigiCollection& wiredc) const {
+unsigned CSCPackerUnpackerUnitTest::nWireDigis(const CSCDetId& detid, const CSCWireDigiCollection& wiredc) const {
   unsigned ndigis = 0;
   for (int i_layer = 0; i_layer < CSCConstants::NUM_LAYERS; i_layer++) {
-    CSCDetId detid(detid.endcap(), detid.station(), detid.ring(), detid.chamber(), i_layer + 1);
-    const auto rwired = wiredc.get(detid);
-    for (CSCWireDigiCollection::const_iterator digiIt = rwired.first; digiIt != rwired.second; ++digiIt) {
-      ndigis++;
-    }
+    CSCDetId ldetid(detid.endcap(), detid.station(), detid.ring(), detid.chamber(), i_layer + 1);
+    ndigis += nWireDigisLayer(ldetid, wiredc);;
   }
-  return ndigis > 0;
+  return ndigis;
 }
 
-bool CSCPackerUnpackerUnitTest::hasStripDigis(const CSCDetId& detid, const CSCStripDigiCollection& stripdc) const {
-  const bool isME11(detid.station() == 1 and detid.ring() == 1);
-
+unsigned CSCPackerUnpackerUnitTest::nWireDigisLayer(const CSCDetId& detid, const CSCWireDigiCollection& wiredc) const {
   unsigned ndigis = 0;
-  for (int i_layer = 0; i_layer < CSCConstants::NUM_LAYERS; i_layer++) {
-
-    CSCDetId detid(detid.endcap(), detid.station(), detid.ring(), detid.chamber(), i_layer + 1);
-    const auto rstripd = stripdc.get(detid);
-    for (auto digiIt = rstripd.first; digiIt != rstripd.second; ++digiIt) {
-      ndigis++;
-    }
-
-    if (isME11) {
-      CSCDetId detid_me1a(detid.endcap(), detid.station(), 4, detid.chamber(), i_layer + 1);
-      const auto rstripd = stripdc.get(detid_me1a);
-      for (auto digiIt = rstripd.first; digiIt != rstripd.second; ++digiIt) {
-        ndigis++;
-      }
-    }
+  const auto rwired = wiredc.get(detid);
+  for (auto digiIt = rwired.first; digiIt != rwired.second; ++digiIt) {
+    ndigis++;
   }
-  return ndigis > 0;
+  return ndigis;
 }
 
-bool CSCPackerUnpackerUnitTest::hasComparatorDigis(const CSCDetId& detid, const CSCComparatorDigiCollection& compdc) const {
-  const bool isME11(detid.station() == 1 and detid.ring() == 1);
-
+unsigned CSCPackerUnpackerUnitTest::nStripDigis(const CSCDetId& detid, const CSCStripDigiCollection& stripdc) const {
   unsigned ndigis = 0;
   for (int i_layer = 0; i_layer < CSCConstants::NUM_LAYERS; i_layer++) {
 
-    CSCDetId detid(detid.endcap(), detid.station(), detid.ring(), detid.chamber(), i_layer + 1);
-    const auto rcompd = compdc.get(detid);
-    for (auto digiIt = rcompd.first; digiIt != rcompd.second; ++digiIt) {
-      ndigis++;
-    }
+    CSCDetId ldetid(detid.endcap(), detid.station(), detid.ring(), detid.chamber(), i_layer + 1);
+    ndigis += nStripDigisLayer(ldetid, stripdc);
 
-    if (isME11) {
-      CSCDetId detid_me1a(detid.endcap(), detid.station(), 4, detid.chamber(), i_layer + 1);
-      const auto rcompd = compdc.get(detid_me1a);
-      for (auto digiIt = rcompd.first; digiIt != rcompd.second; ++digiIt) {
-        ndigis++;
-      }
+    if (detid.station() == 1 and detid.ring() == 1) {
+      CSCDetId ldetid_me1a(detid.endcap(), detid.station(), 4, detid.chamber(), i_layer + 1);
+      ndigis += nStripDigisLayer(ldetid_me1a, stripdc);
     }
   }
-  return ndigis > 0;
+  return ndigis;
 }
+
+unsigned CSCPackerUnpackerUnitTest::nStripDigisLayer(const CSCDetId& detid, const CSCStripDigiCollection& stripdc) const {
+  unsigned ndigis = 0;
+  const auto rstripd = stripdc.get(detid);
+  for (auto digiIt = rstripd.first; digiIt != rstripd.second; ++digiIt) {
+    ndigis++;
+  }
+  return ndigis;
+}
+
+unsigned CSCPackerUnpackerUnitTest::nComparatorDigis(const CSCDetId& detid, const CSCComparatorDigiCollection& stripdc) const {
+  unsigned ndigis = 0;
+  for (int i_layer = 0; i_layer < CSCConstants::NUM_LAYERS; i_layer++) {
+
+    CSCDetId ldetid(detid.endcap(), detid.station(), detid.ring(), detid.chamber(), i_layer + 1);
+    ndigis += nComparatorDigisLayer(ldetid, stripdc);
+
+    if (detid.station() == 1 and detid.ring() == 1) {
+      CSCDetId ldetid_me1a(detid.endcap(), detid.station(), 4, detid.chamber(), i_layer + 1);
+      ndigis += nComparatorDigisLayer(ldetid_me1a, stripdc);
+    }
+  }
+  return ndigis;
+}
+
+unsigned CSCPackerUnpackerUnitTest::nComparatorDigisLayer(const CSCDetId& detid, const CSCComparatorDigiCollection& stripdc) const {
+  unsigned ndigis = 0;
+  const auto rstripd = stripdc.get(detid);
+  for (auto digiIt = rstripd.first; digiIt != rstripd.second; ++digiIt) {
+    ndigis++;
+  }
+  return ndigis;
+}
+
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(CSCPackerUnpackerUnitTest);
