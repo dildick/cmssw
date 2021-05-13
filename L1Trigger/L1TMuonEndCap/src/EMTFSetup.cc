@@ -6,6 +6,7 @@
 
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2016.h"
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2017.h"
+#include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2021.h"
 
 EMTFSetup::EMTFSetup(const edm::ParameterSet& iConfig)
     : geometry_translator_(),
@@ -23,7 +24,7 @@ EMTFSetup::EMTFSetup(const edm::ParameterSet& iConfig)
   } else if (era() == "Run2_2017" || era() == "Run2_2018") {
     pt_assign_engine_ = std::make_unique<PtAssignmentEngine2017>();
   } else if (era() == "Run3_2021") {
-    pt_assign_engine_ = std::make_unique<PtAssignmentEngine2017>();  //TODO - implement ver 2021
+    pt_assign_engine_ = std::make_unique<PtAssignmentEngine2021>();  //TODO - implement ver 2021
   } else {
     throw cms::Exception("L1TMuonEndCap") << "Cannot recognize the era option: " << era();
   }
