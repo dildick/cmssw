@@ -564,7 +564,7 @@ float PtAssignmentEngine2021::calculate_pt_xml(const EMTFTrack& track) const {
   if (st4)
     pat4 = data.cpattern[3];
 
-  // BEGIN: Identical (almost) to BDT training code in EMTFPtAssign2021/PtRegression_Apr_2021.C
+  // BEGIN: Identical (almost) to BDT training code in EMTFPtAssign2017/PtRegression_Apr_2017.C
 
   theta = aux().calcTrackTheta(th1, th2, th3, th4, St1_ring2, mode, true);
 

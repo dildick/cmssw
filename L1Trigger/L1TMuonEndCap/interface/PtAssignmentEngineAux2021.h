@@ -88,6 +88,8 @@ public:
                        const int mode,
                        const bool BIT_COMP = false) const;
 
+  void calcSlope(const int bend, int& slope, const int endcap, const int mode, const bool BIT_COMP);
+
   void calcBends(int& bend1,
                  int& bend2,
                  int& bend3,

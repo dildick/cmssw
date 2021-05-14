@@ -1,8 +1,8 @@
-#include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngineAux2021.h"
+B#include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngineAux2021.h"
 
 #include <iostream>
 
-// From here down, exact copy of code used for training BDT: EMTFPtAssign2021/src/PtLUTVarCalc.cc
+// From here down, exact copy of code used for training BDT: EMTFPtAssign2017/src/PtLUTVarCalc.cc
 
 // Arrays that map the integer dPhi --> dPhi-units. 1/60th of a degree per unit; 255 units --> 4.25 degrees, 511 --> 8.52 degrees
 
@@ -152,91 +152,30 @@ int PtAssignmentEngineAux2021::getCLCT(int clct, int endcap, int dPhiSign, int b
   //  sign  = ((pattern % 2) == 1 ? -1 : 1) * (endcap == 1 ? -1 : 1)
   //   * In ME+, even CLCTs have negative sign, odd CLCTs have positive
 
-  // For use in all 3- and 4-station modes (7, 11, 13, 14, 15)
-  // Bends [-4, -3, -2] --> 0, [-1, 0] --> 1, [+1] --> 2, [+2, +3, +4] --> 3
-  if (bits == 2) {
-    switch (clct) {
-      case 10:
-        clct_ = 1;
-        break;
-      case 9:
-        clct_ = (sign_ > 0 ? 1 : 2);
-        break;
-      case 8:
-        clct_ = (sign_ > 0 ? 2 : 1);
-        break;
-      case 7:
-        clct_ = (sign_ > 0 ? 0 : 3);
-        break;
-      case 6:
-        clct_ = (sign_ > 0 ? 3 : 0);
-        break;
-      case 5:
-        clct_ = (sign_ > 0 ? 0 : 3);
-        break;
-      case 4:
-        clct_ = (sign_ > 0 ? 3 : 0);
-        break;
-      case 3:
-        clct_ = (sign_ > 0 ? 0 : 3);
-        break;
-      case 2:
-        clct_ = (sign_ > 0 ? 3 : 0);
-        break;
-      case 1:
-        clct_ = (sign_ > 0 ? 0 : 3);
-        break;
-      case 0:
-        clct_ = 0;
-        break;
-      default:
-        clct_ = 1;
-        break;
-    }
-  }  // End conditional: if (bits == 2)
+  // (Note: May need to account for sign correction, as this is no longer done in CalcBends)
+  // 2-bit compression (for 3 and 4 St. modes):
+  // (-15, -14, ..., -4) -> 0,  (-3, -2, -1, 0) -> 1,  (1, 2, 3) -> 2,  (4, 5, ..., 15) -> 3
+  if (bits ==2) {
+    if                  ( clct <= -4) { clct_ = 0; }
+    else if ( clct > -4 && clct <= 0) { clct_ = 1; }
+    else if    (clct > 0 && clct < 4) { clct_ = 2; }
+    else if (clct >= 4 && clct <= 15) { clct_ = 3; }
+    else if (clct > 15 || clct < -15) { clct_ = 1; }
+  }// End conditional if (bits == 2)
 
-  // For use in all 2-station modes (3, 5, 6, 9, 10, 12)
-  // Bends [isRPC] --> 0, [-4, -3] --> 1, [-2] --> 2, [-1] --> 3, [0] --> 4, [+1] --> 5, [+2] --> 6, [+3, +4] --> 7
+  // 3-bit compression (for 2 St. modes):
+  // (-15, -14, ..., -5) -> 1, (-4, -3) -> 2, (-2, -1) -> 3, 0 -> 4, (1, 2) -> 5, (3, 4) -> 6, (5, 6, ..., 15) -> 7
   else if (bits == 3) {
-    switch (clct) {
-      case 10:
-        clct_ = 4;
-        break;
-      case 9:
-        clct_ = (sign_ > 0 ? 3 : 5);
-        break;
-      case 8:
-        clct_ = (sign_ > 0 ? 5 : 3);
-        break;
-      case 7:
-        clct_ = (sign_ > 0 ? 2 : 6);
-        break;
-      case 6:
-        clct_ = (sign_ > 0 ? 6 : 2);
-        break;
-      case 5:
-        clct_ = (sign_ > 0 ? 1 : 7);
-        break;
-      case 4:
-        clct_ = (sign_ > 0 ? 7 : 1);
-        break;
-      case 3:
-        clct_ = (sign_ > 0 ? 1 : 7);
-        break;
-      case 2:
-        clct_ = (sign_ > 0 ? 7 : 1);
-        break;
-      case 1:
-        clct_ = (sign_ > 0 ? 1 : 7);
-        break;
-      case 0:
-        clct_ = 0;
-        break;
-      default:
-        clct_ = 4;
-        break;
-    }
-  }  // End conditional: else if (bits == 3)
+    if           (clct >= -15 && <=-5) { clct_ = 1; }
+    else if (clct >= -4 && clct < -2 ) { clct_ = 2; }
+    else if  (clct >= -2 && clct < 0 ) { clct_ = 3; }
+    else if                (clct ==0 ) { clct_ = 4; }
+    else if      (clct >0 && clct < 3) { clct_ = 5; }
+    else if    (clct >= 3 && clct < 5) { clct_ = 6; }
+    else if   (clct >=5 && clct <= 15) { clct_ = 7; }
+    else if    (clct <-15 && clct >15) { clct_ = 0; }
+  }// End conditional if (bits == 3)
+
 
   // std::cout << "  * Output clct_ = " << clct_ << std::endl;
 
@@ -892,6 +831,40 @@ void PtAssignmentEngineAux2021::calcDeltaThetas(int& dTh12,
 
 }  // Enf function: void PtAssignmentEngineAux2021::calcDeltaThetas()
 
+void PtAssignmentEngineAux2021::calcSlope(const int bend, int& slope, const int endcap, const int mode, const bool BIT_COMP) {
+  if (std::abs(slope) > 15) {
+    slope = -99;
+    return;
+  }
+
+  // multiply with bending
+  // make sure that bending convention is not {0,1}, but {1, -1}!!!
+  // bend == 0 means left bending, thus positive
+  // bend == 1 means right bending, thus negative
+  //slope *= (1- 2*bend);
+
+  //std::cout << "Slope before compression: " << slope << ", endcap: " << endcap << std::endl;
+
+  // Reverse to match dPhi convention
+  //if (endcap == -1)
+  //    slope *= -1;
+
+  if (BIT_COMP) {
+
+    int nBits = 3;
+    if (mode == 7 || mode == 11 || mode > 12)
+      nBits = 2;
+
+    if (  mode      / 8 > 0 ) // Has station 1 hit
+      slope = ENG.getCLCT( slope, endcap, 0, nBits);
+
+    //std::cout << "Slope after compression: " << slope << std::endl;
+    //std::cout << "---Next muon---" << std::endl;
+  }
+
+  assert( slope != -99 );
+}
+
 void PtAssignmentEngineAux2021::calcBends(int& bend1,
                                           int& bend2,
                                           int& bend3,
@@ -904,6 +877,7 @@ void PtAssignmentEngineAux2021::calcBends(int& bend1,
                                           const int endcap,
                                           const int mode,
                                           const bool BIT_COMP) const {
+
   bend1 = calcBendFromPattern(pat1, endcap);
   bend2 = calcBendFromPattern(pat2, endcap);
   bend3 = calcBendFromPattern(pat3, endcap);
