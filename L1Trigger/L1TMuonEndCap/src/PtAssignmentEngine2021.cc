@@ -20,14 +20,14 @@ float PtAssignmentEngine2021::scale_pt(const float pt, const int mode) const {
   // For now, a linear scaling based on SingleMu-quality (modes 11, 13, 14, 15), CSC+RPC tracks
   // Should maybe scale each mode differently in the future - AWB 31.05.17
 
-  // TRG       = (1.2 + 0.015*TRG) * XML
-  // TRG       = 1.2*XML / (1 - 0.015*XML)
-  // TRG / XML = 1.2 / (1 - 0.015*XML)
+  // TRG       = (1.3 + 0.004*TRG) * XML
+  // TRG       = 1.3*XML / (1 - 0.004*XML)
+  // TRG / XML = 1.3 / (1 - 0.004*XML)
 
   // First "physics" LUTs for 2021, deployed June 7
   if (ptLUTVersion_ >= 6) {
     pt_xml = fmin(20., pt);  // Maximum scale set by muons with XML pT = 20 GeV (scaled pT ~35 GeV)
-    pt_scale = 1.2 / (1 - 0.015 * pt_xml);
+    pt_scale = 1.3 / (1 - 0.004 * pt_xml);
   }
 
   return pt_scale;
@@ -40,8 +40,8 @@ float PtAssignmentEngine2021::unscale_pt(const float pt, const int mode) const {
 
   // First "physics" LUTs for 2021, deployed June 7
   if (ptLUTVersion_ >= 6) {
-    pt_unscale = 1 / (1.2 + 0.015 * pt);
-    pt_unscale = fmax(pt_unscale, (1 - 0.015 * 20) / 1.2);
+    pt_unscale = 1 / (1.3 + 0.004 * pt);
+    pt_unscale = fmax(pt_unscale, (1 - 0.004 * 20) / 1.3);
   }
 
   return pt_unscale;
