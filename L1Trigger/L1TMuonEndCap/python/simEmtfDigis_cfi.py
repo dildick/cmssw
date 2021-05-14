@@ -17,7 +17,7 @@ simEmtfDigisMC = cms.EDProducer("L1TMuonEndCapTrackProducer",
     FWConfig = cms.bool(True),
 
     # Era (options: 'Run2_2016', 'Run2_2017', 'Run2_2018', 'Run3_2021')
-    Era = cms.string('Run2_2021'),
+    Era = cms.string('Run3_2021'),
 
     # Input collections
     # Three options for CSCInput
