@@ -77,6 +77,9 @@ void L1TGlobalProducer::fillDescriptions(edm::ConfigurationDescriptions& descrip
   desc.addUntracked<bool>("PrintL1Menu", false);
   desc.add<std::string>("TriggerMenuLuminosity", "startup");
   desc.add<std::string>("PrescaleCSVFile", "prescale_L1TGlobal.csv");
+
+  // new parameter for Run-3
+  desc.add<bool>("useMuonShowers", false);
   descriptions.add("L1TGlobalProducer", desc);
 }
 
@@ -110,7 +113,9 @@ L1TGlobalProducer::L1TGlobalProducer(const edm::ParameterSet& parSet)
       m_isDebugEnabled(edm::isDebugEnabled()),
       m_getPrescaleColumnFromData(parSet.getParameter<bool>("GetPrescaleColumnFromData")),
       m_requireMenuToMatchAlgoBlkInput(parSet.getParameter<bool>("RequireMenuToMatchAlgoBlkInput")),
-      m_algoblkInputTag(parSet.getParameter<edm::InputTag>("AlgoBlkInputTag")) {
+      m_algoblkInputTag(parSet.getParameter<edm::InputTag>("AlgoBlkInputTag")),
+      m_useMuonShowers(parSet.getParameter<bool>("useMuonShowers"))
+ {
   m_egInputToken = consumes<BXVector<EGamma>>(m_egInputTag);
   m_tauInputToken = consumes<BXVector<Tau>>(m_tauInputTag);
   m_jetInputToken = consumes<BXVector<Jet>>(m_jetInputTag);
@@ -264,7 +269,8 @@ void L1TGlobalProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSet
     m_nrL1Mu = data->numberL1Mu();
 
     // There should be at most 1 muon shower object per BX
-    m_nrL1MuShower = 1;
+    if (m_useMuonShowers)
+      m_nrL1MuShower = 1;
 
     // EG
     m_nrL1EG = data->numberL1EG();
