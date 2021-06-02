@@ -500,6 +500,7 @@ float PtAssignmentEngine2021::calculate_pt_xml(const EMTFTrack& track) const {
   int dTh_12, dTh_13, dTh_14, dTh_23, dTh_24, dTh_34;
   int FR_1, FR_2, FR_3, FR_4;
   int bend_1, bend_2, bend_3, bend_4;
+  int slope_1, slope_2, slope_3, slope_4;
   int RPC_1, RPC_2, RPC_3, RPC_4;
   int St1_ring2 = data.st1_ring2;
 
@@ -564,6 +565,15 @@ float PtAssignmentEngine2021::calculate_pt_xml(const EMTFTrack& track) const {
   if (st4)
     pat4 = data.cpattern[3];
 
+  if (st1)
+    slope_1 = data.slope[0];
+  if (st2)
+    slope_2 = data.slope[1];
+  if (st3)
+    slope_3 = data.slope[2];
+  if (st4)
+    slope_4 = data.slope[3];
+
   // BEGIN: Identical (almost) to BDT training code in EMTFPtAssign2017/PtRegression_Apr_2017.C
 
   theta = aux().calcTrackTheta(th1, th2, th3, th4, St1_ring2, mode, true);
@@ -594,7 +604,13 @@ float PtAssignmentEngine2021::calculate_pt_xml(const EMTFTrack& track) const {
   FR_3 = (st3 ? data.fr[2] : -99);
   FR_4 = (st4 ? data.fr[3] : -99);
 
+  aux().calcSlope(bend_1, slope_1, endcap, mode, true);
+  aux().calcSlope(bend_2, slope_2, endcap, mode, true);
+  aux().calcSlope(bend_3, slope_3, endcap, mode, true);
+  aux().calcSlope(bend_4, slope_4, endcap, mode, true);
+
   aux().calcBends(bend_1, bend_2, bend_3, bend_4, pat1, pat2, pat3, pat4, dPhiSign, endcap, mode, true);
+
 
   RPC_1 = (st1 ? (pat1 == 0) : -99);
   RPC_2 = (st2 ? (pat2 == 0) : -99);
@@ -610,38 +626,38 @@ float PtAssignmentEngine2021::calculate_pt_xml(const EMTFTrack& track) const {
   std::vector<int> predictors;
   switch (mode) {
     case 15:  // 1-2-3-4
-      predictors = {theta,    St1_ring2, dPhi_12,  dPhi_23,   dPhi_34,  dPhi_13, dPhi_14, dPhi_24, FR_1,  bend_1,
+      predictors = {theta,    St1_ring2, dPhi_12,  dPhi_23,   dPhi_34,  dPhi_13, dPhi_14, dPhi_24, FR_1,  slope_1,
                     dPhiSum4, dPhiSum4A, dPhiSum3, dPhiSum3A, outStPhi, dTh_14,  RPC_1,   RPC_2,   RPC_3, RPC_4};
       break;
     case 14:  // 1-2-3
-      predictors = {theta, St1_ring2, dPhi_12, dPhi_23, dPhi_13, FR_1, FR_2, bend_1, dTh_13, RPC_1, RPC_2, RPC_3};
+      predictors = {theta, St1_ring2, dPhi_12, dPhi_23, dPhi_13, FR_1, FR_2, slope_1, dTh_13, RPC_1, RPC_2, RPC_3};
       break;
     case 13:  // 1-2-4
-      predictors = {theta, St1_ring2, dPhi_12, dPhi_14, dPhi_24, FR_1, FR_2, bend_1, dTh_14, RPC_1, RPC_2, RPC_4};
+      predictors = {theta, St1_ring2, dPhi_12, dPhi_14, dPhi_24, FR_1, FR_2, slope_1, dTh_14, RPC_1, RPC_2, RPC_4};
       break;
     case 11:  // 1-3-4
-      predictors = {theta, St1_ring2, dPhi_34, dPhi_13, dPhi_14, FR_1, FR_3, bend_1, dTh_14, RPC_1, RPC_3, RPC_4};
+      predictors = {theta, St1_ring2, dPhi_34, dPhi_13, dPhi_14, FR_1, FR_3, slope_1, dTh_14, RPC_1, RPC_3, RPC_4};
       break;
     case 7:  // 2-3-4
-      predictors = {theta, dPhi_23, dPhi_34, dPhi_24, FR_2, bend_2, dTh_24, RPC_2, RPC_3, RPC_4};
+      predictors = {theta, dPhi_23, dPhi_34, dPhi_24, FR_2, slope_2, dTh_24, RPC_2, RPC_3, RPC_4};
       break;
     case 12:  // 1-2
-      predictors = {theta, St1_ring2, dPhi_12, FR_1, FR_2, bend_1, bend_2, dTh_12, RPC_1, RPC_2};
+      predictors = {theta, St1_ring2, dPhi_12, FR_1, FR_2, slope_1, slope_2, dTh_12, RPC_1, RPC_2};
       break;
     case 10:  // 1-3
-      predictors = {theta, St1_ring2, dPhi_13, FR_1, FR_3, bend_1, bend_3, dTh_13, RPC_1, RPC_3};
+      predictors = {theta, St1_ring2, dPhi_13, FR_1, FR_3, slope_1, slope_3, dTh_13, RPC_1, RPC_3};
       break;
     case 9:  // 1-4
-      predictors = {theta, St1_ring2, dPhi_14, FR_1, FR_4, bend_1, bend_4, dTh_14, RPC_1, RPC_4};
+      predictors = {theta, St1_ring2, dPhi_14, FR_1, FR_4, slope_1, slope_4, dTh_14, RPC_1, RPC_4};
       break;
     case 6:  // 2-3
-      predictors = {theta, dPhi_23, FR_2, FR_3, bend_2, bend_3, dTh_23, RPC_2, RPC_3};
+      predictors = {theta, dPhi_23, FR_2, FR_3, slope_2, slope_3, dTh_23, RPC_2, RPC_3};
       break;
     case 5:  // 2-4
-      predictors = {theta, dPhi_24, FR_2, FR_4, bend_2, bend_4, dTh_24, RPC_2, RPC_4};
+      predictors = {theta, dPhi_24, FR_2, FR_4, slope_2, slope_4, dTh_24, RPC_2, RPC_4};
       break;
     case 3:  // 3-4
-      predictors = {theta, dPhi_34, FR_3, FR_4, bend_3, bend_4, dTh_34, RPC_3, RPC_4};
+      predictors = {theta, dPhi_34, FR_3, FR_4, slope_3, slope_4, dTh_34, RPC_3, RPC_4};
       break;
   }
 
