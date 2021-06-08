@@ -48,6 +48,7 @@ void L1TGlobalProducer::fillDescriptions(edm::ConfigurationDescriptions& descrip
       ->setComment("InputTag for Calo Trigger Jet (required parameter:  default value is invalid)");
   desc.add<edm::InputTag>("EtSumInputTag", edm::InputTag(""))
       ->setComment("InputTag for Calo Trigger EtSum (required parameter:  default value is invalid)");
+
   desc.add<edm::InputTag>("ExtInputTag", edm::InputTag(""))
       ->setComment("InputTag for external conditions (not required, but recommend to specify explicitly in config)");
   desc.add<edm::InputTag>("AlgoBlkInputTag", edm::InputTag("hltGtStage2Digis"))
@@ -64,6 +65,10 @@ void L1TGlobalProducer::fillDescriptions(edm::ConfigurationDescriptions& descrip
           "true when used by the HLT to produce the object map");
   desc.add<bool>("AlgorithmTriggersUnmasked", false)
       ->setComment("not required, but recommend to specify explicitly in config");
+
+  // switch for muon showers in Run-3
+  desc.add<bool>("useMuonShowers", false);
+
   // These parameters have well defined  default values and are not currently
   // part of the L1T/HLT interface.  They can be cleaned up or updated at will:
   desc.add<bool>("ProduceL1GtDaqRecord", true);
@@ -78,9 +83,7 @@ void L1TGlobalProducer::fillDescriptions(edm::ConfigurationDescriptions& descrip
   desc.add<std::string>("TriggerMenuLuminosity", "startup");
   desc.add<std::string>("PrescaleCSVFile", "prescale_L1TGlobal.csv");
 
-  // new parameter for Run-3
-  desc.add<bool>("useMuonShowers", false);
-  descriptions.add("L1TGlobalProducer", desc);
+  descriptions.add("simGtStage2DigisDef", desc);
 }
 
 // constructors
@@ -121,7 +124,8 @@ L1TGlobalProducer::L1TGlobalProducer(const edm::ParameterSet& parSet)
   m_jetInputToken = consumes<BXVector<Jet>>(m_jetInputTag);
   m_sumInputToken = consumes<BXVector<EtSum>>(m_sumInputTag);
   m_muInputToken = consumes<BXVector<Muon>>(m_muInputTag);
-  m_muShowerInputToken = consumes<BXVector<MuonShower>>(m_muShowerInputTag);
+  if (m_useMuonShowers)
+    m_muShowerInputToken = consumes<BXVector<MuonShower>>(m_muShowerInputTag);
   m_extInputToken = consumes<BXVector<GlobalExtBlk>>(m_extInputTag);
   m_l1GtStableParToken = esConsumes<L1TGlobalParameters, L1TGlobalParametersRcd>();
   m_l1GtMenuToken = esConsumes<L1TUtmTriggerMenu, L1TUtmTriggerMenuRcd>();
