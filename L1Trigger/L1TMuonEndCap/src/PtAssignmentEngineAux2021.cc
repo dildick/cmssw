@@ -1,4 +1,4 @@
-B#include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngineAux2021.h"
+#include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngineAux2021.h"
 
 #include <iostream>
 
@@ -166,7 +166,7 @@ int PtAssignmentEngineAux2021::getCLCT(int clct, int endcap, int dPhiSign, int b
   // 3-bit compression (for 2 St. modes):
   // (-15, -14, ..., -5) -> 1, (-4, -3) -> 2, (-2, -1) -> 3, 0 -> 4, (1, 2) -> 5, (3, 4) -> 6, (5, 6, ..., 15) -> 7
   else if (bits == 3) {
-    if           (clct >= -15 && <=-5) { clct_ = 1; }
+    if           (clct >= -15 && clct <=-5) { clct_ = 1; }
     else if (clct >= -4 && clct < -2 ) { clct_ = 2; }
     else if  (clct >= -2 && clct < 0 ) { clct_ = 3; }
     else if                (clct ==0 ) { clct_ = 4; }
@@ -831,7 +831,7 @@ void PtAssignmentEngineAux2021::calcDeltaThetas(int& dTh12,
 
 }  // Enf function: void PtAssignmentEngineAux2021::calcDeltaThetas()
 
-void PtAssignmentEngineAux2021::calcSlope(const int bend, int& slope, const int endcap, const int mode, const bool BIT_COMP) {
+void PtAssignmentEngineAux2021::calcSlope(const int bend, int& slope, const int endcap, const int mode, const bool BIT_COMP) const {
   if (std::abs(slope) > 15) {
     slope = -99;
     return;
@@ -841,13 +841,13 @@ void PtAssignmentEngineAux2021::calcSlope(const int bend, int& slope, const int 
   // make sure that bending convention is not {0,1}, but {1, -1}!!!
   // bend == 0 means left bending, thus positive
   // bend == 1 means right bending, thus negative
-  //slope *= (1- 2*bend);
+  slope *= (1- 2*bend);
 
   //std::cout << "Slope before compression: " << slope << ", endcap: " << endcap << std::endl;
 
   // Reverse to match dPhi convention
-  //if (endcap == -1)
-  //    slope *= -1;
+  if (endcap == -1)
+    slope *= -1;
 
   if (BIT_COMP) {
 
@@ -856,7 +856,7 @@ void PtAssignmentEngineAux2021::calcSlope(const int bend, int& slope, const int 
       nBits = 2;
 
     if (  mode      / 8 > 0 ) // Has station 1 hit
-      slope = ENG.getCLCT( slope, endcap, 0, nBits);
+      slope = getCLCT( slope, endcap, 0, nBits);
 
     //std::cout << "Slope after compression: " << slope << std::endl;
     //std::cout << "---Next muon---" << std::endl;
