@@ -269,6 +269,8 @@ void L1TGlobalProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSet
     m_nrL1Mu = data->numberL1Mu();
 
     // There should be at most 1 muon shower object per BX
+    // This object contains information for the in-time
+    // showers and out-of-time showers
     if (m_useMuonShowers)
       m_nrL1MuShower = 1;
 
@@ -389,7 +391,7 @@ void L1TGlobalProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSet
         m_l1GtBMCacheID = l1GtBMCacheID;
 
     }
-   
+
 
     // TODO need changes in CondFormats to cache the maps
     const std::vector<L1GtBoard>& boardMaps = m_l1GtBM->gtBoardMaps();
@@ -587,7 +589,8 @@ void L1TGlobalProducer::produce(edm::Event& iEvent, const edm::EventSetup& evSet
 
   m_uGtBrd->receiveMuonObjectData(iEvent, m_muInputToken, receiveMu, m_nrL1Mu);
 
-  m_uGtBrd->receiveMuonShowerObjectData(iEvent, m_muShowerInputToken, receiveMuShower, m_nrL1MuShower);
+  if (m_useMuonShowers)
+    m_uGtBrd->receiveMuonShowerObjectData(iEvent, m_muShowerInputToken, receiveMuShower, m_nrL1MuShower);
 
   m_uGtBrd->receiveExternalData(iEvent, m_extInputToken, receiveExt);
 
