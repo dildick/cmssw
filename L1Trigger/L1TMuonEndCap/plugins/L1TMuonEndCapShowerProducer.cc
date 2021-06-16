@@ -42,7 +42,7 @@ void L1TMuonEndCapShowerProducer::fillDescriptions(edm::ConfigurationDescription
   edm::ParameterSetDescription desc;
   // these are different shower selections that can be enabled
   desc.add<bool>("enableOneNominalShowers", true);
-  desc.add<bool>("enableTwoLooseShowers", false);
+  desc.add<bool>("enableTwoLooseShowers", true);
   desc.add<unsigned>("nLooseShowers", 2);
   desc.add<unsigned>("nNominalShowers", 1);
   desc.add<edm::InputTag>("CSCShowerInput", edm::InputTag("simCscTriggerPrimitiveDigis"));
