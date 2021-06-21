@@ -7,39 +7,52 @@ GEMDigiMatcher::GEMDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
   simMuOnly_ = gemSimLink.getParameter<bool>("simMuOnly");
   discardEleHits_ = gemSimLink.getParameter<bool>("discardEleHits");
   verboseSimLink_ = gemSimLink.getParameter<int>("verbose");
+  runSimLink_ = gemSimLink.getParameter<bool>("run");
 
   const auto& gemDigi = pset.getParameterSet("gemStripDigi");
   minBXDigi_ = gemDigi.getParameter<int>("minBX");
   maxBXDigi_ = gemDigi.getParameter<int>("maxBX");
   matchDeltaStrip_ = gemDigi.getParameter<int>("matchDeltaStrip");
   verboseDigi_ = gemDigi.getParameter<int>("verbose");
+  runDigi_ = gemDigi.getParameter<bool>("run");
   matchToSimLink_ = gemDigi.getParameter<bool>("matchToSimLink");
 
   const auto& gemPad = pset.getParameterSet("gemPadDigi");
   minBXPad_ = gemPad.getParameter<int>("minBX");
   maxBXPad_ = gemPad.getParameter<int>("maxBX");
   verbosePad_ = gemPad.getParameter<int>("verbose");
+  runPad_ = gemPad.getParameter<bool>("run");
 
   const auto& gemCluster = pset.getParameterSet("gemPadCluster");
   minBXCluster_ = gemCluster.getParameter<int>("minBX");
   maxBXCluster_ = gemCluster.getParameter<int>("maxBX");
   verboseCluster_ = gemCluster.getParameter<int>("verbose");
+  runCluster_ = gemCluster.getParameter<bool>("run");
 
   const auto& gemCoPad = pset.getParameterSet("gemCoPadDigi");
   minBXCoPad_ = gemCoPad.getParameter<int>("minBX");
   maxBXCoPad_ = gemCoPad.getParameter<int>("maxBX");
   verboseCoPad_ = gemCoPad.getParameter<int>("verbose");
+  runCoPad_ = gemCoPad.getParameter<bool>("run");
 
   // make a new simhits matcher
   muonSimHitMatcher_.reset(new GEMSimHitMatcher(pset, std::move(iC)));
 
-  if (matchToSimLink_)
+  if (runSimLink_ and matchToSimLink_)
     gemSimLinkToken_ =
-        iC.consumes<edm::DetSetVector<GEMDigiSimLink>>(gemSimLink.getParameter<edm::InputTag>("inputTag"));
-  gemDigiToken_ = iC.consumes<GEMDigiCollection>(gemDigi.getParameter<edm::InputTag>("inputTag"));
-  gemPadToken_ = iC.consumes<GEMPadDigiCollection>(gemPad.getParameter<edm::InputTag>("inputTag"));
-  gemClusterToken_ = iC.consumes<GEMPadDigiClusterCollection>(gemCluster.getParameter<edm::InputTag>("inputTag"));
-  gemCoPadToken_ = iC.consumes<GEMCoPadDigiCollection>(gemCoPad.getParameter<edm::InputTag>("inputTag"));
+      iC.consumes<edm::DetSetVector<GEMDigiSimLink>>(gemSimLink.getParameter<edm::InputTag>("inputTag"));
+
+  if (runDigi_)
+    gemDigiToken_ = iC.consumes<GEMDigiCollection>(gemDigi.getParameter<edm::InputTag>("inputTag"));
+
+  if (runPad_)
+    gemPadToken_ = iC.consumes<GEMPadDigiCollection>(gemPad.getParameter<edm::InputTag>("inputTag"));
+
+  if (runCluster_)
+    gemClusterToken_ = iC.consumes<GEMPadDigiClusterCollection>(gemCluster.getParameter<edm::InputTag>("inputTag"));
+
+  if (runCoPad_)
+    gemCoPadToken_ = iC.consumes<GEMCoPadDigiCollection>(gemCoPad.getParameter<edm::InputTag>("inputTag"));
 
   geomToken_ = iC.esConsumes<GEMGeometry, MuonGeometryRecord>();
 }
@@ -47,12 +60,18 @@ GEMDigiMatcher::GEMDigiMatcher(const edm::ParameterSet& pset, edm::ConsumesColle
 void GEMDigiMatcher::init(const edm::Event& iEvent, const edm::EventSetup& iSetup) {
   muonSimHitMatcher_->init(iEvent, iSetup);
 
-  if (matchToSimLink_)
+  if (runSimLink_ and matchToSimLink_)
     iEvent.getByToken(gemSimLinkToken_, gemDigisSLH_);
-  iEvent.getByToken(gemDigiToken_, gemDigisH_);
-  iEvent.getByToken(gemPadToken_, gemPadsH_);
-  iEvent.getByToken(gemClusterToken_, gemClustersH_);
-  iEvent.getByToken(gemCoPadToken_, gemCoPadsH_);
+
+  if (runDigi_)
+    iEvent.getByToken(gemDigiToken_, gemDigisH_);
+
+  if (runPad_)
+    iEvent.getByToken(gemPadToken_, gemPadsH_);
+
+  if (runCluster_)  iEvent.getByToken(gemClusterToken_, gemClustersH_);
+
+  if (runCoPad_)iEvent.getByToken(gemCoPadToken_, gemCoPadsH_);
 
   gemGeometry_ = &iSetup.getData(geomToken_);
 }
@@ -75,14 +94,15 @@ void GEMDigiMatcher::match(const SimTrack& t, const SimVertex& v) {
     return;
 
   // now match the digis
-  if (matchToSimLink_) {
+  if (runSimLink_ and matchToSimLink_) {
     const edm::DetSetVector<GEMDigiSimLink>& gemDigisSL = *gemDigisSLH_.product();
     matchDigisSLToSimTrack(gemDigisSL);
   }
-  matchDigisToSimTrack(gemDigis);
+  if (runDigi_)  matchDigisToSimTrack(gemDigis);
+  if (runPad_)
   matchPadsToSimTrack(gemPads);
-  matchClustersToSimTrack(gemClusters);
-  matchCoPadsToSimTrack(gemCoPads);
+  if (runCluster_)  matchClustersToSimTrack(gemClusters);
+  if (runCoPad_)  matchCoPadsToSimTrack(gemCoPads);
 }
 
 void GEMDigiMatcher::matchDigisSLToSimTrack(const edm::DetSetVector<GEMDigiSimLink>& digisSL) {

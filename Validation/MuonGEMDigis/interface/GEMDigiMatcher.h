@@ -154,6 +154,12 @@ private:
   bool verboseCluster_;
   bool verboseCoPad_;
 
+  bool runSimLink_;
+  bool runDigi_;
+  bool runPad_;
+  bool runCluster_;
+  bool runCoPad_;
+
   bool matchToSimLink_;
 
   std::map<unsigned int, GEMDigiSimLinkContainer> detid_to_simLinks_;
