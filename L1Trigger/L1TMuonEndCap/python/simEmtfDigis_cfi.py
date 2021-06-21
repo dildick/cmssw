@@ -13,6 +13,8 @@ simEmtfDigisMC = cms.EDProducer("L1TMuonEndCapTrackProducer",
     # Verbosity level
     verbosity = cms.untracked.int32(0),
 
+                                xmlLutVersion = cms.string('v1p0/'),
+
     # Configure by firmware version, which may be different than the default parameters in this file
     FWConfig = cms.bool(True),
 
@@ -161,4 +163,4 @@ stage2L1Trigger_2018.toModify(simEmtfDigis, RPCEnable = cms.bool(True), Era = cm
 
 ## Era: Run3_2021
 from Configuration.Eras.Modifier_stage2L1Trigger_2021_cff import stage2L1Trigger_2021
-stage2L1Trigger_2021.toModify(simEmtfDigis, RPCEnable = cms.bool(True), spPCParams16 = dict(UseRun3CCLUT = True), Era = cms.string('Run2_2021'))
+stage2L1Trigger_2021.toModify(simEmtfDigis, RPCEnable = cms.bool(True), spPCParams16 = dict(UseRun3CCLUT = True), Era = cms.string('Run3_2021'))

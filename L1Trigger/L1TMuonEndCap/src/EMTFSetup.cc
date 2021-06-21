@@ -1,5 +1,5 @@
 #include <memory>
-
+#include <iostream>
 #include "L1Trigger/L1TMuonEndCap/interface/EMTFSetup.h"
 
 #include "FWCore/Utilities/interface/Exception.h"
@@ -27,6 +27,8 @@ EMTFSetup::EMTFSetup(const edm::ParameterSet& iConfig)
     pt_assign_engine_ = std::make_unique<PtAssignmentEngine2021>();  //TODO - implement ver 2021
   } else {
     throw cms::Exception("L1TMuonEndCap") << "Cannot recognize the era option: " << era();
+
+    xmlLutVersion_ = iConfig.getParameter<std::string>("xmlLutVersion");
   }
 
   // No era setup for displaced pT assignment engine
@@ -63,7 +65,8 @@ void EMTFSetup::reload(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
 
   // Reload pT LUT if necessary
   //pt_assign_engine_->load(get_pt_lut_version(), condition_helper_.getForest());
-  pt_assign_engine_->read(get_pt_lut_version(), "v1/");
+  std::cout << "Loading LUT " << xmlLutVersion_ << std::endl;
+  pt_assign_engine_->read(get_pt_lut_version(), xmlLutVersion_);
 
   return;
 }
