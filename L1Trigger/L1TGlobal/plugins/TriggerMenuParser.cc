@@ -14,9 +14,9 @@
  *                - correlations with overlap object removal
  *                - displaced muons by R.Cavanaugh
  *
- * \new features: Elisa Fontanesi                                                      
- *                - extended for three-body correlation conditions                                         
- *                                                                
+ * \new features: Elisa Fontanesi
+ *                - extended for three-body correlation conditions
+ *
  * $Date$
  * $Revision$
  *
@@ -111,6 +111,11 @@ void l1t::TriggerMenuParser::setVecMuonTemplate(const std::vector<std::vector<Mu
   m_vecMuonTemplate = vecMuonTempl;
 }
 
+void l1t::TriggerMenuParser::setVecMuonShowerTemplate(
+    const std::vector<std::vector<MuonShowerTemplate> >& vecMuonShowerTempl) {
+  m_vecMuonShowerTemplate = vecMuonShowerTempl;
+}
+
 void l1t::TriggerMenuParser::setVecCaloTemplate(const std::vector<std::vector<CaloTemplate> >& vecCaloTempl) {
   m_vecCaloTemplate = vecCaloTempl;
 }
@@ -202,6 +207,7 @@ void l1t::TriggerMenuParser::parseCondFormats(const L1TUtmTriggerMenu* utmMenu) 
   m_conditionMap.resize(m_numberConditionChips);
 
   m_vecMuonTemplate.resize(m_numberConditionChips);
+  m_vecMuonShowerTemplate.resize(m_numberConditionChips);
   m_vecCaloTemplate.resize(m_numberConditionChips);
   m_vecEnergySumTemplate.resize(m_numberConditionChips);
   m_vecExternalTemplate.resize(m_numberConditionChips);
@@ -299,6 +305,12 @@ void l1t::TriggerMenuParser::parseCondFormats(const L1TUtmTriggerMenu* utmMenu) 
                    condition.getType() == esConditionType::TripleMuon ||
                    condition.getType() == esConditionType::QuadMuon) {
           parseMuon(condition, chipNr, false);
+
+        } else if (condition.getType() == esConditionType::MuonShower0 ||
+                   condition.getType() == esConditionType::MuonShower1 ||
+                   condition.getType() == esConditionType::MuonShowerOutOfTime0 ||
+                   condition.getType() == esConditionType::MuonShowerOutOfTime1) {
+          parseMuonShower(condition, chipNr, false);
 
           //parse Correlation Conditions
         } else if (condition.getType() == esConditionType::MuonMuonCorrelation ||
@@ -1516,6 +1528,89 @@ bool l1t::TriggerMenuParser::parseMuonCorr(const tmeventsetup::esObject* corrMu,
   (m_corMuonTemplate[chipNr]).push_back(muonCond);
 
   //
+  return true;
+}
+
+/**
+ * parseMuon Parse a muon condition and insert an entry to the conditions map
+ *
+ * @param node The corresponding node.
+ * @param name The name of the condition.
+ * @param chipNr The number of the chip this condition is located.
+ *
+ * @return "true" if succeeded, "false" if an error occurred.
+ *
+ */
+
+bool l1t::TriggerMenuParser::parseMuonShower(tmeventsetup::esCondition condMu,
+                                             unsigned int chipNr,
+                                             const bool corrFlag) {
+  using namespace tmeventsetup;
+
+  // get condition, particle name (must be muon) and type name
+  std::string condition = "muonShower";
+  std::string particle = "muonShower";  //l1t2string( condMu.objectType() );
+  std::string type = l1t2string(condMu.getType());
+  std::string name = l1t2string(condMu.getName());
+  // the number of muon shower objects is always 1
+  int nrObj = 1;
+
+  // condition type is always 1 particle, thus Type1s
+  GtConditionType cType = l1t::Type1s;
+
+  LogDebug("TriggerMenuParser") << "\n ****************************************** "
+                                << "\n      parseMuon  "
+                                << "\n condition = " << condition << "\n particle  = " << particle
+                                << "\n type      = " << type << "\n name      = " << name << std::endl;
+
+  // temporary storage of the parameters
+  std::vector<MuonShowerTemplate::ObjectParameter> objParameter(nrObj);
+
+  if (int(condMu.getObjects().size()) != nrObj) {
+    edm::LogError("TriggerMenuParser") << " condMu objects: nrObj = " << nrObj
+                                       << "condMu.getObjects().size() = " << condMu.getObjects().size() << std::endl;
+    return false;
+  }
+
+  // Get the muon shower object
+  esObject object = condMu.getObjects().at(0);
+  int relativeBx = object.getBxOffset();
+  /*
+    objParameter[0].oneNominalInTime;
+    objParameter[0].oneNominalOutOfTime;
+    objParameter[0].twoLooseInTime;
+    objParameter[0].twoLooseOutOfTime;
+  */
+
+  // object types - all muons
+  std::vector<GlobalObject> objType(nrObj, gtMuShower);
+
+  // now create a new CondMuonition
+  MuonShowerTemplate muonShowerCond(name);
+
+  muonShowerCond.setCondType(cType);
+  muonShowerCond.setObjectType(objType);
+  muonShowerCond.setCondGEq(gEq);
+  muonShowerCond.setCondChipNr(chipNr);
+  muonShowerCond.setCondRelativeBx(relativeBx);
+
+  muonShowerCond.setConditionParameter(objParameter);
+
+  if (edm::isDebugEnabled()) {
+    std::ostringstream myCoutStream;
+    muonShowerCond.print(myCoutStream);
+    LogTrace("TriggerMenuParser") << myCoutStream.str() << "\n" << std::endl;
+  }
+
+  // insert condition into the map and into muon template vector
+  if (!insertConditionIntoMap(muonShowerCond, chipNr)) {
+    edm::LogError("TriggerMenuParser") << "    Error: duplicate condition (" << name << ")" << std::endl;
+    return false;
+  } else {
+    LogDebug("TriggerMenuParser") << "Added Condition " << name << " to the ConditionMap" << std::endl;
+    LogDebug("TriggerMenuParser") << "Added Condition " << name << " to the vecMuonShowerTemplate vector" << std::endl;
+    (m_vecMuonShowerTemplate[chipNr]).push_back(muonShowerCond);
+  }
   return true;
 }
 

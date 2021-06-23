@@ -44,4 +44,7 @@
   <class name="CaloTemplate::CorrelationParameter"/>
   <class name="std::vector<CaloTemplate>"/>
   <class name="std::vector<std::vector<CaloTemplate> >"/>
+  <class name="MuonShowerTemplate"/>
+  <class name="MuonShowerTemplate::ObjectParameter"/>
+  <class name="std::vector<MuonShowerTemplate::ObjectParameter>"/>
 </lcgdict>

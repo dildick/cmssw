@@ -41,6 +41,7 @@ TriggerMenu::TriggerMenu(
     const std::string& triggerMenuNameVal,
     const unsigned int numberConditionChips,
     const std::vector<std::vector<MuonTemplate> >& vecMuonTemplateVal,
+    const std::vector<std::vector<MuonShowerTemplate> >& vecMuonShowerTemplateVal,
     const std::vector<std::vector<CaloTemplate> >& vecCaloTemplateVal,
     const std::vector<std::vector<EnergySumTemplate> >& vecEnergySumTemplateVal,
     const std::vector<std::vector<ExternalTemplate> >& vecExternalTemplateVal,
