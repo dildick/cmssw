@@ -432,6 +432,11 @@ void GlobalCondition::print(std::ostream& myCout) const {
       }
 
       break;
+      case l1t::gtMuShower: {
+        myCout << " MuShower ";
+      }
+
+      break;
       case l1t::gtEG: {
         myCout << " EG ";
       }
