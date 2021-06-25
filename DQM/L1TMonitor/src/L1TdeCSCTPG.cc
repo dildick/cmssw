@@ -115,6 +115,13 @@ void L1TdeCSCTPG::analyze(const edm::Event& e, const edm::EventSetup& c) {
   for (auto it = dataALCTs->begin(); it != dataALCTs->end(); it++) {
     auto range = dataALCTs->get((*it).first);
     const int type = ((*it).first).iChamberType() - 2;
+    const CSCDetId& detid((*it).first);
+    // disable ME+1/1/9, ME+1/1/10, ME+1/1/11
+    if (detid.endcap() == 1 and detid.station() == 1 and detid.ring() == 1) {
+      if (detid.chamber() == 9 or detid.chamber() == 10 or detid.chamber() == 11) {
+        continue;
+      }
+    }
     // ignore non-ME1/1 chambers when using B904 test-stand data
     if (B904Setup_ and !((*it).first).isME11())
       continue;
@@ -152,6 +159,13 @@ void L1TdeCSCTPG::analyze(const edm::Event& e, const edm::EventSetup& c) {
     // ignore non-ME1/1 chambers when using B904 test-stand data
     if (B904Setup_ and !((*it).first).isME11())
       continue;
+    const CSCDetId& detid((*it).first);
+    // disable ME+1/1/9, ME+1/1/10, ME+1/1/11
+    if (detid.endcap() == 1 and detid.station() == 1 and detid.ring() == 1) {
+      if (detid.chamber() == 9 or detid.chamber() == 10 or detid.chamber() == 11) {
+        continue;
+      }
+    }
     for (auto clct = range.first; clct != range.second; clct++) {
       if (clct->isValid()) {
         if (preTriggerAnalysis_) {
@@ -238,6 +252,15 @@ void L1TdeCSCTPG::analyze(const edm::Event& e, const edm::EventSetup& c) {
     // ignore non-ME1/1 chambers when using B904 test-stand data
     if (B904Setup_ and !((*it).first).isME11())
       continue;
+
+    const CSCDetId& detid((*it).first);
+    // disable ME+1/1/9, ME+1/1/10, ME+1/1/11
+    if (detid.endcap() == 1 and detid.station() == 1 and detid.ring() == 1) {
+      if (detid.chamber() == 9 or detid.chamber() == 10 or detid.chamber() == 11) {
+        continue;
+      }
+    }
+
     for (auto lct = range.first; lct != range.second; lct++) {
       if (lct->isValid()) {
         chamberHistos[type]["lct_pattern_data"]->Fill(lct->getPattern());

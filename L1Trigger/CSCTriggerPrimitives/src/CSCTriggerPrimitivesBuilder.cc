@@ -137,6 +137,13 @@ void CSCTriggerPrimitivesBuilder::build(const CSCBadChambers* badChambers,
             // actual chamber number =/= trigger chamber number
             int chid = CSCTriggerNumbering::chamberFromTriggerLabels(sect, subs, stat, cham);
 
+            // disable ME+1/1/9, ME+1/1/10, ME+1/1/11
+            if (endc == 1 and stat == 1 and ring == 1) {
+              if (chid == 9 or chid == 10 or chid == 11) {
+                continue;
+              }
+            }
+
             // 0th layer means whole chamber.
             CSCDetId detid(endc, stat, ring, chid, 0);
 
