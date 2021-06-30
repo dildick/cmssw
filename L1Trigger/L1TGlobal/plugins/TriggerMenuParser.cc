@@ -1575,22 +1575,27 @@ bool l1t::TriggerMenuParser::parseMuonShower(tmeventsetup::esCondition condMu,
   // Get the muon shower object
   esObject object = condMu.getObjects().at(0);
   int relativeBx = object.getBxOffset();
-  /*
-    objParameter[0].oneNominalInTime;
-    objParameter[0].oneNominalOutOfTime;
-    objParameter[0].twoLooseInTime;
-    objParameter[0].twoLooseOutOfTime;
-  */
+
+  if (condMu.getType() == esConditionType::MuonShower0) {
+    objParameter[0].MuonShower0 = true;
+  }
+  else if (condMu.getType() == esConditionType::MuonShower1) {
+    objParameter[0].MuonShower1 = true;
+  }
+  else if (condMu.getType() == esConditionType::MuonShowerOutOfTime0) {
+    objParameter[0].MuonShowerOutOfTime0 = true;
+  }
+  else if (condMu.getType() == esConditionType::MuonShowerOutOfTime1) {
+    objParameter[0].MuonShowerOutOfTime1 = true;
+  }
 
   // object types - all muons
   std::vector<GlobalObject> objType(nrObj, gtMuShower);
 
   // now create a new CondMuonition
   MuonShowerTemplate muonShowerCond(name);
-
   muonShowerCond.setCondType(cType);
   muonShowerCond.setObjectType(objType);
-  muonShowerCond.setCondGEq(gEq);
   muonShowerCond.setCondChipNr(chipNr);
   muonShowerCond.setCondRelativeBx(relativeBx);
 

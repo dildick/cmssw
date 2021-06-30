@@ -52,10 +52,10 @@ void MuonShowerTemplate::print(std::ostream& myCout) const {
   for (int i = 0; i < nObjects; i++) {
     myCout << std::endl;
     myCout << "  Template for object " << i << " [ hex ]" << std::endl;
-    myCout << "    oneNominalInTime   = " << std::hex << m_objectParameter[i].oneNominalInTime << std::endl;
-    myCout << "    oneNominalOutOfTime   = " << std::hex << m_objectParameter[i].oneNominalOutOfTime << std::endl;
-    myCout << "    twoLooseInTime   = " << std::hex << m_objectParameter[i].twoLooseInTime << std::endl;
-    myCout << "    twoLooseOutOfTime   = " << std::hex << m_objectParameter[i].twoLooseOutOfTime << std::endl;
+    myCout << "    MuonShower0   = " << std::hex << m_objectParameter[i].MuonShower0 << std::endl;
+    myCout << "    MuonShower1   = " << std::hex << m_objectParameter[i].MuonShower1 << std::endl;
+    myCout << "    MuonShowerOutOfTime0   = " << std::hex << m_objectParameter[i].MuonShowerOutOfTime1 << std::endl;
+    myCout << "    MuonShowerOutOfTime1   = " << std::hex << m_objectParameter[i].MuonShowerOutOfTime1 << std::endl;
   }
 
   // reset to decimal output
