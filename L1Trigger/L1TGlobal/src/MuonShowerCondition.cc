@@ -151,44 +151,39 @@ const bool l1t::MuonShowerCondition::checkObjectParameter(const int iCondition,
 
   const MuonShowerTemplate::ObjectParameter objPar = (*(m_gtMuonShowerTemplate->objectParameter()))[iCondition];
 
-   LogDebug("L1TGlobal")
-     << "\n MuonShowerTemplate::ObjectParameter : " << std::hex
-     << "\n\t oneNominalInTime = 0x "
-     << objPar.oneNominalInTime << "\n\t oneNominalOutOfTime  = 0x " << objPar.oneNominalOutOfTime
-     << "\n\t twoLooseInTime = 0x "
-     << objPar.twoLooseInTime << "\n\t twoLooseOutOfTime  = 0x " << objPar.twoLooseOutOfTime
-     << std::endl;
+  LogDebug("L1TGlobal")
+    << "\n MuonShowerTemplate::ObjectParameter : " << std::hex
+    << "\n\t MuonShower0 = 0x " << objPar.MuonShower0
+    << "\n\t MuonShower1 = 0x " << objPar.MuonShower1
+    << "\n\t MuonShowerOutOfTime0 = 0x " << objPar.MuonShowerOutOfTime0
+    << "\n\t MuonShowerOutOfTime1 = 0x " << objPar.MuonShowerOutOfTime1
+    << std::endl;
 
-   LogDebug("L1TGlobal") << "\n l1t::MuonShower : "
-                         << "\n\t oneNominalInTime       = 0x " << cand.isOneNominalInTime()
-                         << "\n\t oneNominalOutOfTime       = 0x " << cand.isOneNominalOutOfTime()
-                         << "\n\t twoLooseInTime       = 0x " << cand.isTwoLooseInTime()
-                         << "\n\t twoLooseOutOfTime       = 0x " << cand.isTwoLooseOutOfTime()
-                         << std::dec << std::endl;
+  LogDebug("L1TGlobal")
+    << "\n l1t::MuonShower : "
+    << "\n\t MuonShower0 = 0x " << cand.mus0()
+    << "\n\t MuonShower1 = 0x " << cand.mus1()
+    << "\n\t MuonShowerOutOfTime0 = 0x " << cand.musOutOfTime0()
+    << "\n\t MuonShowerOutOfTime1 = 0x " << cand.musOutOfTime1()
+    << std::dec << std::endl;
 
-   // check oneNominalInTime
-   if (cand.isOneNominalInTime() != objPar.oneNominalInTime) {
-     LogDebug("L1TGlobal") << "\t\t MuonShower failed oneNominalInTime requirement" << std::endl;
-       return false;
-   }
-   if (cand.isTwoLooseInTime() != objPar.twoLooseInTime) {
-     LogDebug("L1TGlobal") << "\t\t MuonShower failed twoLooseInTime requirement" << std::endl;
-       return false;
-   }
-   if (cand.isOneNominalOutOfTime() != objPar.oneNominalOutOfTime) {
-     LogDebug("L1TGlobal") << "\t\t MuonShower failed oneNominalOutOfTime requirement" << std::endl;
-       return false;
-   }
-   if (cand.isTwoLooseOutOfTime() != objPar.twoLooseOutOfTime) {
-     LogDebug("L1TGlobal") << "\t\t MuonShower failed twoLooseOutOfTime requirement" << std::endl;
-       return false;
-   }
-
-   //check index
-   if (!checkIndex(objPar.indexLow, objPar.indexHigh, index)) {
-     LogDebug("L1TGlobal") << "\t\t MuonShower Failed checkIndex " << std::endl;
-     return false;
-   }
+  // check oneNominalInTime
+  if (cand.mus0() != objPar.MuonShower0) {
+    LogDebug("L1TGlobal") << "\t\t MuonShower failed MuonShower0 requirement" << std::endl;
+    return false;
+  }
+  if (cand.mus1() != objPar.MuonShower1) {
+    LogDebug("L1TGlobal") << "\t\t MuonShower failed MuonShower1 requirement" << std::endl;
+    return false;
+  }
+  if (cand.musOutOfTime0() != objPar.MuonShowerOutOfTime0) {
+    LogDebug("L1TGlobal") << "\t\t MuonShower failed MuonShowerOutOfTime0 requirement" << std::endl;
+    return false;
+  }
+  if (cand.musOutOfTime1() != objPar.MuonShowerOutOfTime1) {
+    LogDebug("L1TGlobal") << "\t\t MuonShower failed MuonShowerOutOfTime1 requirement" << std::endl;
+    return false;
+  }
 
   return true;
 }

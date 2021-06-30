@@ -45,12 +45,10 @@ public:
 
   // typedef for a single object template
   struct ObjectParameter {
-    bool oneNominalInTime;
-    bool oneNominalOutOfTime;
-    bool twoLooseInTime;
-    bool twoLooseOutOfTime;
-    unsigned int indexHigh;
-    unsigned int indexLow;
+    bool MuonShower0;
+    bool MuonShower1;
+    bool MuonShowerOutOfTime0;
+    bool MuonShowerOutOfTime1;
   };
 
 public:
