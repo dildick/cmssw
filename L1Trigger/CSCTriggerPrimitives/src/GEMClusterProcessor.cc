@@ -168,7 +168,7 @@ void GEMClusterProcessor::addCoincidenceClusters(const GEMPadDigiClusterCollecti
             continue;
 
           // get the corrected minimum and maximum of cluster 1
-          Int cl1_min = p->pads().front() - maxDeltaPad_;
+          int cl1_min = p->pads().front() - maxDeltaPad_;
           int cl1_max = p->pads().back() + maxDeltaPad_;
 
           // get the minimum and maximum of cluster 2
