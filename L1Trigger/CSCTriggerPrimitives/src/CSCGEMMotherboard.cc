@@ -554,7 +554,7 @@ void CSCGEMMotherboard::constructLCTsGEM(const CSCALCTDigi& alct,
 
 void CSCGEMMotherboard::dropLowQualityALCTNoClusters(CSCALCTDigi& alct, const GEMInternalCluster& cluster) const {
   // clear alct if they are of low quality without matching GEM clusters
-  if (alct.getQuality() == 0 and cluster.isValid() and drop_low_quality_alct_no_gems_)
+  if (alct.getQuality() == 0 and !cluster.isValid() and drop_low_quality_alct_no_gems_)
     alct.clear();
 }
 
