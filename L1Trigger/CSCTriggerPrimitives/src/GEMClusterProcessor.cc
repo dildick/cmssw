@@ -223,7 +223,7 @@ void GEMClusterProcessor::addSingleClusters(const GEMPadDigiClusterCollection* i
     const auto& clusters_range = (*det_range).second;
     for (auto p = clusters_range.first; p != clusters_range.second; ++p) {
       // only consider valid clusters
-      if (p->isValid())
+      if (!p->isValid())
         continue;
 
       // ignore 8-partition GE2/1 pads
