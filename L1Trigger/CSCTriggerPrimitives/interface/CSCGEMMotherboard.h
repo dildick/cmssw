@@ -99,10 +99,10 @@ private:
                         CSCCorrelatedLCTDigi& lct) const;
 
   /* Construct LCT from CSC and GEM information. Options are CLCT-2GEM */
-  void constructLCTsGEM(const CSCCLCTDigi& clct, const GEMInternalCluster& gem, CSCCorrelatedLCTDigi& lct) const;
+  void constructLCTsGEM(const CSCCLCTDigi& clct, const GEMInternalCluster& gem, int trackNumber, CSCCorrelatedLCTDigi& lct) const;
 
   /* Construct LCT from CSC and GEM information. Options are ALCT-2GEM */
-  void constructLCTsGEM(const CSCALCTDigi& alct, const GEMInternalCluster& gem, CSCCorrelatedLCTDigi& lct) const;
+  void constructLCTsGEM(const CSCALCTDigi& alct, const GEMInternalCluster& gem, int trackNumber, CSCCorrelatedLCTDigi& lct) const;
 
   // helper functions to drop low quality ALCTs or CLCTs
   // without matching LCTs

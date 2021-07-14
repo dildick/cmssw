@@ -301,10 +301,10 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
 
   // construct all LCTs with valid ALCTs and coincidence clusters
   if (bestALCT.isValid() and bestCluster.isCoincidence()) {
-    constructLCTsGEM(bestALCT, bestCluster, lct1);
+    constructLCTsGEM(bestALCT, bestCluster, 1, lct1);
   }
   if (secondALCT.isValid() and secondCluster.isCoincidence()) {
-    constructLCTsGEM(secondALCT, secondCluster, lct2);
+    constructLCTsGEM(secondALCT, secondCluster, 2, lct2);
   }
 }
 
@@ -337,10 +337,10 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCCLCTDigi& bCLCT,
 
   // construct all LCTs with valid CLCTs and coincidence clusters
   if (bestCLCT.isValid() and bestCluster.isCoincidence()) {
-    constructLCTsGEM(bestCLCT, bestCluster, lct1);
+    constructLCTsGEM(bestCLCT, bestCluster, 1, lct1);
   }
   if (secondCLCT.isValid() and secondCluster.isCoincidence()) {
-    constructLCTsGEM(secondCLCT, secondCluster, lct2);
+    constructLCTsGEM(secondCLCT, secondCluster, 2, lct2);
   }
 }
 
@@ -529,6 +529,7 @@ void CSCGEMMotherboard::constructLCTsGEM(const CSCALCTDigi& alct,
 /* Construct LCT from CSC and GEM information. Option CLCT-2GEM */
 void CSCGEMMotherboard::constructLCTsGEM(const CSCCLCTDigi& clct,
                                          const GEMInternalCluster& gem,
+                                         int trackNumber,
                                          CSCCorrelatedLCTDigi& thisLCT) const {
   thisLCT.setValid(true);
   thisLCT.setType(CSCCorrelatedLCTDigi::CLCT2GEM);
@@ -541,8 +542,7 @@ void CSCGEMMotherboard::constructLCTsGEM(const CSCCLCTDigi& clct,
   thisLCT.setBX0(0);
   thisLCT.setSyncErr(0);
   thisLCT.setCSCID(theTrigChamber);
-  // track number to be set later in final sorting stage
-  thisLCT.setTrknmb(0);
+  thisLCT.setTrknmb(trackNumber);
   thisLCT.setWireGroup(gem.getKeyWG());
   thisLCT.setStrip(clct.getKeyStrip());
   thisLCT.setBend(clct.getBend());
@@ -563,6 +563,7 @@ void CSCGEMMotherboard::constructLCTsGEM(const CSCCLCTDigi& clct,
 /* Construct LCT from CSC and GEM information. Option ALCT-2GEM */
 void CSCGEMMotherboard::constructLCTsGEM(const CSCALCTDigi& alct,
                                          const GEMInternalCluster& gem,
+                                         int trackNumber,
                                          CSCCorrelatedLCTDigi& thisLCT) const {
   thisLCT.setValid(true);
   thisLCT.setType(CSCCorrelatedLCTDigi::ALCT2GEM);
@@ -574,8 +575,7 @@ void CSCGEMMotherboard::constructLCTsGEM(const CSCALCTDigi& alct,
   thisLCT.setBX0(0);
   thisLCT.setSyncErr(0);
   thisLCT.setCSCID(theTrigChamber);
-  // track number to be set later in final sorting stage
-  thisLCT.setTrknmb(0);
+  thisLCT.setTrknmb(trackNumber);
   thisLCT.setWireGroup(alct.getKeyWG());
   thisLCT.setStrip(gem.getKeyStrip());
   thisLCT.setBend(0);
