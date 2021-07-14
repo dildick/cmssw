@@ -94,7 +94,7 @@ void CSCGEMMotherboard::run(const CSCWireDigiCollection* wiredc,
     higher quality than CLCT-2GEM and ALCT-2GEM LCTs. The mask is passsed
     from one function to the next.
   */
-  bool bunch_crossing_mask[CSCConstants::MAX_ALCT_TBINS];
+  bool bunch_crossing_mask[CSCConstants::MAX_ALCT_TBINS] = {false};
 
   // Step 4: ALCT-centric matching
   matchALCTCLCTGEM(bunch_crossing_mask);
@@ -169,6 +169,10 @@ void CSCGEMMotherboard::matchCLCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
   bool used_clct_mask[CSCConstants::MAX_CLCT_TBINS] = {false};
 
   for (int bx_gem = 0; bx_gem < CSCConstants::MAX_ALCT_TBINS; bx_gem++) {
+    // do not consider LCT building in this BX if the mask was set
+    if (bunch_crossing_mask[bx_gem])
+      continue;
+
     // Check that there is at least one valid GEM coincidence cluster in this BX
     if (!clusterProc_->getCoincidenceClusters(bx_gem).empty()) {
       // GEM clusters will have central BX 8. So do ALCTs. But! CLCTs still have central BX 7
@@ -183,22 +187,18 @@ void CSCGEMMotherboard::matchCLCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
         // drop this CLCT if it was previously matched to a GEM coincidence cluster
         if (drop_used_clcts and used_clct_mask[bx_clct])
           continue;
-        // do not consider LCT building in this BX if the mask was set
-        if (bunch_crossing_mask[bx_gem])
-          continue;
         // do not consider invalid CLCTs
         if (clctProc->getBestCLCT(bx_clct).isValid()) {
           // if this is an ME1/a CLCT, you could consider not building this LCT
           if (!build_lct_from_clct_gem_me1a_ and isME11_ and
               clctProc->getBestCLCT(bx_clct).getKeyStrip() > CSCConstants::MAX_HALF_STRIP_ME1B)
             continue;
-
           // mbx is a relative time difference, which is used later in the
           // cross-bunching sorting algorithm to determine the preferred LCTs
           // to be sent to the MPC
           int mbx = bx_clct - bx_clct_start;
-          correlateLCTsGEM(clctProc->getBestCLCT(bx_gem),
-                           clctProc->getSecondCLCT(bx_gem),
+          correlateLCTsGEM(clctProc->getBestCLCT(bx_clct),
+                           clctProc->getSecondCLCT(bx_clct),
                            clusterProc_->getCoincidenceClusters(bx_gem),
                            allLCTs_(bx_gem, mbx, 0),
                            allLCTs_(bx_gem, mbx, 1));
@@ -230,6 +230,10 @@ void CSCGEMMotherboard::matchALCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
   bool used_gem_mask[CSCConstants::MAX_ALCT_TBINS] = {false};
 
   for (int bx_alct = 0; bx_alct < CSCConstants::MAX_ALCT_TBINS; bx_alct++) {
+    // do not consider LCT building in this BX if the mask was set
+    if (bunch_crossing_mask[bx_alct])
+      continue;
+
     if (alctProc->getBestALCT(bx_alct).isValid()) {
       const int bx_gem_start(bx_alct - max_delta_bx_alct_gem_);
       const int bx_gem_stop(bx_alct + max_delta_bx_alct_gem_);
@@ -237,21 +241,18 @@ void CSCGEMMotherboard::matchALCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
       for (int bx_gem = bx_gem_start; bx_gem <= bx_gem_stop; bx_gem++) {
         if (bx_gem < 0 or bx_gem >= CSCConstants::MAX_ALCT_TBINS)
           continue;
-        // drop GEMs in this BX if one of then was previously matched to an ALCT
+        // drop GEMs in this BX if one of them was previously matched to an ALCT
         if (drop_used_gems_ and used_gem_mask[bx_gem])
           continue;
-        // do not consider LCT building in this BX if the mask was set
-        if (bunch_crossing_mask[bx_alct])
-          continue;
         // check for at least one valid GEM cluster
-        if (!clusterProc_->getCoincidenceClusters(bx_alct).empty()) {
+        if (!clusterProc_->getCoincidenceClusters(bx_gem).empty()) {
           // mbx is a relative time difference, which is used later in the
           // cross-bunching sorting algorithm to determine the preferred LCTs
           // to be sent to the MPC
           int mbx = bx_gem - bx_gem_start;
           correlateLCTsGEM(alctProc->getBestALCT(bx_alct),
                            alctProc->getSecondALCT(bx_alct),
-                           clusterProc_->getCoincidenceClusters(bx_alct),
+                           clusterProc_->getCoincidenceClusters(bx_gem),
                            allLCTs_(bx_alct, mbx, 0),
                            allLCTs_(bx_alct, mbx, 1));
 
@@ -350,9 +351,12 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
                                          const GEMInternalClusters& clusters,
                                          CSCCorrelatedLCTDigi& lct1,
                                          CSCCorrelatedLCTDigi& lct2) const {
+
   if (isME21_ and !hasGE21Geometry16Partitions_) {
     // This is an 8-eta partition GE2/1 geometry for which the GE2/1-ME2/1 integrated
     // local trigger is not configured. Matching only ALCTs with CLCTs in ME2/1.
+
+    // do regular ALCT-CLCT correlation
     CSCMotherboard::correlateLCTs(bALCT, sALCT, bCLCT, sCLCT, lct1, lct2, CSCCorrelatedLCTDigi::ALCTCLCT);
   } else {
     // temporary container
@@ -440,27 +444,21 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
       CSCCorrelatedLCTDigi lctbb, lctbs, lctsb, lctss;
       if (bestALCT.isValid() and bestCLCT.isValid()) {
         constructLCTsGEM(bestALCT, bestCLCT, bbCluster, lctbb);
+        lcts.push_back(lctbb);
       }
       if (bestALCT.isValid() and secondCLCT.isValid() and (secondCLCT != bestCLCT)) {
         constructLCTsGEM(bestALCT, secondCLCT, bsCluster, lctbs);
+        lcts.push_back(lctbs);
       }
       if (bestCLCT.isValid() and secondALCT.isValid() and (secondALCT != bestALCT)) {
         constructLCTsGEM(secondALCT, bestCLCT, sbCluster, lctsb);
+        lcts.push_back(lctsb);
       }
       if (secondALCT.isValid() and secondCLCT.isValid() and (secondALCT != bestALCT) and
           (secondCLCT != bestCLCT)) {
         constructLCTsGEM(secondALCT, secondCLCT, ssCluster, lctss);
-      }
-
-      // add the valid LCTs
-      if (lctbb.isValid())
-        lcts.push_back(lctbb);
-      if (lct2.isValid())
-        lcts.push_back(lctbs);
-      if (lctsb.isValid())
-        lcts.push_back(lctsb);
-      if (lctss.isValid())
         lcts.push_back(lctss);
+      }
 
       // no LCTs
       if (lcts.empty())
@@ -472,6 +470,7 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
       // retain best two
       lcts.resize(CSCConstants::MAX_LCTS_PER_CSC);
 
+      // assign and set the track number
       if (lcts[0].isValid()) {
         lct1 = lcts[0];
         lct1.setTrknmb(1);
