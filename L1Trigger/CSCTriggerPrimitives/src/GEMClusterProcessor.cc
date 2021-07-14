@@ -406,7 +406,8 @@ void GEMClusterProcessor::doCoordinateConversion() {
     }
 
     // calculate the wiregroups
-    const int roll = cluster.roll();
+    // need to subtract 1 to use the LUTs
+    const int roll = cluster.roll() - 1;
 
     int roll_l1_to_min_wg = -1;
     int roll_l1_to_max_wg = -1;
