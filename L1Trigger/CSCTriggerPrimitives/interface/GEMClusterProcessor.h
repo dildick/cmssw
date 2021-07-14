@@ -30,6 +30,9 @@ public:
   /* Returns clusters for a given BX */
   std::vector<GEMInternalCluster> getClusters(int bx) const;
 
+  /* Returns clusters around deltaBX for a given BX */
+  std::vector<GEMInternalCluster> getClusters(int bx, int deltaBX) const;
+
   /* Returns coincidence clusters for a given BX */
   std::vector<GEMInternalCluster> getCoincidenceClusters(int bx) const;
 

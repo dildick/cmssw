@@ -141,7 +141,7 @@ void CSCGEMMotherboard::matchALCTCLCTGEM(bool bunch_crossing_mask[CSCConstants::
                            alctProc->getSecondALCT(bx_alct),
                            clctProc->getBestCLCT(bx_clct),
                            clctProc->getSecondCLCT(bx_clct),
-                           clusterProc_->getClusters(bx_alct),
+                           clusterProc_->getClusters(bx_alct, max_delta_bx_alct_gem_),
                            allLCTs_(bx_alct, mbx, 0),
                            allLCTs_(bx_alct, mbx, 1));
 

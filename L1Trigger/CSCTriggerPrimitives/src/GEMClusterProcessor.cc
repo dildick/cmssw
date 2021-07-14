@@ -105,6 +105,19 @@ std::vector<GEMInternalCluster> GEMClusterProcessor::getClusters(int bx) const {
   return output;
 }
 
+std::vector<GEMInternalCluster> GEMClusterProcessor::getClusters(int bx, int deltaBX) const {
+  std::vector<GEMInternalCluster> output;
+
+  for (const auto& cl : clusters_) {
+    // valid single clusters with the right BX
+    if (std::abs(cl.bx() - bx) <= deltaBX and cl.isValid()) {
+      output.push_back(cl);
+    }
+  }
+
+  return output;
+}
+
 std::vector<GEMInternalCluster> GEMClusterProcessor::getCoincidenceClusters(int bx) const {
   std::vector<GEMInternalCluster> output;
 
