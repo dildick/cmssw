@@ -24,12 +24,14 @@ EMTFSetup::EMTFSetup(const edm::ParameterSet& iConfig)
   } else if (era() == "Run2_2017" || era() == "Run2_2018") {
     pt_assign_engine_ = std::make_unique<PtAssignmentEngine2017>();
   } else if (era() == "Run3_2021") {
-    pt_assign_engine_ = std::make_unique<PtAssignmentEngine2021>();  //TODO - implement ver 2021
+    pt_assign_engine_ = std::make_unique<PtAssignmentEngine2017>();
+    // pt_assign_engine_ = std::make_unique<PtAssignmentEngine2021>();  //TODO - implement ver 2021
   } else {
     throw cms::Exception("L1TMuonEndCap") << "Cannot recognize the era option: " << era();
-
-    xmlLutVersion_ = iConfig.getParameter<std::string>("xmlLutVersion");
   }
+
+  xmlLutVersion_ = iConfig.getParameter<std::string>("xmlLutVersion");
+  useCustomLUTs_ = iConfig.getParameter<bool>("useCustomLUTs");
 
   // No era setup for displaced pT assignment engine
   pt_assign_engine_dxy_ = std::make_unique<PtAssignmentEngineDxy>();
@@ -64,9 +66,12 @@ void EMTFSetup::reload(const edm::Event& iEvent, const edm::EventSetup& iSetup) 
   sector_processor_lut_.read(iEvent.isRealData(), get_pc_lut_version());
 
   // Reload pT LUT if necessary
-  //pt_assign_engine_->load(get_pt_lut_version(), condition_helper_.getForest());
-  std::cout << "Loading LUT " << xmlLutVersion_ << std::endl;
-  pt_assign_engine_->read(get_pt_lut_version(), xmlLutVersion_);
-
+  if (!useCustomLUTs_) {
+    pt_assign_engine_->load(get_pt_lut_version(), condition_helper_.getForest());
+  }
+  else {
+    std::cout << "Loading LUT " << xmlLutVersion_ << std::endl;
+    pt_assign_engine_->read(get_pt_lut_version(), xmlLutVersion_);
+  }
   return;
 }

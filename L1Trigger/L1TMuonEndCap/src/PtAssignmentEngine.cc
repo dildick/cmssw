@@ -12,7 +12,7 @@ PtAssignmentEngine::~PtAssignmentEngine() {}
 // Runs over local XMLs if we are not running from the database
 // void PtAssignmentEngine::read(const std::string& xml_dir, const unsigned xml_nTrees) {
 void PtAssignmentEngine::read(int pt_lut_version, const std::string& xml_dir) {
-  std::string xml_dir_full = "L1Trigger/L1TMuonEndCap/data/pt_xmls/" + xml_dir;
+  std::string xml_dir_full = "L1Trigger/L1TMuonEndCap/data/pt_xmls/v0p0/" + xml_dir;
   unsigned xml_nTrees = 64;  // 2016 XMLs
   if (pt_lut_version >= 6)
     xml_nTrees = 400;  // First 2017 XMLs

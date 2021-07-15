@@ -42,6 +42,7 @@ private:
   const edm::EDGetToken tokenME0_;
 
   int verbose_;
+  bool loadOnce_;
 };
 
 #endif

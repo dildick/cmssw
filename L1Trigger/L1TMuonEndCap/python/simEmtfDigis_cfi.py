@@ -9,17 +9,20 @@ import FWCore.ParameterSet.Config as cms
 ###               configurations in configure_by_fw_version in src/SectorProcessor.cc       ###
 ###############################################################################################
 
-simEmtfDigisMC = cms.EDProducer("L1TMuonEndCapTrackProducer",
+simEmtfDigisMC = cms.EDProducer(
+    "L1TMuonEndCapTrackProducer",
+
     # Verbosity level
     verbosity = cms.untracked.int32(0),
 
-                                xmlLutVersion = cms.string('v1p0/'),
+    xmlLutVersion = cms.string('v0p0/'),
+    useCustomLUTs = cms.bool(False),
 
     # Configure by firmware version, which may be different than the default parameters in this file
     FWConfig = cms.bool(True),
 
     # Era (options: 'Run2_2016', 'Run2_2017', 'Run2_2018', 'Run3_2021')
-    Era = cms.string('Run3_2021'),
+    Era = cms.string('Run2_2018'),
 
     # Input collections
     # Three options for CSCInput

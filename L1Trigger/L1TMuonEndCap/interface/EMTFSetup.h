@@ -74,6 +74,7 @@ private:
   unsigned pc_lut_ver_;
 
   std::string xmlLutVersion_;
+  bool useCustomLUTs_;
 };
 
 #endif
