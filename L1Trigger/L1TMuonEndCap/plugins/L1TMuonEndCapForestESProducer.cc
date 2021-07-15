@@ -12,6 +12,7 @@
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine.h"
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2016.h"
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2017.h"
+#include "L1Trigger/L1TMuonEndCap/interface/PtAssignmentEngine2021.h"
 #include "L1Trigger/L1TMuonEndCap/interface/bdt/Node.h"
 #include "L1Trigger/L1TMuonEndCap/interface/bdt/Tree.h"
 #include "L1Trigger/L1TMuonEndCap/interface/bdt/Forest.h"
@@ -96,9 +97,11 @@ L1TMuonEndCapForestESProducer::ReturnType L1TMuonEndCapForestESProducer::produce
   PtAssignmentEngine* pt_assign_engine_;
   std::unique_ptr<PtAssignmentEngine> pt_assign_engine_2016_;
   std::unique_ptr<PtAssignmentEngine> pt_assign_engine_2017_;
+  std::unique_ptr<PtAssignmentEngine> pt_assign_engine_2021_;
 
   pt_assign_engine_2016_ = std::make_unique<PtAssignmentEngine2016>();
   pt_assign_engine_2017_ = std::make_unique<PtAssignmentEngine2017>();
+  pt_assign_engine_2017_ = std::make_unique<PtAssignmentEngine2021>();
 
   if (ptLUTVersion <= 5)
     pt_assign_engine_ = pt_assign_engine_2016_.get();

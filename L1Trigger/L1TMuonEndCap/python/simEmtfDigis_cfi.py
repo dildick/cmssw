@@ -9,14 +9,19 @@ import FWCore.ParameterSet.Config as cms
 ###               configurations in configure_by_fw_version in src/SectorProcessor.cc       ###
 ###############################################################################################
 
-simEmtfDigisMC = cms.EDProducer("L1TMuonEndCapTrackProducer",
+simEmtfDigisMC = cms.EDProducer(
+    "L1TMuonEndCapTrackProducer",
+
     # Verbosity level
     verbosity = cms.untracked.int32(0),
+
+    xmlLutVersion = cms.string('v0p0/'),
+    useCustomLUTs = cms.bool(False),
 
     # Configure by firmware version, which may be different than the default parameters in this file
     FWConfig = cms.bool(True),
 
-    # Era (options: 'Run2_2016', 'Run2_2017', 'Run2_2018')
+    # Era (options: 'Run2_2016', 'Run2_2017', 'Run2_2018', 'Run3_2021')
     Era = cms.string('Run2_2018'),
 
     # Input collections
@@ -63,6 +68,7 @@ simEmtfDigisMC = cms.EDProducer("L1TMuonEndCapTrackProducer",
         FixZonePhi      = cms.bool(True),  # Pattern phi slightly offset from true LCT phi; also ME3/4 pattern width off
         UseNewZones     = cms.bool(False), # Improve high-quality pattern finding near ring 1-2 gap in ME3/4
         FixME11Edges    = cms.bool(True),  # Improved small fraction of buggy LCT coordinate transformations
+        UseRun3CCLUT    = cms.bool(False),  # New Run 3 CSC TPs using CCLUT algorithm
     ),
 
     # Sector processor pattern-recognition parameters
@@ -157,3 +163,7 @@ stage2L1Trigger_2017.toModify(simEmtfDigis, RPCEnable = cms.bool(True), Era = cm
 ## Era: Run2_2018
 from Configuration.Eras.Modifier_stage2L1Trigger_2018_cff import stage2L1Trigger_2018
 stage2L1Trigger_2018.toModify(simEmtfDigis, RPCEnable = cms.bool(True), Era = cms.string('Run2_2018'))
+
+## Era: Run3_2021
+from Configuration.Eras.Modifier_stage2L1Trigger_2021_cff import stage2L1Trigger_2021
+stage2L1Trigger_2021.toModify(simEmtfDigis, RPCEnable = cms.bool(True), spPCParams16 = dict(UseRun3CCLUT = True), Era = cms.string('Run3_2021'))

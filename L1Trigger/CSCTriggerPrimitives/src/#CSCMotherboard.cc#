@@ -128,7 +128,7 @@ void CSCMotherboard::run(const CSCWireDigiCollection* wiredc, const CSCComparato
     return;
 
   // encode high multiplicity bits
-  encodeHighMultiplicityBits();
+  // encodeHighMultiplicityBits();
 
   // ALCT-centric ALCT-to-CLCT matching
   int used_clct_mask[20];
@@ -420,8 +420,8 @@ CSCCorrelatedLCTDigi CSCMotherboard::constructLCTs(const CSCALCTDigi& aLCT,
     thisLCT.setRun3(true);
     // 4-bit slope value derived with the CCLUT algorithm
     thisLCT.setSlope(cLCT.getSlope());
-    thisLCT.setQuartStripBit(cLCT.getQuartStripBit());
-    thisLCT.setEighthStripBit(cLCT.getEighthStripBit());
+    thisLCT.setQuartStrip(cLCT.getQuartStrip());
+    thisLCT.setEighthStrip(cLCT.getEighthStrip());
     thisLCT.setRun3Pattern(cLCT.getRun3Pattern());
   }
 

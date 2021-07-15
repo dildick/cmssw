@@ -16,7 +16,9 @@ TrackFinder::TrackFinder(const edm::ParameterSet& iConfig, edm::ConsumesCollecto
       tokenCPPF_(iConsumes.consumes<emtf::CPPFTag::digi_collection>(iConfig.getParameter<edm::InputTag>("CPPFInput"))),
       tokenGEM_(iConsumes.consumes<emtf::GEMTag::digi_collection>(iConfig.getParameter<edm::InputTag>("GEMInput"))),
       tokenME0_(iConsumes.consumes<emtf::ME0Tag::digi_collection>(iConfig.getParameter<edm::InputTag>("ME0Input"))),
-      verbose_(iConfig.getUntrackedParameter<int>("verbosity")) {}
+  verbose_(iConfig.getUntrackedParameter<int>("verbosity")) {
+  loadOnce_ = true;
+}
 
 TrackFinder::~TrackFinder() {}
 
@@ -29,8 +31,10 @@ void TrackFinder::process(const edm::Event& iEvent,
   out_tracks.clear();
 
   // Check and update geometry, conditions, versions, sp LUTs, and pt assignment engine
-  setup_.reload(iEvent, iSetup);
-
+  if (loadOnce_){
+    setup_.reload(iEvent, iSetup);
+    loadOnce_ = false;
+  }
   auto tp_geom_ = &(setup_.getGeometryTranslator());
 
   // Check versions
