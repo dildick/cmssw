@@ -250,7 +250,6 @@ void GEMClusterProcessor::addSingleClusters(const GEMPadDigiClusterCollection* i
 void GEMClusterProcessor::doCoordinateConversion() {
   // loop on clusters
   for (auto& cluster : clusters_) {
-
     if (cluster.cl1().isValid()) {
       // starting coordinates
       const int layer1_first_pad = cluster.layer1_pad();
@@ -266,28 +265,28 @@ void GEMClusterProcessor::doCoordinateConversion() {
       if (station_ == 1) {
         if (isEven_) {
           // ME1/b
-          layer1_pad_to_first_hs =  GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer1_first_pad);
-          layer1_pad_to_last_hs =   GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer1_last_pad);
+          layer1_pad_to_first_hs = GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer1_first_pad);
+          layer1_pad_to_last_hs = GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer1_last_pad);
           // ME1/a
-          layer1_pad_to_first_hs_me1a =  GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer1_first_pad);
-          layer1_pad_to_last_hs_me1a =   GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer1_last_pad);
+          layer1_pad_to_first_hs_me1a = GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer1_first_pad);
+          layer1_pad_to_last_hs_me1a = GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer1_last_pad);
         } else {
           // ME1/b
-          layer1_pad_to_first_hs =  GEMCSCLUT_pad_hs_ME1b_odd_->lookup(layer1_first_pad);
-          layer1_pad_to_last_hs =  GEMCSCLUT_pad_hs_ME1b_odd_->lookup(layer1_last_pad);
+          layer1_pad_to_first_hs = GEMCSCLUT_pad_hs_ME1b_odd_->lookup(layer1_first_pad);
+          layer1_pad_to_last_hs = GEMCSCLUT_pad_hs_ME1b_odd_->lookup(layer1_last_pad);
           // ME1/a
-          layer1_pad_to_first_hs_me1a =  GEMCSCLUT_pad_hs_ME1a_odd_->lookup(layer1_first_pad);
-          layer1_pad_to_last_hs_me1a =  GEMCSCLUT_pad_hs_ME1a_odd_->lookup(layer1_last_pad);
+          layer1_pad_to_first_hs_me1a = GEMCSCLUT_pad_hs_ME1a_odd_->lookup(layer1_first_pad);
+          layer1_pad_to_last_hs_me1a = GEMCSCLUT_pad_hs_ME1a_odd_->lookup(layer1_last_pad);
         }
       }
       // ME2/1
       if (station_ == 2) {
         if (isEven_) {
-          layer1_pad_to_first_hs =  GEMCSCLUT_pad_hs_ME21_even_->lookup(layer1_first_pad);
-          layer1_pad_to_last_hs =  GEMCSCLUT_pad_hs_ME21_even_->lookup(layer1_last_pad);
+          layer1_pad_to_first_hs = GEMCSCLUT_pad_hs_ME21_even_->lookup(layer1_first_pad);
+          layer1_pad_to_last_hs = GEMCSCLUT_pad_hs_ME21_even_->lookup(layer1_last_pad);
         } else {
-          layer1_pad_to_first_hs =  GEMCSCLUT_pad_hs_ME21_odd_->lookup(layer1_first_pad);
-          layer1_pad_to_last_hs =  GEMCSCLUT_pad_hs_ME21_odd_->lookup(layer1_last_pad);
+          layer1_pad_to_first_hs = GEMCSCLUT_pad_hs_ME21_odd_->lookup(layer1_first_pad);
+          layer1_pad_to_last_hs = GEMCSCLUT_pad_hs_ME21_odd_->lookup(layer1_last_pad);
         }
       }
       // middle 1/2-strip
@@ -315,28 +314,28 @@ void GEMClusterProcessor::doCoordinateConversion() {
       if (station_ == 1) {
         if (isEven_) {
           // ME1/b
-          layer1_pad_to_first_es =  GEMCSCLUT_pad_es_ME1b_even_->lookup(layer1_first_pad);
-          layer1_pad_to_last_es =  GEMCSCLUT_pad_es_ME1b_even_->lookup(layer1_last_pad);
+          layer1_pad_to_first_es = GEMCSCLUT_pad_es_ME1b_even_->lookup(layer1_first_pad);
+          layer1_pad_to_last_es = GEMCSCLUT_pad_es_ME1b_even_->lookup(layer1_last_pad);
           // ME1/a
-          layer1_pad_to_first_es_me1a =  GEMCSCLUT_pad_es_ME1a_even_->lookup(layer1_first_pad);
-          layer1_pad_to_last_es_me1a =  GEMCSCLUT_pad_es_ME1a_even_->lookup(layer1_last_pad);
+          layer1_pad_to_first_es_me1a = GEMCSCLUT_pad_es_ME1a_even_->lookup(layer1_first_pad);
+          layer1_pad_to_last_es_me1a = GEMCSCLUT_pad_es_ME1a_even_->lookup(layer1_last_pad);
         } else {
           // ME1/b
-          layer1_pad_to_first_es =  GEMCSCLUT_pad_es_ME1b_odd_->lookup(layer1_first_pad);
-          layer1_pad_to_last_es =  GEMCSCLUT_pad_es_ME1b_odd_->lookup(layer1_last_pad);
+          layer1_pad_to_first_es = GEMCSCLUT_pad_es_ME1b_odd_->lookup(layer1_first_pad);
+          layer1_pad_to_last_es = GEMCSCLUT_pad_es_ME1b_odd_->lookup(layer1_last_pad);
           // ME1/a
-          layer1_pad_to_first_es_me1a =  GEMCSCLUT_pad_es_ME1a_odd_->lookup(layer1_first_pad);
-          layer1_pad_to_last_es_me1a =  GEMCSCLUT_pad_es_ME1a_odd_->lookup(layer1_last_pad);
+          layer1_pad_to_first_es_me1a = GEMCSCLUT_pad_es_ME1a_odd_->lookup(layer1_first_pad);
+          layer1_pad_to_last_es_me1a = GEMCSCLUT_pad_es_ME1a_odd_->lookup(layer1_last_pad);
         }
       }
       // ME2/1
       if (station_ == 2) {
         if (isEven_) {
-          layer1_pad_to_first_es =  GEMCSCLUT_pad_es_ME21_even_->lookup(layer1_first_pad);
-          layer1_pad_to_last_es =  GEMCSCLUT_pad_es_ME21_even_->lookup(layer1_last_pad);
+          layer1_pad_to_first_es = GEMCSCLUT_pad_es_ME21_even_->lookup(layer1_first_pad);
+          layer1_pad_to_last_es = GEMCSCLUT_pad_es_ME21_even_->lookup(layer1_last_pad);
         } else {
-          layer1_pad_to_first_es =  GEMCSCLUT_pad_es_ME21_odd_->lookup(layer1_first_pad);
-          layer1_pad_to_last_es =  GEMCSCLUT_pad_es_ME21_odd_->lookup(layer1_last_pad);
+          layer1_pad_to_first_es = GEMCSCLUT_pad_es_ME21_odd_->lookup(layer1_first_pad);
+          layer1_pad_to_last_es = GEMCSCLUT_pad_es_ME21_odd_->lookup(layer1_last_pad);
         }
       }
       // middle 1/8-strip
@@ -387,7 +386,6 @@ void GEMClusterProcessor::doCoordinateConversion() {
       cluster.set_layer1_max_wg(roll_l1_to_max_wg);
     }
 
-
     if (cluster.cl2().isValid()) {
       // starting coordinates
       const int layer2_first_pad = cluster.layer2_pad();
@@ -402,11 +400,11 @@ void GEMClusterProcessor::doCoordinateConversion() {
       if (station_ == 1) {
         if (isEven_) {
           // ME1/b
-          layer2_pad_to_first_hs =                     GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer2_first_pad);
-          layer2_pad_to_last_hs =                      GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer2_last_pad);
+          layer2_pad_to_first_hs = GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer2_first_pad);
+          layer2_pad_to_last_hs = GEMCSCLUT_pad_hs_ME1b_even_->lookup(layer2_last_pad);
           // ME1/a
-          layer2_pad_to_first_hs_me1a =                     GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer2_first_pad);
-          layer2_pad_to_last_hs_me1a =                      GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer2_last_pad);
+          layer2_pad_to_first_hs_me1a = GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer2_first_pad);
+          layer2_pad_to_last_hs_me1a = GEMCSCLUT_pad_hs_ME1a_even_->lookup(layer2_last_pad);
         } else {
           // ME1/b
           layer2_pad_to_first_hs = GEMCSCLUT_pad_hs_ME1b_odd_->lookup(layer2_first_pad);

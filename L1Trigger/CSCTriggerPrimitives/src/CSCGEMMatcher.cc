@@ -220,7 +220,6 @@ void CSCGEMMatcher::matchingClustersLoc(const CSCCLCTDigi& clct,
 
 // match by 1/2-strip
 bool CSCGEMMatcher::matchedClusterLocHS(const CSCCLCTDigi& clct, const GEMInternalCluster& cluster) const {
-
   const bool isME1a(station_ == 1 and clct.getKeyStrip() > CSCConstants::MAX_HALF_STRIP_ME1B);
 
   unsigned halfStripDiff = std::abs(int(clct.getKeyStrip(2)) - int(cluster.getKeyStrip(2)));

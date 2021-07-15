@@ -68,7 +68,6 @@ tmbPhase2GEM = tmbPhase2.clone(
     dropLowQualityCLCTsNoGEMs = cms.bool(True),
     buildLCTfromALCTandGEM = cms.bool(True),
     buildLCTfromCLCTandGEM = cms.bool(True),
-
     # assign GEM-CSC bending angle. Works only for
     # Run-3 GEM-CSC TPs.
     assignGEMCSCBending = cms.bool(False),
@@ -79,7 +78,7 @@ tmbPhase2GEM = tmbPhase2.clone(
     # the first BX with matching GEM coincidence clusters
     matchEarliestGemsOnly = cms.bool(False),
     # When running the GEM-CSC matching, whether to mitigate
-    # the slope of CLCTs with high, meaning inconsistent, 
+    # the slope of CLCTs with high, meaning inconsistent,
     # values of cosi (consistency of slope indicator)
     # to optimize GEM-CSC slope correction
     mitigateSlopeByCosi = cms.bool(True),
@@ -103,7 +102,6 @@ tmbPhase2GE21 = tmbPhase2GEM.clone(
     # matching to GEM clusters with half-strips
     maxDeltaHsEven = cms.uint32(7*2),
     maxDeltaHsOdd = cms.uint32(16*2),
-
     dropLowQualityALCTsNoGEMs = True,
 )
 

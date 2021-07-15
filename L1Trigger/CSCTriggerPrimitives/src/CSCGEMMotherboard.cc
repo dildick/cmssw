@@ -351,7 +351,6 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
                                          const GEMInternalClusters& clusters,
                                          CSCCorrelatedLCTDigi& lct1,
                                          CSCCorrelatedLCTDigi& lct2) const {
-
   if (isME21_ and !hasGE21Geometry16Partitions_) {
     // This is an 8-eta partition GE2/1 geometry for which the GE2/1-ME2/1 integrated
     // local trigger is not configured. Matching only ALCTs with CLCTs in ME2/1.
@@ -454,8 +453,7 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
         constructLCTsGEM(secondALCT, bestCLCT, sbCluster, lctsb);
         lcts.push_back(lctsb);
       }
-      if (secondALCT.isValid() and secondCLCT.isValid() and (secondALCT != bestALCT) and
-          (secondCLCT != bestCLCT)) {
+      if (secondALCT.isValid() and secondCLCT.isValid() and (secondALCT != bestALCT) and (secondCLCT != bestCLCT)) {
         constructLCTsGEM(secondALCT, secondCLCT, ssCluster, lctss);
         lcts.push_back(lctss);
       }
@@ -491,7 +489,7 @@ void CSCGEMMotherboard::constructLCTsGEM(const CSCALCTDigi& alct,
   thisLCT.setValid(true);
   if (gem.isCoincidence()) {
     thisLCT.setType(CSCCorrelatedLCTDigi::ALCTCLCT2GEM);
-  } else if (gem.isValid()){
+  } else if (gem.isValid()) {
     thisLCT.setType(CSCCorrelatedLCTDigi::ALCTCLCTGEM);
   } else {
     thisLCT.setType(CSCCorrelatedLCTDigi::ALCTCLCT);
