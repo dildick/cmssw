@@ -76,7 +76,7 @@ tmbPhase2GEM = tmbPhase2.clone(
     tmbDropUsedGems = cms.bool(False),
     # For ALCT-centric matching to GEMs, break after finding
     # the first BX with matching GEM coincidence clusters
-    matchEarliestGemsOnly = cms.bool(False),
+    matchEarliestGemsOnly = cms.bool(True),
     # When running the GEM-CSC matching, whether to mitigate
     # the slope of CLCTs with high, meaning inconsistent,
     # values of cosi (consistency of slope indicator)

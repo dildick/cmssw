@@ -177,10 +177,10 @@ void CSCGEMMotherboard::matchCLCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
     if (!clusterProc_->getCoincidenceClusters(bx_gem).empty()) {
       // GEM clusters will have central BX 8. So do ALCTs. But! CLCTs still have central BX 7
       // therefore we need to make a correction. The correction is thus the same as for ALCT-CLCT
-      const int bx_clct_start(bx_gem - max_delta_bx_clct_gem_ - CSCConstants::ALCT_CLCT_OFFSET);
-      const int bx_clct_stop(bx_gem + max_delta_bx_clct_gem_ - CSCConstants::ALCT_CLCT_OFFSET);
+      for (unsigned mbx = 0; mbx < 2 * max_delta_bx_clct_gem_ + 1; mbx++) {
+        // evaluate the preffered CLCT BX, taking into account that there is an offset in the simulation
+        int bx_clct = bx_gem + preferred_bx_match_[mbx] - CSCConstants::ALCT_CLCT_OFFSET;
 
-      for (int bx_clct = bx_clct_start; bx_clct <= bx_clct_stop; bx_clct++) {
         // CLCT BX must be in the time window
         if (bx_clct < 0 or bx_clct >= CSCConstants::MAX_CLCT_TBINS)
           continue;
@@ -196,7 +196,6 @@ void CSCGEMMotherboard::matchCLCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
           // mbx is a relative time difference, which is used later in the
           // cross-bunching sorting algorithm to determine the preferred LCTs
           // to be sent to the MPC
-          int mbx = bx_clct - bx_clct_start;
           correlateLCTsGEM(clctProc->getBestCLCT(bx_clct),
                            clctProc->getSecondCLCT(bx_clct),
                            clusterProc_->getCoincidenceClusters(bx_gem),
@@ -235,10 +234,13 @@ void CSCGEMMotherboard::matchALCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
       continue;
 
     if (alctProc->getBestALCT(bx_alct).isValid()) {
-      const int bx_gem_start(bx_alct - max_delta_bx_alct_gem_);
-      const int bx_gem_stop(bx_alct + max_delta_bx_alct_gem_);
+      std::cout << "Attempt matchALCT2GEM in BX " << bx_alct << std::endl;
+      std::cout << alctProc->getBestALCT(bx_alct) << std::endl;
 
-      for (int bx_gem = bx_gem_start; bx_gem <= bx_gem_stop; bx_gem++) {
+      for (unsigned mbx = 0; mbx < 2 * max_delta_bx_alct_gem_ + 1; mbx++) {
+        // evaluate the preffered GEM BX
+        int bx_gem = bx_alct + preferred_bx_match_[mbx];
+
         if (bx_gem < 0 or bx_gem >= CSCConstants::MAX_ALCT_TBINS)
           continue;
         // drop GEMs in this BX if one of them was previously matched to an ALCT
@@ -246,10 +248,11 @@ void CSCGEMMotherboard::matchALCT2GEM(bool bunch_crossing_mask[CSCConstants::MAX
           continue;
         // check for at least one valid GEM cluster
         if (!clusterProc_->getCoincidenceClusters(bx_gem).empty()) {
-          // mbx is a relative time difference, which is used later in the
-          // cross-bunching sorting algorithm to determine the preferred LCTs
-          // to be sent to the MPC
-          int mbx = bx_gem - bx_gem_start;
+          for (const auto& c : clusterProc_->getCoincidenceClusters(bx_gem)) {
+            std::cout << "\t" << c << std::endl;
+          }
+          // now correlate the ALCT and GEM into LCT.
+          // smaller mbx means more preferred!
           correlateLCTsGEM(alctProc->getBestALCT(bx_alct),
                            alctProc->getSecondALCT(bx_alct),
                            clusterProc_->getCoincidenceClusters(bx_gem),
@@ -389,9 +392,6 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
     }
     // case with at least one valid cluster
     else {
-      // check which ALCTs and CLCTs are valid
-      copyValidToInValid(bestALCT, secondALCT, bestCLCT, secondCLCT);
-
       // before matching ALCT-CLCT pairs with clusters, we check if we need
       // to drop particular low quality ALCTs or CLCTs without matching clusters
       // drop low quality CLCTs if no clusters and flags are set
@@ -413,11 +413,14 @@ void CSCGEMMotherboard::correlateLCTsGEM(const CSCALCTDigi& bALCT,
       dropLowQualityCLCTNoClusters(bestCLCT, bestCLCTCluster);
       dropLowQualityCLCTNoClusters(secondCLCT, secondCLCTCluster);
 
-      // std::cout << "CSCGEMMotherboard::correlateLCTsGEM::postdrop" << "\n"
-      //           << bestALCT << " " << bestALCTCluster << "\n"
-      //           << secondALCT << " " << secondALCTCluster << "\n"
-      //           << bestCLCT << " " << bestCLCTCluster << "\n"
-      //           << secondCLCT << " " << secondCLCTCluster << std::endl;
+      // check which ALCTs and CLCTs are valid after dropping the low-quality ones
+      copyValidToInValid(bestALCT, secondALCT, bestCLCT, secondCLCT);
+
+       std::cout << "CSCGEMMotherboard::correlateLCTsGEM::postdrop" << "\n"
+                 << bestALCT << " " << bestALCTCluster << "\n"
+                 << secondALCT << " " << secondALCTCluster << "\n"
+                 << bestCLCT << " " << bestCLCTCluster << "\n"
+                 << secondCLCT << " " << secondCLCTCluster << std::endl;
 
       // We can now check possible triplets and construct all LCTs with
       // valid ALCT, valid CLCTs and coincidence clusters
